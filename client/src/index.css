@@ -1,0 +1,30 @@
+/* Reset default margins and padding */
+#root {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    background-color: #595959;
+    box-sizing: border-box;
+}
+
+/* src/index.css */
+@font-face {
+    font-family: "Pixelar";
+    src: url("./assets/fonts/pixelar/PixelarRegular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap; /* Optional: Ensures text is visible while font loads */
+}

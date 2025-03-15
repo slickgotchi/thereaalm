@@ -1,0 +1,32 @@
+# Node (React/TypeScript)
+node_modules/
+dist/
+build/
+.vite/
+*.log
+*.env
+.env.local
+.env.production
+.env.development
+.DS_Store
+
+# Go (Backend)
+bin/
+*.exe
+*.exe~
+*.out
+*.test
+vendor/
+.env
+coverage.out
+
+# IDE/Editor Specific
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# System
+Thumbs.db
+.DS_Store
+
