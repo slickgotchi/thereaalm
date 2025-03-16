@@ -2,7 +2,6 @@
 package world
 
 import (
-	"log"
 	"thereaalm/entity"
 )
 
@@ -31,7 +30,7 @@ func (z *Zone) AddEntity(e entity.Entity) {
 }
 
 func (z *Zone) Update() {
-    log.Printf("Updating Zone %d with %d entities", z.ID, len(z.Entities))
+    // log.Printf("Updating Zone %d with %d entities", z.ID, len(z.Entities))
     for _, e := range z.Entities {
         e.Update()
         // pos := e.GetPosition()

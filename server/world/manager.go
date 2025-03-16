@@ -13,8 +13,8 @@ import (
 )
 
 const (
-    ZoneWidth  = 128
-    ZoneHeight = 128
+    ZoneTiles  = 256
+    // ZoneHeight = 128
 )
 
 type WorldManager struct {
@@ -38,7 +38,7 @@ func NewWorldManager(workerCount int) *WorldManager {
             if zoneType == "" {
                 continue
             }
-            zone := NewZone(zoneID, ZoneWidth, ZoneHeight, x*ZoneWidth, y*ZoneHeight)
+            zone := NewZone(zoneID, ZoneTiles, ZoneTiles, x*ZoneTiles, y*ZoneTiles)
             manager.Zones = append(manager.Zones, zone)
             zoneID++
         }
@@ -49,16 +49,16 @@ func NewWorldManager(workerCount int) *WorldManager {
     }
 
     // Load initial Gotchis into Zone 0
-    manager.loadInitialGotchis(5)
+    manager.loadInitialGotchis()
 
     log.Printf("World initialized with %d active zones.", len(manager.Zones))
     return manager
 }
 
-func (wm *WorldManager) loadInitialGotchis(batchSize int) {
+func (wm *WorldManager) loadInitialGotchis() {
     log.Println("Loading Gotchis from subgraph...")
 
-    gotchiData := storage.GetLatestDatabaseGotchiEntities(batchSize)
+    gotchiData := storage.GetLatestDatabaseGotchiEntities()
     if len(gotchiData) == 0 {
         log.Println("No Gotchis loaded.")
         return
@@ -68,14 +68,22 @@ func (wm *WorldManager) loadInitialGotchis(batchSize int) {
         log.Fatal("Error: No zones available to add Gotchis.")
     }
 
-    for _, g := range gotchiData {
-        x := rand.Intn(ZoneWidth) + wm.Zones[0].X
-        y := rand.Intn(ZoneHeight) + wm.Zones[0].Y
-        gotchi := entities.NewGotchi(0, x, y, g)
-        wm.Zones[0].AddEntity(gotchi)
-    }
+    // place gotchis across all available zones, in ZoneMap
+    // start with a known seed
+    r := rand.New(rand.NewSource(123))
 
-    log.Printf("%d Gotchis placed in Zone 0.\n", len(gotchiData))
+    for _, g := range gotchiData {
+        // pick random zone
+        zoneIndex := r.Intn(len(wm.Zones))
+
+        // pick random location in the zone
+        x := r.Intn(ZoneTiles) + wm.Zones[zoneIndex].X
+        y := r.Intn(ZoneTiles) + wm.Zones[zoneIndex].Y
+
+        // create new gotchi
+        gotchi := entities.NewGotchi(0, x, y, g)
+        wm.Zones[zoneIndex].AddEntity(gotchi)
+    }
 }
 
 func (wm *WorldManager) Run() {

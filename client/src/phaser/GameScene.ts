@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import { fetchBulkGotchiSVGs } from "./FetchGotchis"; // Adjust path as needed
 import { resizeGame } from "./ResizeGame";
+import { WorldMap } from "./WorldMap";
+import { CameraController } from "./CameraController";
 
 interface GotchiPosition {
     uuid: string; // Matches server's "uuid"
@@ -9,7 +11,8 @@ interface GotchiPosition {
     y: number;
 }
 
-const TILE_TO_PIXELS = 64;
+export const TILE_PIXELS = 64;
+export const ZONE_TILES = 256;
 const GAME_WIDTH = 1920;
 const GAME_HEIGHT = 1200;
 
@@ -24,44 +27,54 @@ interface GotchiState {
     sprite?: Phaser.GameObjects.Sprite; // Sprite reference
     position: { x: number; y: number }; // Store position for updates
     gotchiId: string; // Store gotchiId for SVG fetching
+    zoneId: number;
 }
 
 export class GameScene extends Phaser.Scene {
     private gotchiMap: Map<string, GotchiState> = new Map();
+    private worldMap!: WorldMap;
+    private cameraController!: CameraController;
+    private worldWidth: number = 10 * ZONE_TILES * TILE_PIXELS;
+    private worldHeight: number = 10 * ZONE_TILES * TILE_PIXELS;
+    private newGotchiSVGCounter = 0;
+
+    private currentZoneIndex = 0;
 
     constructor() {
         super("GameScene");
     }
 
-    create() {
+    async create() {
         this.gotchiMap.clear(); // Initialize the map
         console.log("Initialized gotchiMap:", this.gotchiMap.size); // Debug initial map state
 
-        const rect = this.add
-            .rectangle(100, 100, 100, 100, 0xffffff)
-            .setOrigin(0, 0)
-            .setAlpha(0.2);
+        // Set up the camera controller
+        this.cameraController = new CameraController(
+            this,
+            this.worldWidth,
+            this.worldHeight
+        );
 
-        const circ = this.add.circle(0, 0, 5, 0xffffff).setOrigin(0.5, 0.5);
+        // Create and draw the world map
+        this.worldMap = new WorldMap(this);
+        const numZones = await this.worldMap.draw();
 
-        // resizeGame(this);
-        // window.addEventListener("resize", () => resizeGame(this));
+        // Function to fetch and process zone snapshot
+        const fetchAndProcessZone = () => {
+            this.fetchZoneSnapshot(this.currentZoneIndex).then((data) => {
+                this.addOrUpdateGotchis(this.currentZoneIndex, data);
+            });
+            this.currentZoneIndex++;
+            if (this.currentZoneIndex >= numZones) {
+                this.currentZoneIndex = 0;
+            }
+        };
 
-        // Fetch initial snapshot for Zone 0
-        this.fetchZoneSnapshot(0).then((data) => {
-            this.addOrUpdateGotchis(data);
-        });
+        // Call immediately
+        fetchAndProcessZone();
 
-        // Fetch snapshot every 10 seconds
-        this.time.addEvent({
-            delay: 10000, // 10 seconds
-            callback: () => {
-                this.fetchZoneSnapshot(0).then((data) => {
-                    this.addOrUpdateGotchis(data);
-                });
-            },
-            loop: true,
-        });
+        // Continue every 5000ms
+        setInterval(fetchAndProcessZone, 5000);
     }
 
     shutdown() {
@@ -74,7 +87,7 @@ export class GameScene extends Phaser.Scene {
                 `http://localhost:8080/zones/${zoneId}/snapshot`
             );
             const data = await response.json();
-            console.log("Fetched snapshot data:", data); // Debug snapshot data
+            console.log(`Fetched zone ${zoneId} snapshot data:`, data); // Debug snapshot data
             return data.gotchis || [];
         } catch (error) {
             console.error("Failed to fetch zone snapshot:", error);
@@ -82,27 +95,26 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private addOrUpdateGotchis(gotchisData: GotchiPosition[]) {
-        console.log("Processing snapshot with Gotchis:", gotchisData); // Debug input data
-        // console.log(
-        //     "Current gotchiMap before update:",
-        //     Array.from(this.gotchiMap.entries())
-        // ); // Debug map state
-
+    private addOrUpdateGotchis(zoneId: number, gotchisData: GotchiPosition[]) {
         // get all current gotchi ids in this.gotchiMap
         const currentIds = new Set(this.gotchiMap.keys());
 
         // go through gotchisData received from latest snapshot
         // - iterating over each gotchisData datum, delete items from currentIds that match
         // - this leaves us with currentIds that are no longer in the snapshot
-        gotchisData.forEach((gotchi) => currentIds.delete(gotchi.uuid));
+        gotchisData.forEach((gotchi) => {
+            const existingGotchi = this.gotchiMap.get(gotchi.uuid);
+            if (existingGotchi && existingGotchi.zoneId !== zoneId) {
+                console.log("deleting gotchi ", gotchi.gotchiId);
+                currentIds.delete(gotchi.uuid);
+            }
+        });
 
         // delete items in gotchiMap that no longer exist according to the latest snapshot
         currentIds.forEach((uuid) => {
             const state = this.gotchiMap.get(uuid);
             if (state?.sprite) state.sprite.destroy();
             this.gotchiMap.delete(uuid);
-            console.log(`Removed Gotchi UUID ${uuid} from map`); // Debug removal
         });
 
         // now process all gotchis in gotchisData
@@ -112,8 +124,8 @@ export class GameScene extends Phaser.Scene {
 
             // NEW GOTCHI - lets make a new gotchi for the gotchiMap
             if (!existingState) {
-                const newX = gotchi.x * TILE_TO_PIXELS * 0.1;
-                const newY = gotchi.y * TILE_TO_PIXELS * 0.1;
+                const newX = gotchi.x * TILE_PIXELS;
+                const newY = gotchi.y * TILE_PIXELS;
                 // New Gotchi: Initialize state and add to map
                 this.gotchiMap.set(gotchi.uuid, {
                     svgState: "ToBeFetched",
@@ -121,17 +133,18 @@ export class GameScene extends Phaser.Scene {
                         x: newX,
                         y: newY,
                     },
-                    gotchiId: gotchi.gotchiId, // Store gotchiId for SVG fetching
+                    gotchiId: gotchi.gotchiId, // Store gotchiId for SVG fetching,
+                    zoneId: zoneId,
                 });
 
-                console.log(
-                    `Added new Gotchi UUID ${gotchi.uuid} with gotchiId ${gotchi.gotchiId} to map`
-                );
+                // console.log(
+                //     `Added new Gotchi UUID ${gotchi.uuid} with gotchiId ${gotchi.gotchiId} to map`
+                // );
             } else {
                 // Update position for existing Gotchi
                 existingState.position = {
-                    x: gotchi.x * TILE_TO_PIXELS,
-                    y: gotchi.y * TILE_TO_PIXELS,
+                    x: gotchi.x * TILE_PIXELS,
+                    y: gotchi.y * TILE_PIXELS,
                 };
 
                 // set new position for sprite
@@ -153,7 +166,7 @@ export class GameScene extends Phaser.Scene {
             .map(([uuid, state]) => state.gotchiId); // Use gotchiId for SVG fetching
 
         if (gotchisToFetch.length > 0) {
-            console.log("gotchisToFetch array (gotchiIds):", gotchisToFetch); // Updated log
+            // console.log("gotchisToFetch array (gotchiIds):", gotchisToFetch); // Updated log
             this.fetchAndLoadSVGs(gotchisToFetch, gotchisData);
         } else {
             console.log("No Gotchis to fetch SVGs for.");
@@ -164,7 +177,7 @@ export class GameScene extends Phaser.Scene {
         gotchiIDs: string[],
         gotchisData: GotchiPosition[]
     ) {
-        console.log("Fetching SVGs for Gotchi IDs:", gotchiIDs); // Debug fetch
+        // console.log("Fetching SVGs for Gotchi IDs:", gotchiIDs); // Debug fetch
         // Mark as fetching to avoid duplicate requests
         gotchiIDs.forEach((gotchiId) => {
             // Find the UUID corresponding to this gotchiId
@@ -177,7 +190,7 @@ export class GameScene extends Phaser.Scene {
 
         try {
             const svgSets = await fetchBulkGotchiSVGs(gotchiIDs);
-            console.log("Fetched SVG sets:", svgSets); // Debug SVG sets
+
             svgSets.forEach((svgSet: any, index: number) => {
                 const gotchiId = gotchiIDs[index];
                 // Find the UUID corresponding to this gotchiId
@@ -191,21 +204,6 @@ export class GameScene extends Phaser.Scene {
         } catch (error) {
             console.error("Failed to fetch bulk SVGs:", error);
         }
-        // finally {
-        //     // Reset fetching state
-        //     gotchiIDs.forEach((gotchiId) => {
-        //         const gotchi = gotchisData.find((g) => g.gotchiId === gotchiId);
-        //         if (gotchi) {
-        //             const state = this.gotchiMap.get(gotchi.uuid);
-        //             if (state) {
-        //                 state.svgFetching = false;
-        //                 console.log(
-        //                     `Reset svgFetching to false for Gotchi UUID ${gotchi.uuid}`
-        //                 ); // Debug reset
-        //             }
-        //         }
-        //     });
-        // }
     }
 
     private async loadGotchiSVG(
@@ -236,10 +234,6 @@ export class GameScene extends Phaser.Scene {
                 // Listen for individual image load
                 this.load.once(`filecomplete-image-${key}`, () => {
                     loadedViews.add(view);
-                    console.log(`Loaded: ${key}`);
-
-                    // If all views are loaded, mark as ImageLoaded
-                    console.log(loadedViews.size, views.length);
                     if (loadedViews.size === views.length) {
                         this.onAllImagesLoaded(gotchiId);
                     }
@@ -258,7 +252,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private onAllImagesLoaded(gotchiId: string) {
-        console.log("allImagesLoaded for: ", gotchiId);
+        // console.log("allImagesLoaded for: ", gotchiId);
 
         // Search through gotchiMap values to find the matching gotchiId
         const state = Array.from(this.gotchiMap.values()).find(
@@ -272,7 +266,7 @@ export class GameScene extends Phaser.Scene {
         if (state.sprite) {
             // Update the existing sprite
             state.sprite.setTexture(`gotchi-${gotchiId}-svg`);
-            console.log("Updated texture for: ", `gotchi-${gotchiId}-svg`);
+            // console.log("Updated texture for: ", `gotchi-${gotchiId}-svg`);
         } else {
             // Create a new sprite
             state.sprite = this.add
@@ -280,11 +274,13 @@ export class GameScene extends Phaser.Scene {
                 .setDepth(1000)
                 .setScale(0.5)
                 .setName(gotchiId);
-            console.log("Created new texture for: ", `gotchi-${gotchiId}-svg`);
+            // console.log("Created new texture for: ", `gotchi-${gotchiId}-svg`);
+            this.newGotchiSVGCounter++;
+            console.log("gotchi SVG count: ", this.newGotchiSVGCounter);
         }
 
         // Mark as fully loaded
         state.svgState = "ImageSet";
-        console.log(`Marked Gotchi UUID ${gotchiId} as svgFetched: true`);
+        // console.log(`Marked Gotchi UUID ${gotchiId} as svgFetched: true`);
     }
 }

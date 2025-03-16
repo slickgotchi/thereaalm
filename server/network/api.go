@@ -1,4 +1,3 @@
-// server/network/api.go
 package network
 
 import (
@@ -7,67 +6,112 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"thereaalm/config"
 	"thereaalm/entity/entities"
 	"thereaalm/world"
 )
 
+// ZoneSnapshot represents the state of a zone, including Gotchi positions.
 type ZoneSnapshot struct {
 	Gotchis []GotchiSnapshot `json:"gotchis"`
 }
 
+// GotchiSnapshot captures the position and ID of a Gotchi in a zone.
 type GotchiSnapshot struct {
-	UUID string `json:"uuid"`
+	UUID     string `json:"uuid"`
 	GotchiID string `json:"gotchiId"`
-	X  int    `json:"x"`
-	Y  int    `json:"y"`
+	X        int    `json:"x"`
+	Y        int    `json:"y"`
 }
 
-func StartAPIServer(worldManager *world.WorldManager, port string) {
-	http.HandleFunc("/zones/", func(w http.ResponseWriter, r *http.Request) {
-		// Log the incoming request for debugging
-		log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+// ZoneMapResponse represents the structure of the zone map to be sent to the client.
+type ZoneMapResponse struct {
+	ZoneMap [][]string `json:"zoneMap"`
+}
 
-		// Set CORS headers for all responses
+// StartAPIServer initializes the API server with the given world manager and port.
+func StartAPIServer(worldManager *world.WorldManager, port string) {
+	// Create a new ServeMux to handle routes explicitly
+	mux := http.NewServeMux()
+
+	// Register handlers with CORS middleware
+	mux.HandleFunc("/zones/", withCORS(handleZoneSnapshot(worldManager)))
+	mux.HandleFunc("/zonemap", withCORS(handleZoneMap()))
+
+	// Start the server
+	log.Printf("Starting API server on port %s...", port)
+	go func() {
+		if err := http.ListenAndServe(":"+port, mux); err != nil {
+			log.Fatalf("API server failed: %v", err)
+		}
+	}()
+}
+
+// withCORS is a middleware that adds CORS headers to all responses and handles OPTIONS requests.
+func withCORS(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-		// Handle CORS preflight requests (OPTIONS)
+		// Handle CORS preflight requests
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
 
-		// Handle GET requests
+		// Call the actual handler
+		handler(w, r)
+	}
+}
+
+// writeJSON encodes the given data as JSON and writes it to the response.
+func writeJSON(w http.ResponseWriter, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
+}
+
+// writeError sends an error response with the given status code and message.
+func writeError(w http.ResponseWriter, message string, statusCode int) {
+	log.Printf("Error: %s (status: %d)", message, statusCode)
+	http.Error(w, message, statusCode)
+}
+
+// handleZoneSnapshot returns a handler for the /zones/{id}/snapshot endpoint.
+func handleZoneSnapshot(worldManager *world.WorldManager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+
+		// Only allow GET requests
 		if r.Method != http.MethodGet {
-			log.Printf("Method not allowed: %s", r.Method)
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			writeError(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
 		// Extract zone ID from URL path (e.g., /zones/0/snapshot)
 		parts := strings.Split(r.URL.Path, "/")
 		log.Printf("URL parts: %v", parts)
+
 		// Expected path: /zones/0/snapshot
-		// parts should be: ["", "zones", "0", "snapshot"]
 		if len(parts) != 4 || parts[1] != "zones" || parts[3] != "snapshot" {
-			log.Printf("Invalid endpoint: %s", r.URL.Path)
-			http.Error(w, "Invalid endpoint", http.StatusBadRequest)
+			writeError(w, "Invalid endpoint", http.StatusBadRequest)
 			return
 		}
 
 		zoneID, err := strconv.Atoi(parts[2])
 		if err != nil {
-			log.Printf("Invalid zone ID: %s", parts[2])
-			http.Error(w, "Invalid Zone ID", http.StatusBadRequest)
+			writeError(w, "Invalid Zone ID", http.StatusBadRequest)
 			return
 		}
 
 		// Find the zone
 		zone := worldManager.Zones[zoneID]
 		if zone == nil {
-			log.Printf("Zone not found: %d", zoneID)
-			http.Error(w, "Zone not found: "+strconv.Itoa(zoneID), http.StatusNotFound)
+			writeError(w, "Zone not found: "+strconv.Itoa(zoneID), http.StatusNotFound)
 			return
 		}
 
@@ -80,26 +124,41 @@ func StartAPIServer(worldManager *world.WorldManager, port string) {
 			}
 
 			snapshot.Gotchis = append(snapshot.Gotchis, GotchiSnapshot{
-				UUID: gotchi.UUID,
+				UUID:     gotchi.UUID,
 				GotchiID: gotchi.Gotchi.SubgraphData.ID,
-				X:  gotchi.Position.X,
-				Y:  gotchi.Position.Y,
+				X:        gotchi.Position.X,
+				Y:        gotchi.Position.Y,
 			})
 		}
 
 		// Respond with JSON
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(snapshot); err != nil {
-			log.Printf("Failed to encode response: %v", err)
-			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		writeJSON(w, snapshot)
+	}
+}
+
+// handleZoneMap returns a handler for the /zonemap endpoint.
+func handleZoneMap() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+
+		// Only allow GET requests
+		if r.Method != http.MethodGet {
+			writeError(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-	})
 
-	log.Printf("Starting API server on port %s...", port)
-	go func() {
-		if err := http.ListenAndServe(":"+port, nil); err != nil {
-			log.Fatalf("API server failed: %v", err)
+		// Ensure the endpoint is exactly /zonemap
+		if r.URL.Path != "/zonemap" {
+			writeError(w, "Invalid endpoint", http.StatusBadRequest)
+			return
 		}
-	}()
+
+		// Create the response with the zone map
+		response := ZoneMapResponse{
+			ZoneMap: config.ZoneMap,
+		}
+
+		// Respond with JSON
+		writeJSON(w, response)
+	}
 }

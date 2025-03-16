@@ -105,6 +105,79 @@ export async function fetchSingleGotchiSVGs(
     }
 }
 
+export async function fetchBulkGotchiSVGs(
+    gotchiIDs: string[]
+): Promise<GotchiSVGSet[]> {
+    // Helper function to fetch in batches
+    const fetchBatch = async (ids: string[]) => {
+        const svgQuery = `
+            query ($ids: [ID!]!) {
+                aavegotchis(where: { id_in: $ids }) {
+                    id
+                    svg
+                    left
+                    right
+                    back
+                }
+            }
+        `;
+
+        const response = await fetch(
+            "https://subgraph.satsuma-prod.com/tWYl5n5y04oz/aavegotchi/aavegotchi-svg-matic/api",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    query: svgQuery,
+                    variables: { ids },
+                }),
+            }
+        );
+        if (!response.ok) {
+            throw new Error(
+                `Bulk SVG subgraph request failed: ${response.status}`
+            );
+        }
+        const data = await response.json();
+        if (!data?.data?.aavegotchis) {
+            console.error("No SVG data found for the requested Gotchi IDs");
+            return ids.map(() => ({
+                id: "",
+                svg: "",
+                left: "",
+                right: "",
+                back: "",
+            }));
+        }
+
+        return data.data.aavegotchis.map((g: any) => ({
+            id: g.id,
+            svg: removeBackgroundFromSVG(g.svg),
+            left: removeBackgroundFromSVG(g.left || g.svg),
+            right: removeBackgroundFromSVG(g.right || g.svg),
+            back: removeBackgroundFromSVG(g.back || g.svg),
+        }));
+    };
+
+    // Split gotchiIDs into batches of 100
+    const batchSize = 100;
+    const batches = [];
+    for (let i = 0; i < gotchiIDs.length; i += batchSize) {
+        batches.push(gotchiIDs.slice(i, i + batchSize));
+    }
+
+    // Fetch each batch and combine the results
+    const allSVGs: GotchiSVGSet[] = [];
+    for (const batch of batches) {
+        const batchResult = await fetchBatch(batch);
+        allSVGs.push(...batchResult);
+    }
+
+    // Return all fetched SVGs
+    return allSVGs;
+}
+
+/*
 // New function to fetch SVGs for multiple Gotchi IDs in bulk
 export async function fetchBulkGotchiSVGs(
     gotchiIDs: string[]
@@ -167,22 +240,9 @@ export async function fetchBulkGotchiSVGs(
         );
     });
 
-    console.log("response: ", result);
-
     return result;
 }
-
-// export function calculateBRS(traits: number[]): number {
-//     let brs = 0;
-//     traits.forEach((trait) => {
-//         if (trait < 50) {
-//             brs += 100 - trait;
-//         } else {
-//             brs += trait + 1;
-//         }
-//     });
-//     return brs;
-// }
+    */
 
 export const removeBackgroundFromSVG = (svgString: string): string => {
     const parser = new DOMParser();
