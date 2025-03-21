@@ -17,12 +17,12 @@ type BerryBush struct {
 
 func NewBerryBush(zoneId, x, y int) *BerryBush {
 	newInventory := NewItemHolder()
-	newInventory.Items["Berry"] = 50
+	newInventory.Items["berry"] = 50
 
 	return &BerryBush{
         Entity: Entity{
             ID:   types.EntityUUID(uuid.New()),
-            Type: "BerryBush",
+            Type: "berrybush",
         },
         Movable: Movable{
 			ZoneID: zoneId,

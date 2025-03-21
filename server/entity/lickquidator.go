@@ -7,18 +7,22 @@ import (
 	"github.com/google/uuid"
 )
 
-type Gotchi struct {
+type Lickquidator struct {
     Entity
     Movable
 	ActionSequence
 	ItemHolder
 }
 
-func NewGotchi(zoneId, x, y int) *Gotchi {
-    return &Gotchi{
+func NewLickquidator(zoneId, x, y int) *Lickquidator {
+	// make them hold the "Tongue" item
+	newInventory := NewItemHolder()
+	newInventory.Items["tongue"] = 1
+
+    return &Lickquidator{
         Entity: Entity{
             ID:   types.EntityUUID(uuid.New()),
-            Type: "gotchi",
+            Type: "lickquidator",
         },
         Movable: Movable{
 			ZoneID: zoneId,
@@ -28,12 +32,12 @@ func NewGotchi(zoneId, x, y int) *Gotchi {
         ActionSequence: ActionSequence{
 			Actions: make([]types.IAction, 0),
 		},
-		ItemHolder: *NewItemHolder(),
+		ItemHolder: *newInventory,
     }
 }
 
-func (g *Gotchi) Update(dt_s float64) {
-	log.Printf("Gotchi at (%d, %d)", g.X, g.Y)
+func (g *Lickquidator) Update(dt_s float64) {
+	log.Printf("Lickquidator at (%d, %d)", g.X, g.Y)
 	g.DisplayInventory()
 
 	// process the oldest action until its done

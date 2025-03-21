@@ -41,4 +41,3 @@ type IItemHolder interface {
 type IHarvestable interface {
     Harvest() (string, int)
 }
-
