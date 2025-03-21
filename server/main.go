@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	log.Println("Starting Aavegotchi World...")
+	log.Println("Starting The Reaalm...")
 
 	// Create and run the world manager
 	worldManager := world.NewWorldManager(0) // Use all CPU cores

@@ -1,0 +1,248 @@
+{
+    "actions": {
+        "general": {
+            "all": [
+                {
+                    "type": "attack",
+                    "description": "Attack an opposition entity."
+                },
+                {
+                    "type": "gather",
+                    "description": "Gather resources from a resource entity."
+                },
+                {
+                    "type": "sell_inventory_item",
+                    "description": "Sell an item of inventory to another entity"
+                },
+                {
+                    "type": "chat",
+                    "description": "Sends a message or signal to another entity for coordination."
+                },
+                {
+                    "type": "rest",
+                    "description": "Allows the entity to recover health or energy over time."
+                },
+                {
+                    "type": "flee",
+                    "description": "Moves away from a threatening entity to ensure survival."
+                }
+            ]
+        },
+        "combat": {
+            "mercenary": [
+                {
+                    "type": "hunt",
+                    "description": "Searches the world for enemies to attack."
+                },
+                {
+                    "type": "sabotage",
+                    "description": "Disrupts or damages an opposing entity's operations or resources."
+                },
+                {
+                    "type": "attack_structure",
+                    "description": "Target and attack an opposition static entity structure."
+                }
+            ],
+            "warden": [
+                {
+                    "type": "deploy_trap",
+                    "description": "Places mechanical traps or automated defenses in the world."
+                },
+                {
+                    "type": "fortify",
+                    "description": "Guards a static entity structure or area against attack."
+                },
+                {
+                    "type": "escort",
+                    "description": "Guards another dynamic entity while they travel through the world."
+                }
+            ],
+            "thief": [
+                {
+                    "type": "steal",
+                    "description": "Attempts to acquire goods from another entity without permission."
+                },
+                {
+                    "type": "sneak",
+                    "description": "Turn invisible and move through an area undetected."
+                },
+                {
+                    "type": "mug",
+                    "description": "Attack an opposing entity with a chance to steal loot."
+                }
+            ],
+            "beastmaster": [
+                {
+                    "type": "tame",
+                    "description": "Attempts to capture and domesticate a wild beast."
+                },
+                {
+                    "type": "summon",
+                    "description": "Summons a beast entity to the field to attack an opposing entity"
+                },
+                {
+                    "type": "feed",
+                    "description": "Feeds a beast to improve the bond between beastmaster and beast entity"
+                }
+            ],
+            "mage": [
+                {
+                    "type": "heal",
+                    "description": "Restores health or removes negative effects from another entity."
+                },
+                {
+                    "type": "shield",
+                    "description": "Casts a protective shield around an ally entity."
+                },
+                {
+                    "type": "disrupt",
+                    "description": "Casts a debuff on an opposing entity."
+                }
+            ]
+        },
+        "economy": {
+            "merchant": [
+                {
+                    "type": "trade",
+                    "description": "Exchanges items or services with another entity."
+                },
+                {
+                    "type": "tradecart",
+                    "description": "Commences journey to another area in the world where trading is more lucrative."
+                },
+                {
+                    "type": "bundle",
+                    "description": "Packages multiple items into a condensed, tradeable unit."
+                }
+            ],
+            "forger": [
+                {
+                    "type": "craft",
+                    "description": "Produces equipment or tools using resources."
+                },
+                {
+                    "type": "upgrade",
+                    "description": "Improves the quality or capabilities of an existing item, structure, or ability."
+                },
+                {
+                    "type": "deconstruct",
+                    "description": "Breaks a piece of equipment, tool or consumable back into its base resources."
+                }
+            ],
+            "farmer": [
+                {
+                    "type": "gather_advanced_crops",
+                    "description": "Harvests advanced crops from an advanced crop entity."
+                },
+                {
+                    "type": "maintain_farm",
+                    "description": "Performs routine upkeep to prevent farm plot entity degradation."
+                },
+                {
+                    "type": "sew_plot",
+                    "description": "Sews an empty plot with seeds to commence growing crops."
+                }
+            ],
+            "minerjack": [
+                {
+                    "type": "gather_advanced_lumber",
+                    "description": "Mills advanced lumber from an advanced lumber entity"
+                },
+                {
+                    "type": "gather_advanced_ore",
+                    "description": "Mines advanced ore from an advanced ore entity."
+                },
+                {
+                    "type": "clear_path",
+                    "description": "Clears obstructive static entities to enable entities to pass through."
+                }
+            ],
+            "builder": [
+                {
+                    "type": "create_building",
+                    "description": "Constructs physical buildings on suitable static entity building plots."
+                },
+                {
+                    "type": "repair_building",
+                    "description": "Repairs a damaged ally static entity building."
+                },
+                {
+                    "type": "upgrade_building",
+                    "description": "Upgrades a building to a higher level of functionality."
+                }
+            ]
+        },
+        "knowledge": {
+            "alchemist": [
+                {
+                    "type": "research_potions",
+                    "description": "Studies a blueprint inventory item to generate new knowledge, recipes, or schematics."
+                },
+                {
+                    "type": "mix",
+                    "description": "Produces consumables using resources."
+                },
+                {
+                    "type": "mr_hyde",
+                    "description": "Temporarily turn into a monster to attack opposing entities."
+                }
+            ],
+            "explorer": [
+                {
+                    "type": "scout",
+                    "description": "Explores new areas, gathering intelligence."
+                },
+                {
+                    "type": "observe",
+                    "description": "Passively monitors an entity or area for changes."
+                },
+                {
+                    "type": "record",
+                    "description": "Logs information about events, enemies, or discoveries."
+                }
+            ],
+            "scholar": [
+                {
+                    "type": "research",
+                    "description": "Studies an inventory item to generate new knowledge, recipes, or schematics."
+                },
+                {
+                    "type": "sell_world_intel",
+                    "description": "Provides global intelligence, strategic plans, or prophecy to an entity."
+                },
+                {
+                    "type": "sell_research",
+                    "description": "Sell knowledge for upgrades to an entity that can use it"
+                }
+            ],
+            "engineer": [
+                {
+                    "type": "create_infrastructure",
+                    "description": "Creates a road, bridge or tunnel on a valid infrastucture plot."
+                },
+                {
+                    "type": "repair_infrastructure",
+                    "description": "Reapirs a damaged road, bridge or tunnel on a valid infrastucture plot."
+                },
+                {
+                    "type": "upgrade_infrastructure",
+                    "description": "Upgrades a road, bridge or tunnel on a valid infrastucture plot for higher functionality."
+                }
+            ],
+            "guildleader": [
+                {
+                    "type": "add_entity_to_guild",
+                    "description": "Adds an entity to this guildleaders guild."
+                },
+                {
+                    "type": "remove_entity_from_guild",
+                    "description": "Removes an entity from this guildleaders guild."
+                },
+                {
+                    "type": "guild_research",
+                    "description": "Upgrades guild by studying specific inventory items."
+                }
+            ]
+        }
+    }
+}

@@ -10,9 +10,11 @@ import (
 // this is where we store all snapshots of GotchiEntity for reloading by the server if it
 // is reset
 
-func GetLatestDatabaseGotchiEntities() []web3.SubgraphGotchiData {
-	numGotchis := 5000
+func GetLatestDatabaseGotchiEntities(numGotchis int) []web3.SubgraphGotchiData {
 	batchSize := 1000
+	if numGotchis < batchSize {
+		batchSize = numGotchis
+	}
 
 	var gotchis []web3.SubgraphGotchiData
 

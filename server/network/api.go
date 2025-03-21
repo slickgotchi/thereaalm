@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"thereaalm/config"
-	"thereaalm/entity/entities"
 	"thereaalm/world"
 )
 
@@ -115,24 +114,24 @@ func handleZoneSnapshot(worldManager *world.WorldManager) http.HandlerFunc {
 			return
 		}
 
-		// Collect Gotchi positions
-		var snapshot ZoneSnapshot
-		for _, entity := range zone.Entities {
-			gotchi, ok := entity.(*entities.GotchiEntity)
-			if !ok {
-				continue
-			}
+		// // Collect Gotchi positions
+		// var snapshot ZoneSnapshot
+		// for _, entity := range zone.Entities {
+		// 	gotchi, ok := entity.(*entities.GotchiEntity)
+		// 	if !ok {
+		// 		continue
+		// 	}
 
-			snapshot.Gotchis = append(snapshot.Gotchis, GotchiSnapshot{
-				UUID:     gotchi.UUID,
-				GotchiID: gotchi.Gotchi.SubgraphData.ID,
-				X:        gotchi.Position.X,
-				Y:        gotchi.Position.Y,
-			})
-		}
+		// 	snapshot.Gotchis = append(snapshot.Gotchis, GotchiSnapshot{
+		// 		UUID:     gotchi.UUID,
+		// 		GotchiID: gotchi.Gotchi.SubgraphData.ID,
+		// 		X:        gotchi.Position.X,
+		// 		Y:        gotchi.Position.Y,
+		// 	})
+		// }
 
 		// Respond with JSON
-		writeJSON(w, snapshot)
+		// writeJSON(w, snapshot)
 	}
 }
 

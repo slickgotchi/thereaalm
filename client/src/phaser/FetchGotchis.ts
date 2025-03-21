@@ -94,10 +94,10 @@ export async function fetchSingleGotchiSVGs(
         const g = data.data.aavegotchi;
         console.log(g.svg);
         return {
-            front: removeBackgroundFromSVG(g.svg),
-            left: removeBackgroundFromSVG(g.left || g.svg),
-            right: removeBackgroundFromSVG(g.right || g.svg),
-            back: removeBackgroundFromSVG(g.back || g.svg),
+            front: removeBackgroundFromAndSetDimensionsForSVG(g.svg),
+            left: removeBackgroundFromAndSetDimensionsForSVG(g.left || g.svg),
+            right: removeBackgroundFromAndSetDimensionsForSVG(g.right || g.svg),
+            back: removeBackgroundFromAndSetDimensionsForSVG(g.back || g.svg),
         };
     } else {
         console.error(`No SVGs found for Gotchi ID ${gotchiID}`);
@@ -152,10 +152,10 @@ export async function fetchBulkGotchiSVGs(
 
         return data.data.aavegotchis.map((g: any) => ({
             id: g.id,
-            svg: removeBackgroundFromSVG(g.svg),
-            left: removeBackgroundFromSVG(g.left || g.svg),
-            right: removeBackgroundFromSVG(g.right || g.svg),
-            back: removeBackgroundFromSVG(g.back || g.svg),
+            svg: removeBackgroundFromAndSetDimensionsForSVG(g.svg),
+            left: removeBackgroundFromAndSetDimensionsForSVG(g.left || g.svg),
+            right: removeBackgroundFromAndSetDimensionsForSVG(g.right || g.svg),
+            back: removeBackgroundFromAndSetDimensionsForSVG(g.back || g.svg),
         }));
     };
 
@@ -177,77 +177,17 @@ export async function fetchBulkGotchiSVGs(
     return allSVGs;
 }
 
-/*
-// New function to fetch SVGs for multiple Gotchi IDs in bulk
-export async function fetchBulkGotchiSVGs(
-    gotchiIDs: string[]
-): Promise<GotchiSVGSet[]> {
-    // Construct a query with id_in filter for multiple Gotchis
-    const svgQuery = `
-      query ($ids: [ID!]!) {
-        aavegotchis(where: { id_in: $ids }) {
-          id
-          svg
-          left
-          right
-          back
-        }
-      }
-    `;
-    console.log("fetching bulk svgs for: ", gotchiIDs);
-    const response = await fetch(
-        "https://subgraph.satsuma-prod.com/tWYl5n5y04oz/aavegotchi/aavegotchi-svg-matic/api",
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                query: svgQuery,
-                variables: { ids: gotchiIDs },
-            }),
-        }
-    );
-    if (!response.ok) {
-        throw new Error(
-            `Bulk SVG subgraph request failed: ${response.status} ${response.statusText}`
-        );
-    }
-    const data = await response.json();
-    if (!data?.data?.aavegotchis) {
-        console.error("No SVG data found for the requested Gotchi IDs");
-        return gotchiIDs.map(() => ({
-            id: "",
-            svg: "",
-            left: "",
-            right: "",
-            back: "",
-        }));
-    }
-
-    // Map the response data to GotchiSVGSet, removing backgrounds
-    const svgSets: GotchiSVGSet[] = data.data.aavegotchis.map((g: any) => ({
-        id: g.id,
-        svg: removeBackgroundFromSVG(g.svg),
-        left: removeBackgroundFromSVG(g.left || g.svg),
-        right: removeBackgroundFromSVG(g.right || g.svg),
-        back: removeBackgroundFromSVG(g.back || g.svg),
-    }));
-
-    // Ensure we return an array matching the input length, filling gaps with empty SVGs if needed
-    const result: GotchiSVGSet[] = gotchiIDs.map((id) => {
-        const match = svgSets.find((set) => set.id === id); // Note: This is a heuristic; adjust if IDs are not in SVG content
-        return (
-            match || { id: "no match", svg: "", left: "", right: "", back: "" }
-        );
-    });
-
-    return result;
-}
-    */
-
-export const removeBackgroundFromSVG = (svgString: string): string => {
+export const removeBackgroundFromAndSetDimensionsForSVG = (
+    svgString: string,
+    pixels: number = 64
+): string => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgString, "image/svg+xml");
     const svg = doc.getElementsByTagName("svg")[0];
+
+    // we nee to set these
+    svg.setAttribute("width", `${pixels}`);
+    svg.setAttribute("height", `${pixels}`);
 
     // Helper function to find the background group (checking multiple possible classes)
     const findBackgroundGroup = (element: Element): Element | null => {

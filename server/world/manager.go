@@ -3,17 +3,18 @@ package world
 
 import (
 	"log"
-	"math/rand"
 	"runtime"
 	"sync"
+	"thereaalm/action"
 	"thereaalm/config"
-	"thereaalm/entity/entities"
-	"thereaalm/storage"
+	"thereaalm/entity"
+
+	// "thereaalm/storage"
 	"time"
 )
 
 const (
-    ZoneTiles  = 256
+    ZoneTiles  = 512
     // ZoneHeight = 128
 )
 
@@ -46,44 +47,102 @@ func NewWorldManager(workerCount int) *WorldManager {
 
     if len(manager.Zones) == 0 {
         log.Fatal("Error: No active zones initialized!")
+        return manager
     }
 
-    // Load initial Gotchis into Zone 0
-    manager.loadInitialGotchis()
+    // load test entities
+    manager.loadTestEntities()
 
     log.Printf("World initialized with %d active zones.", len(manager.Zones))
     return manager
 }
 
-func (wm *WorldManager) loadInitialGotchis() {
+func (wm *WorldManager) loadTestEntities() {
     log.Println("Loading Gotchis from subgraph...")
 
-    gotchiData := storage.GetLatestDatabaseGotchiEntities()
-    if len(gotchiData) == 0 {
-        log.Println("No Gotchis loaded.")
-        return
-    }
+    // OUR TEST SCENARIO
+    // - create gotchi, shop and berrybush
+    // - gotchi gathers berrys from berrybush for 10 seconds
+    // - gotchi sells berrys to shop for 5 seconds
+    // - gotchi gathers berrys from berrybush for 10 seconds
+    // - gotchi sells berrys to shop for 5 seconds
+    // - berry bush out of berries
+    // - gotchi idles for 20 seconds
+    // - berry bush replenished with berries
+    // - repeat
 
-    if len(wm.Zones) == 0 {
-        log.Fatal("Error: No zones available to add Gotchis.")
-    }
+    // bush
+    bush := entity.NewBerryBush(42, 8, 4)
+    wm.Zones[42].AddEntity(bush)
 
-    // place gotchis across all available zones, in ZoneMap
-    // start with a known seed
-    r := rand.New(rand.NewSource(123))
+    // shop
+    shop := entity.NewShop(42, 10, 6)
+    wm.Zones[42].AddEntity(shop)
 
-    for _, g := range gotchiData {
-        // pick random zone
-        zoneIndex := r.Intn(len(wm.Zones))
+    // gotchi
+    gotchi := entity.NewGotchi(42, 3, 4)
+    wm.Zones[42].AddEntity(gotchi)
 
-        // pick random location in the zone
-        x := r.Intn(ZoneTiles) + wm.Zones[zoneIndex].X
-        y := r.Intn(ZoneTiles) + wm.Zones[zoneIndex].Y
+    gotchi.QueueAction(action.NewHarvestAction(gotchi, bush, 5))
+    gotchi.QueueAction(action.NewTradeAction(gotchi, shop, 2, "SellAllForGold"))
 
-        // create new gotchi
-        gotchi := entities.NewGotchi(0, x, y, g)
-        wm.Zones[zoneIndex].AddEntity(gotchi)
-    }
+    // // gotchi actions
+    // actionSequence := []entity.IAction{
+    //     action.NewGatherAction(bush.UUID), // Gather (berries: 5 -> 3)
+    //     action.NewSellAction(shop.UUID),   // Sell (inventory: 2 -> 0)
+    //     action.NewGatherAction(bush.UUID), // Gather (berries: 3 -> 1)
+    //     action.NewSellAction(shop.UUID),   // Sell (inventory: 2 -> 0)
+    //     action.NewGatherAction(bush.UUID), // Gather (berries: 1 -> 0)
+    //     action.NewSellAction(shop.UUID),   // Sell (inventory: 1 -> 0)
+    //     action.NewIdleAction(),            // Idle (bush depleted, nothing to do)
+    // }
+    // gotchi.SetActionSequence(actionSequence)
+
+
+
+    // gotchiData := storage.GetLatestDatabaseGotchiEntities(1)
+    // if len(gotchiData) == 0 {
+    //     log.Println("No Gotchis loaded.")
+    //     return
+    // }
+
+    // // TEMPORARY: start only in zone 42 for now
+    // zoneIndex := 42
+
+    // // zoneX := wm.Zones[zoneIndex].X
+    // // zoneY := wm.Zones[zoneIndex].Y
+
+    // // place gotchis across all available zones, in ZoneMap
+    // // start with a known seed
+    // // r := rand.New(rand.NewSource(123))
+
+    // for _, gd := range gotchiData {
+    //     // pick random zone
+    //     // zoneIndex := r.Intn(len(wm.Zones))
+
+
+    //     // pick random location in the zone
+    //     // x := r.Intn(ZoneTiles) + wm.Zones[zoneIndex].X
+    //     // y := r.Intn(ZoneTiles) + wm.Zones[zoneIndex].Y
+    //     x := wm.Zones[zoneIndex].X + 5
+    //     y := wm.Zones[zoneIndex].Y + 8
+
+    //     // create new gotchi
+    //     gotchi := entities.NewGotchi(42, x, y)
+    //     wm.Zones[zoneIndex].AddEntity(gotchi)
+
+    //     // Set initial action sequence
+    //     actionSequence := []action.IAction{
+    //         action.NewGatherAction(bush.UUID), // Gather (berries: 5 -> 3)
+    //         action.NewSellAction(shop.UUID),   // Sell (inventory: 2 -> 0)
+    //         action.NewGatherAction(bush.UUID), // Gather (berries: 3 -> 1)
+    //         action.NewSellAction(shop.UUID),   // Sell (inventory: 2 -> 0)
+    //         action.NewGatherAction(bush.UUID), // Gather (berries: 1 -> 0)
+    //         action.NewSellAction(shop.UUID),   // Sell (inventory: 1 -> 0)
+    //         action.NewIdleAction(),            // Idle (bush depleted, nothing to do)
+    //     }
+    //     gotchi.SetActionSequence(actionSequence)
+    // }
 }
 
 func (wm *WorldManager) Run() {
@@ -95,18 +154,22 @@ func (wm *WorldManager) updateLoop() {
     ticker := time.NewTicker(1 * time.Second)
     defer ticker.Stop()
 
+    lastUpdate := time.Now()
     for range ticker.C {
-        wm.updateZonesParallel()
+        now := time.Now()
+        dt_s := now.Sub(lastUpdate).Seconds() // Delta time in seconds
+        lastUpdate = now
+        wm.updateZonesParallel(dt_s)
     }
 }
 
-func (wm *WorldManager) updateZonesParallel() {
+func (wm *WorldManager) updateZonesParallel(dt_s float64) {
     var wg sync.WaitGroup
     jobs := make(chan *Zone, len(wm.Zones))
 
     for i := 0; i < wm.WorkerCount; i++ {
         wg.Add(1)
-        go wm.zoneWorker(jobs, &wg)
+        go wm.zoneWorker(jobs, dt_s, &wg)
     }
 
     for _, zone := range wm.Zones {
@@ -117,10 +180,10 @@ func (wm *WorldManager) updateZonesParallel() {
     wg.Wait()
 }
 
-func (wm *WorldManager) zoneWorker(jobs <-chan *Zone, wg *sync.WaitGroup) {
+func (wm *WorldManager) zoneWorker(jobs <-chan *Zone, dt_s float64, wg *sync.WaitGroup) {
     defer wg.Done()
 
     for zone := range jobs {
-        zone.Update()
+        zone.Update(dt_s)
     }
 }

@@ -150,7 +150,7 @@ export class WorldMap {
                         color: "#ffffff",
                         fontStyle: "bold",
                     })
-                    .setDepth(1); // Text above the rectangle
+                    .setDepth(5000); // Text above the rectangle
             }
         }
 

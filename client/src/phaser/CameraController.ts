@@ -7,7 +7,7 @@ export class CameraController {
     private worldWidth: number;
     private worldHeight: number;
     private minZoom: number = 0.005; // Zoomed out to see the whole map
-    private maxZoom: number = 1.0; // Zoomed in to 1:1 scale
+    private maxZoom: number = 2.0; // Zoomed in to 1:1 scale
     private isDragging: boolean = false;
     private dragStart: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
 
@@ -37,13 +37,25 @@ export class CameraController {
             this.scene.scale.height / height
         );
         this.scene.cameras.main.setZoom(Math.max(initialZoom, this.minZoom));
-        this.scene.cameras.main.setZoom(0.01);
+        this.scene.cameras.main.setZoom(0.5);
+
+        // TEMPORARY: center camera on middle of zone 42
+        this.scene.cameras.main.centerOn(
+            4.5 * ZONE_TILES * TILE_PIXELS,
+            5.5 * ZONE_TILES * TILE_PIXELS
+        );
+
+        // TEMPORARY: center camera on middle of zone 42
+        this.scene.cameras.main.centerOn(
+            4.025 * ZONE_TILES * TILE_PIXELS,
+            5.025 * ZONE_TILES * TILE_PIXELS
+        );
 
         // Center the camera on the world
-        this.scene.cameras.main.centerOn(
-            -margin + width / 2,
-            -margin + height / 2
-        );
+        // this.scene.cameras.main.centerOn(
+        //     -margin + width / 2,
+        //     -margin + height / 2
+        // );
 
         this.scene.cameras.main.setBackgroundColor(0x131313);
     }

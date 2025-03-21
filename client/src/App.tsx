@@ -33,6 +33,7 @@ function App() {
                 autoCenter: Phaser.Scale.CENTER_BOTH,
             },
             pixelArt: true,
+            roundPixels: true,
         };
 
         // Initialize Phaser game
