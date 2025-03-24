@@ -41,14 +41,10 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 }
 
 func (l *Lickquidator) GetSnapshotData() interface{} {
-	hp, _ := l.Stats.GetStatValue("hp")
-	maxHP, _ := l.Stats.GetStatMaxValue("hp")
 	return struct {
-		MaxHP     int    `json:"maxHp"`
-		CurrentHP int    `json:"currentHp"`
+		Stats interface{} `json:"stats"`
 	}{
-		MaxHP:     maxHP,
-		CurrentHP: hp,
+		Stats: l.Stats,
 	}
 }
 

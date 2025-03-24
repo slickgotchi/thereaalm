@@ -2,13 +2,15 @@ package types
 
 // IAction defines an executable behavior.
 type IAction interface {
-    // Execute(actor, target IEntity) bool
+    Start()
+    CanBeExecuted() bool
     Update(dt_s float64) bool
+
+    // these are defined in Action (should not need to override)
     GetType() string
     GetWeighting() float64
     GetTarget() IEntity
     GetActor() IEntity
-    CanBeExecuted() bool
 }
 
 // IActionPlan is for entities that can process actions.

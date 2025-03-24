@@ -40,6 +40,10 @@ func NewHarvestAction(actor, target types.IEntity, weighting float64) *HarvestAc
 	}
 }
 
+func (action *HarvestAction) Start() {
+	action.Timer_s = action.Duration_s
+}
+
 func (action *HarvestAction) CanBeExecuted() bool {
 	harvestable, _ := action.Target.(types.IHarvestable); 
 	itemHolder, _ := action.Actor.(types.IInventory);

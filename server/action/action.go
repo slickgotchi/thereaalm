@@ -68,7 +68,7 @@ func (a *ActionPlan) SelectNextAction() {
 		cumulativeWeight += action.GetWeighting()
 		if cumulativeWeight >= randomWeight {
 			a.CurrentAction = action
-			log.Println("Selected action: ", action.GetType())
+			a.CurrentAction.Start()
 			return
 		}
 	}

@@ -94,7 +94,9 @@ func (wm *WorldManager) loadTestEntities() {
     gotchi.AddAction(action.NewHarvestAction(gotchi, bush, 0.5))
     gotchi.AddAction(action.NewAttackAction(gotchi, lickquidator, 0.3))
     gotchi.AddAction(action.NewTradeAction(gotchi, shop, 0.2, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
+    gotchi.AddAction(action.NewRoamAction(gotchi, 0.1))
 
+    lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchi, 1))
 
     // gotchiData := storage.GetLatestDatabaseGotchiEntities(1)
     // if len(gotchiData) == 0 {

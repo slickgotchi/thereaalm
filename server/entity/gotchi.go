@@ -24,8 +24,8 @@ func NewGotchi(zoneId, x, y int) *Gotchi {
 	newStats := types.NewStats()
 	newStats.AddDynamicStat("hp", 400, 400)
 	newStats.AddStaticStat("attack", 5)
-	newStats.AddStaticStat("harvest_duration_s", 10)
-	newStats.AddStaticStat("trade_duration_s", 10)
+	newStats.AddStaticStat("harvest_duration_s", 5)
+	newStats.AddStaticStat("trade_duration_s", 5)
 
 	// make new gotchi
 	return &Gotchi{
@@ -45,17 +45,13 @@ func NewGotchi(zoneId, x, y int) *Gotchi {
 }
 
 func (g *Gotchi) GetSnapshotData() interface{} {
-	hp, _ := g.Stats.GetStatValue("hp")
-	maxHP, _ := g.Stats.GetStatMaxValue("hp")
 	return struct {
 		GotchiID  string `json:"gotchiId"`
-		MaxHP     int    `json:"maxHp"`
-		CurrentHP int    `json:"currentHp"`
+		Stats interface{} `json:"stats"`
 		Inventory interface{} `json:"inventory"`
 	}{
 		GotchiID:  g.GotchiId,
-		MaxHP:     maxHP,
-		CurrentHP: hp,
+		Stats: g.Stats,
 		Inventory: g.Inventory,
 	}
 }

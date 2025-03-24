@@ -25,7 +25,6 @@ func NewTradeAction(actor, target types.IEntity, weighting float64, tradeType st
 		return nil
 	}
 	
-	
 	return &TradeAction{
 		Action: Action{
 			Type: "trade",
@@ -37,6 +36,10 @@ func NewTradeAction(actor, target types.IEntity, weighting float64, tradeType st
 		Timer_s: float64(traderDuration_s),
 		TradeType: tradeType,
 	}
+}
+
+func (action *TradeAction) Start() {
+	action.Timer_s = action.Duration_s
 }
 
 func (action *TradeAction) CanBeExecuted() bool {

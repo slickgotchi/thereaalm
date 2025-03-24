@@ -2,8 +2,8 @@
 package types
 
 import (
+	"log"
 	"math/rand"
-	"time"
 )
 
 type Zone struct {
@@ -48,6 +48,11 @@ func NewZone(id, width, height, x, y, cellSize int) *Zone {
 func (z *Zone) AddEntity(e IEntity) {
     z.Entities = append(z.Entities, e)
     z.SpatialMap.Insert(e)
+    
+    zoned, ok := e.(IZoned)
+    if zoned != nil && ok {
+        zoned.SetZone(z)
+    }
 }
 
 // RemoveEntity removes an entity from the zone and updates the spatial hash
@@ -98,7 +103,7 @@ func (z *Zone) FindNearbyEntities(x, y, radius int) []IEntity {
 // FindNearbyEmptyCell finds a random empty cell within a given radius.
 func (z *Zone) FindNearbyEmptyCell(x, y, radius int) (int, int, bool) {
 	// Create a random seed based on the current time (optional, for better randomness)
-	rand.Seed(time.Now().UnixNano())
+	// rand.Seed(time.Now().UnixNano())
 
 	// Create a slice of coordinates to scan, including all positions within the radius.
 	var candidates []struct{ dx, dy int }
@@ -110,7 +115,7 @@ func (z *Zone) FindNearbyEmptyCell(x, y, radius int) (int, int, bool) {
 				nx, ny := x+dx, y+dy
 
 				// Ensure the position is within the bounds of the zone
-				if nx < 0 || ny < 0 || nx >= z.Width || ny >= z.Height {
+				if nx < z.X || ny < z.Y || nx >= z.X + z.Width || ny >= z.Y + z.Height {
 					continue
 				}
 
@@ -119,6 +124,8 @@ func (z *Zone) FindNearbyEmptyCell(x, y, radius int) (int, int, bool) {
 			}
 		}
 	}
+
+    log.Println("candidates: ", len(candidates))
 
 	// If no candidates were found, return false
 	if len(candidates) == 0 {

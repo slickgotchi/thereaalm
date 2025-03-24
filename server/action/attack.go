@@ -21,6 +21,20 @@ func NewAttackAction(actor, target types.IEntity, weighting float64) *AttackActi
 	}
 }
 
+func (action *AttackAction) Start() {
+		// check actor and target are of correct type
+		targetStats, _ := action.Target.(types.IStats)
+		attackerStats, _ := action.Actor.(types.IStats)
+		if targetStats == nil || attackerStats == nil {
+			log.Printf("Invalid IStats for actor or target in AttackAction Update()")
+			return 	
+		}
+	
+		// move to target
+		tx, ty := action.Target.GetPosition()
+		action.Actor.SetPosition(tx, ty +1)
+}
+
 func (action *AttackAction) CanBeExecuted() bool {
 	targetStats, _ := action.Target.(types.IStats)
 	attackerStats, _ := action.Actor.(types.IStats)
@@ -41,10 +55,6 @@ func (action *AttackAction) Update(dt_s float64) bool {
 		log.Printf("Invalid IStats for actor or target in AttackAction Update()")
 		return true	// action is complete we have invalid actor or target
 	}
-
-	// move to target
-	tx, ty := action.Target.GetPosition()
-	action.Actor.SetPosition(tx, ty +1)
 
 	// we attack once per second
 	action.Timer_s -= dt_s
