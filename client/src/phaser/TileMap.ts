@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { TILE_PIXELS, ZONE_TILES } from "./GameScene";
+import { Depth } from "./Depth";
 
 export class TileMap {
     private map!: Phaser.Tilemaps.Tilemap;
@@ -44,7 +45,7 @@ export class TileMap {
                 5 * ZONE_TILES * TILE_PIXELS
             );
             layer.setScale(1);
-            layer.setDepth(1000);
+            layer.setDepth(Depth.TILES);
             if (layer) {
                 console.log(`Created layer: ${layerData.name}`);
             }

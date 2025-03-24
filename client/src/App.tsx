@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import { GameScene } from "./phaser/GameScene";
 import "./index.css";
 import "./App.css";
+import { HoverInfo } from "./components/HoverInfo";
 
 function App() {
     const gameRef = useRef<Phaser.Game | null>(null);
@@ -49,7 +50,12 @@ function App() {
         };
     }, []); // Empty dependency array ensures it only runs once
 
-    return <div ref={containerRef} className="game-container"></div>;
+    return (
+    <div>
+        <HoverInfo />
+        <div ref={containerRef} className="game-container" />
+    </div>
+    );
 }
 
 export default App;

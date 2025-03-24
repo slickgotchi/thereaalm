@@ -12,54 +12,80 @@ type TradeAction struct {
 	TradeType string
 }
 
-func NewTradeAction(actor, target types.IEntity, duration_s float64, tradeType string) *TradeAction {
+func NewTradeAction(actor, target types.IEntity, tradeType string) *TradeAction {
+	trader, _ := actor.(types.IStats)
+	if trader == nil {
+		log.Println("ERROR: Trading actor does not have IStats, returning...")
+		return nil
+	}
+
+	traderDuration_s, ok := trader.GetStatValue("trade_duration_s")
+	if !ok {
+		log.Println("ERROR: Trading actor must have 'trade_duration_s' stat, returning...")
+		return nil
+	}
+	
+	
 	return &TradeAction{
 		Action: Action{
-			Type: "Trade",
-			IsActive: false,
+			Type: "trade",
+			IsStarted: false,
 			Actor: actor,
 			Target: target,
 		},
-		Duration_s: duration_s,
+		Duration_s: float64(traderDuration_s),
 		Timer_s: 0,
 		TradeType: tradeType,
 	}
 }
 
-func (sa *TradeAction) Update(dt_s float64) bool {
+func (action *TradeAction) Update(dt_s float64) bool {
 	// check actor and target are correct type
-	buyingItemHolder, _ := sa.Target.(types.IItemHolder) 
-	sellingItemHolder, _ := sa.Actor.(types.IItemHolder)
-	if buyingItemHolder == nil || sellingItemHolder == nil {
+	respondingItemHolder, _ := action.Target.(types.IInventory) 
+	initiatingItemHolder, _ := action.Actor.(types.IInventory)
+	if respondingItemHolder == nil || initiatingItemHolder == nil {
 		log.Printf("Invalid item holders passed to SellAction Update()")
 		return true
 	}
 
-	sa.Timer_s -= dt_s
-	if sa.Timer_s <= 0 {
+	// if first time, move to target
+	if (!action.IsStarted) {
+		action.IsStarted = true
+
+		tx, ty := action.Target.GetPosition()
+		action.Actor.SetPosition(tx, ty +1)
+	}
+
+	action.Timer_s -= dt_s
+	if action.Timer_s <= 0 {
 		// this is where we iterate over different trade types OR
 		// we insert custom logic from the holders that dictate
 		// what they have for sale, what price they want to sell/buy at etc.
-		if sa.TradeType == "SellAllForGold" {
+		if action.TradeType == "SellAllForGold" {
 			// add up all items that aren't gold
 			count := 0
-			allSellerItems := sellingItemHolder.GetItems()
-			var filteredSellerItems []types.Item
-			for _, item := range allSellerItems {
+			allInitiatorItems := initiatingItemHolder.GetItems()
+			var filteredInitiatorItems []types.Item
+			for _, item := range allInitiatorItems {
 				if item.Name != "Gold" {
 					count += item.Quantity
-					filteredSellerItems = append(filteredSellerItems, item)
+					filteredInitiatorItems = append(filteredInitiatorItems, item)
 				} 
 			}
 
-			var receiveItems []types.Item
-			receiveItems = append(receiveItems, types.Item{
+			var requestedItems []types.Item
+			requestedItems = append(requestedItems, types.Item{
 				Name: "Gold",
 				Quantity: count * 5,
 			})
 
+			tradeOffer := types.TradeOffer{
+				SentItems: filteredInitiatorItems,
+				RequestedItems: requestedItems,
+			}
+
 			// make the trade offer
-			sellingItemHolder.MakeTradeOffer(buyingItemHolder, filteredSellerItems, receiveItems)
+			initiatingItemHolder.ProposeTrade(respondingItemHolder, tradeOffer)
 			return true
 		}
 	}

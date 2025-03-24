@@ -16,13 +16,14 @@ type Stat struct {
 type IStats interface {
     AddStaticStat(name string, value int)
 	AddDynamicStat(name string, value, maxValue int)
-	GetValue(name string) (int, bool)
-	GetMaxValue(name string) (int, bool)
-	SetValue(name string, value int) bool
-	SetMaxValue(name string, max int) bool
-	DeltaValue(name string, delta int)
+	GetStatValue(name string) (int, bool)
+	GetStatMaxValue(name string) (int, bool)
+	SetStatValue(name string, value int) bool
+	SetStatMaxValue(name string, maxValue int) bool
+	DeltaStatValue(name string, delta int) bool
 }
 
+// STATS
 type Stats struct {
 	Entries map[string]Stat
 }
@@ -51,7 +52,7 @@ func (s * Stats) AddDynamicStat(name string, value, maxValue int) {
 }
 
 // GetValue returns the value of a stat (for static stats) or current value (for dynamic stats)
-func (s *Stats) GetValue(name string) (int, bool) {
+func (s *Stats) GetStatValue(name string) (int, bool) {
     stat, exists := s.Entries[name]
     if !exists {
         return 0, false
@@ -60,7 +61,7 @@ func (s *Stats) GetValue(name string) (int, bool) {
 }
 
 // GetMaxValue returns the max value of a dynamic stat (returns 0 for static stats)
-func (s *Stats) GetMaxValue(name string) (int, bool) {
+func (s *Stats) GetStatMaxValue(name string) (int, bool) {
     stat, exists := s.Entries[name]
     if !exists || stat.Type != StatTypeDynamic {
         return 0, false
@@ -69,7 +70,7 @@ func (s *Stats) GetMaxValue(name string) (int, bool) {
 }
 
 // SetValue sets the value of a stat (for static stats) or current value (for dynamic stats)
-func (s *Stats) SetValue(name string, value int) bool {
+func (s *Stats) SetStatValue(name string, value int) bool {
     stat, exists := s.Entries[name]
     if !exists {
         return false
@@ -84,12 +85,12 @@ func (s *Stats) SetValue(name string, value int) bool {
 }
 
 // SetMaxValue sets the max value of a dynamic stat
-func (s *Stats) SetMaxValue(name string, max int) bool {
+func (s *Stats) SetStatMaxValue(name string, maxValue int) bool {
     stat, exists := s.Entries[name]
     if !exists || stat.Type != StatTypeDynamic {
         return false
     }
-    stat.MaxValue = max
+    stat.MaxValue = maxValue
     // Adjust current value if it exceeds the new max
     if stat.Value > stat.MaxValue {
         stat.Value = stat.MaxValue
@@ -99,7 +100,7 @@ func (s *Stats) SetMaxValue(name string, max int) bool {
 }
 
 // DeltaValue modifies the value of a stat by a delta (for static or dynamic stats)
-func (s *Stats) DeltaValue(name string, delta int) bool {
+func (s *Stats) DeltaStatValue(name string, delta int) bool {
     stat, exists := s.Entries[name]
     if !exists {
         return false

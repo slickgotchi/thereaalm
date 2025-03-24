@@ -8,32 +8,36 @@ import (
 )
 type BerryBush struct {
 	Entity
-	Movable
-	ItemHolder
+	types.Inventory
 	MaxBerries int
 	// CurrentBerries int
 	BerryTimer_s float64
 }
 
 func NewBerryBush(zoneId, x, y int) *BerryBush {
-	newInventory := NewItemHolder()
+	newInventory := types.NewInventory()
 	newInventory.Items["berry"] = 50
 
 	return &BerryBush{
         Entity: Entity{
-            ID:   types.EntityUUID(uuid.New()),
+            ID:   uuid.New(),
             Type: "berrybush",
-        },
-        Movable: Movable{
-			ZoneID: zoneId,
-            X: x,
-            Y: y,
+			X: x,
+			Y: y,
         },
 		MaxBerries: 50,
 		// CurrentBerries: 50,
-		ItemHolder: *newInventory,
+		Inventory: *newInventory,
         // Actionable doesn't need to be explicitly initialized.
     }
+}
+
+func (b *BerryBush) GetSnapshotData() interface{} {
+	return struct {
+		BerryCount int `json:"berryCount"`
+	}{
+		BerryCount: b.Items["berry"],
+	}
 }
 
 func (b *BerryBush) GetType() string {

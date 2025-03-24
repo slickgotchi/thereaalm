@@ -71,20 +71,31 @@ func (wm *WorldManager) loadTestEntities() {
     // - berry bush replenished with berries
     // - repeat
 
+    zoneX := wm.Zones[42].X
+    zoneY := wm.Zones[42].Y
+
     // bush
-    bush := entity.NewBerryBush(42, 8, 4)
+    bush := entity.NewBerryBush(42, 12+zoneX, 10+zoneY)
     wm.Zones[42].AddEntity(bush)
 
     // shop
-    shop := entity.NewShop(42, 10, 6)
+    shop := entity.NewShop(42, 8+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(shop)
 
     // gotchi
-    gotchi := entity.NewGotchi(42, 3, 4)
+    gotchi := entity.NewGotchi(42, 18+zoneX, 14+zoneY)
     wm.Zones[42].AddEntity(gotchi)
 
-    gotchi.QueueAction(action.NewHarvestAction(gotchi, bush, 5))
-    gotchi.QueueAction(action.NewTradeAction(gotchi, shop, 2, "SellAllForGold"))
+    // lickquidator
+    lickquidator := entity.NewLickquidator(42, 9+zoneX, 16+zoneY)
+    wm.Zones[42].AddEntity(lickquidator)
+
+    gotchi.QueueAction(action.NewHarvestAction(gotchi, bush))
+    gotchi.QueueAction(action.NewAttackAction(gotchi, lickquidator))
+    gotchi.QueueAction(action.NewTradeAction(gotchi, shop, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
+    gotchi.QueueAction(action.NewHarvestAction(gotchi, bush))
+    gotchi.QueueAction(action.NewHarvestAction(gotchi, bush))
+    gotchi.QueueAction(action.NewTradeAction(gotchi, shop, "SellAllForGold"))
 
     // // gotchi actions
     // actionSequence := []entity.IAction{

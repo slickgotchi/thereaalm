@@ -9,27 +9,31 @@ import (
 
 type Shop struct {
     Entity
-    Movable
-	ItemHolder
+	types.Inventory
 }
 
 func NewShop(zoneId, x, y int) *Shop {
 	// start show with gold
-	itemHolder := NewItemHolder()
+	itemHolder := types.NewInventory()
 	itemHolder.Items["Gold"] = 10000
 
     return &Shop{
         Entity: Entity{
-            ID:   types.EntityUUID(uuid.New()),
-            Type: "Shop",
-        },
-        Movable: Movable{
-			ZoneID: zoneId,
+            ID:   uuid.New(),
+            Type: "shop",
             X: x,
             Y: y,
         },
-        ItemHolder: *itemHolder,
+        Inventory: *itemHolder,
     }
+}
+
+func (s *Shop) GetSnapshotData() interface{} {
+	return struct {
+		Inventory map[string]int `json:"inventory"`
+	}{
+		Inventory: s.Items,
+	}
 }
 
 func (s *Shop) Update(dt_s float64) {

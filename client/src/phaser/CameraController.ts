@@ -37,7 +37,7 @@ export class CameraController {
             this.scene.scale.height / height
         );
         this.scene.cameras.main.setZoom(Math.max(initialZoom, this.minZoom));
-        this.scene.cameras.main.setZoom(0.5);
+        this.scene.cameras.main.setZoom(1);
 
         // TEMPORARY: center camera on middle of zone 42
         this.scene.cameras.main.centerOn(

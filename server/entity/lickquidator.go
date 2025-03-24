@@ -9,31 +9,46 @@ import (
 
 type Lickquidator struct {
     Entity
-    Movable
 	ActionSequence
-	ItemHolder
+	types.Inventory
+	types.Stats
 }
 
 func NewLickquidator(zoneId, x, y int) *Lickquidator {
 	// make them hold the "Tongue" item
-	newInventory := NewItemHolder()
+	newInventory := types.NewInventory()
 	newInventory.Items["tongue"] = 1
+
+	// give a base hp stat
+	newStats := types.NewStats()
+	newStats.AddDynamicStat("hp", 50, 50)
+	newStats.AddStaticStat("attack", 3)
 
     return &Lickquidator{
         Entity: Entity{
-            ID:   types.EntityUUID(uuid.New()),
+            ID:   uuid.New(),
             Type: "lickquidator",
-        },
-        Movable: Movable{
-			ZoneID: zoneId,
-            X: x,
-            Y: y,
+			X: x,
+			Y: y,
         },
         ActionSequence: ActionSequence{
 			Actions: make([]types.IAction, 0),
 		},
-		ItemHolder: *newInventory,
+		Inventory: *newInventory,
+		Stats: *newStats,
     }
+}
+
+func (l *Lickquidator) GetSnapshotData() interface{} {
+	hp, _ := l.Stats.GetStatValue("hp")
+	maxHP, _ := l.Stats.GetStatMaxValue("hp")
+	return struct {
+		MaxHP     int    `json:"maxHp"`
+		CurrentHP int    `json:"currentHp"`
+	}{
+		MaxHP:     maxHP,
+		CurrentHP: hp,
+	}
 }
 
 func (g *Lickquidator) Update(dt_s float64) {

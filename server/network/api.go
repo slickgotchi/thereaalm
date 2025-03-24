@@ -8,19 +8,22 @@ import (
 	"strings"
 	"thereaalm/config"
 	"thereaalm/world"
+
+	"github.com/google/uuid"
 )
 
 // ZoneSnapshot represents the state of a zone, including Gotchi positions.
 type ZoneSnapshot struct {
-	Gotchis []GotchiSnapshot `json:"gotchis"`
+	EntitySnapshots []EntitySnapshot `json:"entitySnapshots"`
 }
 
 // GotchiSnapshot captures the position and ID of a Gotchi in a zone.
-type GotchiSnapshot struct {
-	UUID     string `json:"uuid"`
-	GotchiID string `json:"gotchiId"`
-	X        int    `json:"x"`
-	Y        int    `json:"y"`
+type EntitySnapshot struct {
+	ID     uuid.UUID `json:"id"`
+	Type 	 string `json:"type"`
+	X        int    `json:"tileX"`
+	Y        int    `json:"tileY"`
+	Data interface{}	`json:"data"`
 }
 
 // ZoneMapResponse represents the structure of the zone map to be sent to the client.
@@ -114,24 +117,21 @@ func handleZoneSnapshot(worldManager *world.WorldManager) http.HandlerFunc {
 			return
 		}
 
-		// // Collect Gotchi positions
-		// var snapshot ZoneSnapshot
-		// for _, entity := range zone.Entities {
-		// 	gotchi, ok := entity.(*entities.GotchiEntity)
-		// 	if !ok {
-		// 		continue
-		// 	}
-
-		// 	snapshot.Gotchis = append(snapshot.Gotchis, GotchiSnapshot{
-		// 		UUID:     gotchi.UUID,
-		// 		GotchiID: gotchi.Gotchi.SubgraphData.ID,
-		// 		X:        gotchi.Position.X,
-		// 		Y:        gotchi.Position.Y,
-		// 	})
-		// }
+		// Collect entities
+		var snapshot ZoneSnapshot
+		for _, entity := range zone.Entities {
+			x, y := entity.GetPosition()
+			snapshot.EntitySnapshots = append(snapshot.EntitySnapshots, EntitySnapshot{
+				ID:     entity.GetUUID(),
+				Type: 	  entity.GetType(),
+				X:        x,
+				Y:        y,
+				Data: entity.GetSnapshotData(),
+			})
+		}
 
 		// Respond with JSON
-		// writeJSON(w, snapshot)
+		writeJSON(w, snapshot)
 	}
 }
 

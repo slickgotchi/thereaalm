@@ -11,36 +11,60 @@ type HarvestAction struct {
 	Duration_s float64
 }
 
-func NewHarvestAction(actor, target types.IEntity, duration_s float64) *HarvestAction {
+func NewHarvestAction(actor, target types.IEntity) *HarvestAction {
+	actorItemHolder, _ := actor.(types.IInventory)
+	if actorItemHolder == nil {
+		log.Println("failed test")
+	}
+	actorStats, _ := actor.(types.IStats)
+	if actorStats == nil {
+		log.Println("ERROR: Harvesting actor does not have IStats, returning...")
+		return nil
+	}
+
+	harvestDuration_s, ok := actorStats.GetStatValue("harvest_duration_s")
+	if !ok {
+		log.Println("ERROR: Harvesting actor must have 'harvest_duration_s' stat, returning...")
+		return nil
+	}
+
 	return &HarvestAction{
 		Action: Action{
-			Type: "Harvest",
-			IsActive: false,
+			Type: "harvest",
+			IsStarted: false,
 			Actor: actor,
 			Target: target,
 		},
 		Timer_s: 0,
-		Duration_s: float64(duration_s),
+		Duration_s: float64(harvestDuration_s),
 	}
 }
 
-func (ha *HarvestAction) Update(dt_s float64) bool {
+func (action *HarvestAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
-	harvestable, _ := ha.Target.(types.IHarvestable); 
-	itemHolder, _ := ha.Actor.(types.IItemHolder);
+	harvestable, _ := action.Target.(types.IHarvestable); 
+	itemHolder, _ := action.Actor.(types.IInventory);
 	if itemHolder == nil || harvestable == nil {
 		log.Printf("Invalid actor or target in HarvestAction Update()")
 		return true	// action is complete we have invalid actor or target
 	}
 
+	// if first time, move to target
+	if (!action.IsStarted) {
+		action.IsStarted = true
+
+		tx, ty := action.Target.GetPosition()
+		action.Actor.SetPosition(tx, ty +1)
+	}
+
 	// check duration expired
-	ha.Timer_s -= dt_s
-	if ha.Timer_s <= 0 {
+	action.Timer_s -= dt_s
+	if action.Timer_s <= 0 {
 		typeRemoved, amountRemoved := harvestable.Harvest()
 
 		if typeRemoved != "" && amountRemoved > 0 {
 			itemHolder.AddItem(typeRemoved, amountRemoved)
-			log.Printf("%s added %d %s to inventory", ha.Actor.GetType(), amountRemoved, typeRemoved)
+			log.Printf("%s added %d %s to inventory", action.Actor.GetType(), amountRemoved, typeRemoved)
 		}
 
 		// harvesting is complete so we return TRUE

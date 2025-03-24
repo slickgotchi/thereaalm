@@ -9,27 +9,52 @@ import (
 
 type Gotchi struct {
     Entity
-    Movable
 	ActionSequence
-	ItemHolder
+	types.Inventory
+	types.Stats
+	GotchiId string
 }
 
 func NewGotchi(zoneId, x, y int) *Gotchi {
-    return &Gotchi{
+	// add item holder
+	newItemHolder := types.NewInventory()
+
+	// add some stats
+	newStats := types.NewStats()
+	newStats.AddDynamicStat("hp", 400, 400)
+	newStats.AddStaticStat("attack", 5)
+	newStats.AddStaticStat("harvest_duration_s", 10)
+	newStats.AddStaticStat("trade_duration_s", 10)
+
+	// make new gotchi
+	return &Gotchi{
         Entity: Entity{
-            ID:   types.EntityUUID(uuid.New()),
+            ID:   uuid.New(),
             Type: "gotchi",
-        },
-        Movable: Movable{
-			ZoneID: zoneId,
-            X: x,
-            Y: y,
+			X: x,
+			Y: y,
         },
         ActionSequence: ActionSequence{
 			Actions: make([]types.IAction, 0),
 		},
-		ItemHolder: *NewItemHolder(),
+		Inventory: *newItemHolder,
+		Stats: *newStats,
+		GotchiId: "4285",
     }
+}
+
+func (g *Gotchi) GetSnapshotData() interface{} {
+	hp, _ := g.Stats.GetStatValue("hp")
+	maxHP, _ := g.Stats.GetStatMaxValue("hp")
+	return struct {
+		GotchiID  string `json:"gotchiId"`
+		MaxHP     int    `json:"maxHp"`
+		CurrentHP int    `json:"currentHp"`
+	}{
+		GotchiID:  g.GotchiId,
+		MaxHP:     maxHP,
+		CurrentHP: hp,
+	}
 }
 
 func (g *Gotchi) Update(dt_s float64) {

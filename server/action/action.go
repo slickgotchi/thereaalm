@@ -6,13 +6,13 @@ import (
 
 type Action struct {
 	Type string
-	IsActive bool
+	IsStarted bool
 	Actor types.IEntity
 	Target types.IEntity
 }
 
 func (a *Action) Execute(actor, target types.IEntity) bool {
-	a.IsActive = true
+	a.IsStarted = true
 	a.Actor = actor
 	a.Target = target
 	return true
