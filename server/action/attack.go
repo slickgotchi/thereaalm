@@ -10,15 +10,27 @@ type AttackAction struct {
 	Timer_s float64
 }
 
-func NewAttackAction(actor, target types.IEntity) *AttackAction {
+func NewAttackAction(actor, target types.IEntity, weighting float64) *AttackAction {
 	return &AttackAction{
 		Action: Action{
 			Type: "attack",
-			IsStarted: false,
+			Weighting: weighting,
 			Actor: actor,
 			Target: target,
 		},
 	}
+}
+
+func (action *AttackAction) CanBeExecuted() bool {
+	targetStats, _ := action.Target.(types.IStats)
+	attackerStats, _ := action.Actor.(types.IStats)
+	if targetStats == nil || attackerStats == nil {
+		log.Printf("Invalid IStats for actor or target in AttackAction CanBeExecuted()")
+		return false // can not execute, invalid actor or target
+	}
+
+	targetHp, _ := targetStats.GetStatValue("hp")
+	return targetHp > 0
 }
 
 func (action *AttackAction) Update(dt_s float64) bool {
@@ -30,13 +42,9 @@ func (action *AttackAction) Update(dt_s float64) bool {
 		return true	// action is complete we have invalid actor or target
 	}
 
-	// if first time, move to target
-	if (!action.IsStarted) {
-		action.IsStarted = true
-
-		tx, ty := action.Target.GetPosition()
-		action.Actor.SetPosition(tx, ty +1)
-	}
+	// move to target
+	tx, ty := action.Target.GetPosition()
+	action.Actor.SetPosition(tx, ty +1)
 
 	// we attack once per second
 	action.Timer_s -= dt_s
@@ -53,6 +61,11 @@ func (action *AttackAction) Update(dt_s float64) bool {
 		log.Printf("entity did %d damage to anotherentity", attackDamage)
 		newHp, _ := targetStats.GetStatValue("hp")
 		log.Printf("newHp: %d", newHp);
+
+		if newHp <= 0 {
+			log.Println("Defeated enemy")
+			return true
+		}
 	}
 
 	// harvesting is not complete so we return FALSE

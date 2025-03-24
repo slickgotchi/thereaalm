@@ -1,7 +1,8 @@
 package entity
 
 import (
-	"log"
+	// "log"
+	"thereaalm/action"
 	"thereaalm/types"
 
 	"github.com/google/uuid"
@@ -9,7 +10,7 @@ import (
 
 type Gotchi struct {
     Entity
-	ActionSequence
+	action.ActionPlan
 	types.Inventory
 	types.Stats
 	GotchiId string
@@ -34,7 +35,7 @@ func NewGotchi(zoneId, x, y int) *Gotchi {
 			X: x,
 			Y: y,
         },
-        ActionSequence: ActionSequence{
+        ActionPlan: action.ActionPlan{
 			Actions: make([]types.IAction, 0),
 		},
 		Inventory: *newItemHolder,
@@ -50,23 +51,19 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		GotchiID  string `json:"gotchiId"`
 		MaxHP     int    `json:"maxHp"`
 		CurrentHP int    `json:"currentHp"`
+		Inventory interface{} `json:"inventory"`
 	}{
 		GotchiID:  g.GotchiId,
 		MaxHP:     maxHP,
 		CurrentHP: hp,
+		Inventory: g.Inventory,
 	}
 }
 
 func (g *Gotchi) Update(dt_s float64) {
-	log.Printf("Gotchi at (%d, %d)", g.X, g.Y)
-	g.DisplayInventory()
+	// log.Printf("Gotchi at (%d, %d)", g.X, g.Y)
+	// g.DisplayInventory()
 
-	// process the oldest action until its done
-	if len(g.Actions) > 0 {
-		isComplete := g.Actions[0].Update(dt_s)
-
-		if isComplete {
-			g.Actions = g.Actions[1:]
-		}
-	}
+	// process our actions
+	g.ProcessActions(dt_s);
 }

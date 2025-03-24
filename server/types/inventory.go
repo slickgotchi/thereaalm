@@ -16,10 +16,12 @@ type TradeOffer struct {
 
 type IInventory interface {
     GetItems() []Item
+    GetItemsExceptGold() []Item
 	AddItem(name string, quantity int)
 	RemoveItem(name string, quantity int) int 
     ProposeTrade(responder IInventory, tradeOffer TradeOffer) bool
     RespondToTrade(initiator IInventory, tradeOffer TradeOffer) bool
+	DisplayInventory()
 }
 
 // ITEM HOLDER
@@ -41,6 +43,21 @@ func (inv *Inventory) GetItems() []Item {
             Name: name,
             Quantity: quantity,
         })
+    }
+
+    return items
+}
+
+func (inv *Inventory) GetItemsExceptGold() []Item {
+    var items []Item
+
+    for name, quantity := range inv.Items {
+        if name != "gold" {
+            items = append(items, Item{
+                Name: name,
+                Quantity: quantity,
+            })
+        }
     }
 
     return items

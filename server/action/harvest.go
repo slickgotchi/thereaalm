@@ -11,7 +11,7 @@ type HarvestAction struct {
 	Duration_s float64
 }
 
-func NewHarvestAction(actor, target types.IEntity) *HarvestAction {
+func NewHarvestAction(actor, target types.IEntity, weighting float64) *HarvestAction {
 	actorItemHolder, _ := actor.(types.IInventory)
 	if actorItemHolder == nil {
 		log.Println("failed test")
@@ -31,13 +31,24 @@ func NewHarvestAction(actor, target types.IEntity) *HarvestAction {
 	return &HarvestAction{
 		Action: Action{
 			Type: "harvest",
-			IsStarted: false,
+			Weighting: weighting,
 			Actor: actor,
 			Target: target,
 		},
-		Timer_s: 0,
+		Timer_s: float64(harvestDuration_s),
 		Duration_s: float64(harvestDuration_s),
 	}
+}
+
+func (action *HarvestAction) CanBeExecuted() bool {
+	harvestable, _ := action.Target.(types.IHarvestable); 
+	itemHolder, _ := action.Actor.(types.IInventory);
+	if itemHolder == nil || harvestable == nil {
+		log.Printf("Invalid actor or target in HarvestAction CanBeExecuted()")
+		return false	// action is complete we have invalid actor or target
+	}
+
+	return harvestable.CanBeHarvested()
 }
 
 func (action *HarvestAction) Update(dt_s float64) bool {
@@ -49,23 +60,21 @@ func (action *HarvestAction) Update(dt_s float64) bool {
 		return true	// action is complete we have invalid actor or target
 	}
 
-	// if first time, move to target
-	if (!action.IsStarted) {
-		action.IsStarted = true
-
-		tx, ty := action.Target.GetPosition()
-		action.Actor.SetPosition(tx, ty +1)
-	}
+	// move to target
+	tx, ty := action.Target.GetPosition()
+	action.Actor.SetPosition(tx, ty +1)
 
 	// check duration expired
 	action.Timer_s -= dt_s
 	if action.Timer_s <= 0 {
 		typeRemoved, amountRemoved := harvestable.Harvest()
-
+		log.Println(typeRemoved, amountRemoved)
 		if typeRemoved != "" && amountRemoved > 0 {
 			itemHolder.AddItem(typeRemoved, amountRemoved)
 			log.Printf("%s added %d %s to inventory", action.Actor.GetType(), amountRemoved, typeRemoved)
 		}
+
+		itemHolder.DisplayInventory()
 
 		// harvesting is complete so we return TRUE
 		return true

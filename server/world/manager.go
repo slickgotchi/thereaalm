@@ -8,6 +8,7 @@ import (
 	"thereaalm/action"
 	"thereaalm/config"
 	"thereaalm/entity"
+	"thereaalm/types"
 
 	// "thereaalm/storage"
 	"time"
@@ -19,7 +20,7 @@ const (
 )
 
 type WorldManager struct {
-    Zones       []*Zone
+    Zones       []*types.Zone
     WorkerCount int
 }
 
@@ -39,7 +40,7 @@ func NewWorldManager(workerCount int) *WorldManager {
             if zoneType == "" {
                 continue
             }
-            zone := NewZone(zoneID, ZoneTiles, ZoneTiles, x*ZoneTiles, y*ZoneTiles)
+            zone := types.NewZone(zoneID, ZoneTiles, ZoneTiles, x*ZoneTiles, y*ZoneTiles, 64)
             manager.Zones = append(manager.Zones, zone)
             zoneID++
         }
@@ -87,28 +88,12 @@ func (wm *WorldManager) loadTestEntities() {
     wm.Zones[42].AddEntity(gotchi)
 
     // lickquidator
-    lickquidator := entity.NewLickquidator(42, 9+zoneX, 16+zoneY)
+    lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
     wm.Zones[42].AddEntity(lickquidator)
 
-    gotchi.QueueAction(action.NewHarvestAction(gotchi, bush))
-    gotchi.QueueAction(action.NewAttackAction(gotchi, lickquidator))
-    gotchi.QueueAction(action.NewTradeAction(gotchi, shop, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
-    gotchi.QueueAction(action.NewHarvestAction(gotchi, bush))
-    gotchi.QueueAction(action.NewHarvestAction(gotchi, bush))
-    gotchi.QueueAction(action.NewTradeAction(gotchi, shop, "SellAllForGold"))
-
-    // // gotchi actions
-    // actionSequence := []entity.IAction{
-    //     action.NewGatherAction(bush.UUID), // Gather (berries: 5 -> 3)
-    //     action.NewSellAction(shop.UUID),   // Sell (inventory: 2 -> 0)
-    //     action.NewGatherAction(bush.UUID), // Gather (berries: 3 -> 1)
-    //     action.NewSellAction(shop.UUID),   // Sell (inventory: 2 -> 0)
-    //     action.NewGatherAction(bush.UUID), // Gather (berries: 1 -> 0)
-    //     action.NewSellAction(shop.UUID),   // Sell (inventory: 1 -> 0)
-    //     action.NewIdleAction(),            // Idle (bush depleted, nothing to do)
-    // }
-    // gotchi.SetActionSequence(actionSequence)
-
+    gotchi.AddAction(action.NewHarvestAction(gotchi, bush, 0.5))
+    gotchi.AddAction(action.NewAttackAction(gotchi, lickquidator, 0.3))
+    gotchi.AddAction(action.NewTradeAction(gotchi, shop, 0.2, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
 
 
     // gotchiData := storage.GetLatestDatabaseGotchiEntities(1)
@@ -176,7 +161,7 @@ func (wm *WorldManager) updateLoop() {
 
 func (wm *WorldManager) updateZonesParallel(dt_s float64) {
     var wg sync.WaitGroup
-    jobs := make(chan *Zone, len(wm.Zones))
+    jobs := make(chan *types.Zone, len(wm.Zones))
 
     for i := 0; i < wm.WorkerCount; i++ {
         wg.Add(1)
@@ -191,7 +176,7 @@ func (wm *WorldManager) updateZonesParallel(dt_s float64) {
     wg.Wait()
 }
 
-func (wm *WorldManager) zoneWorker(jobs <-chan *Zone, dt_s float64, wg *sync.WaitGroup) {
+func (wm *WorldManager) zoneWorker(jobs <-chan *types.Zone, dt_s float64, wg *sync.WaitGroup) {
     defer wg.Done()
 
     for zone := range jobs {

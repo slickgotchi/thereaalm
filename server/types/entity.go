@@ -20,12 +20,9 @@ type IEntity interface {
 // type IMovable interface {
 // }
 
-// IActionSequence is for entities that can process actions.
-type IActionSequence interface {
-    QueueAction(a IAction)
-    ProcessActions(dt_s float64)
-}
+
 
 type IHarvestable interface {
     Harvest() (string, int)
+    CanBeHarvested() bool
 }

@@ -1,7 +1,8 @@
 package entity
 
 import (
-	"log"
+	// "log"
+	"thereaalm/action"
 	"thereaalm/types"
 
 	"github.com/google/uuid"
@@ -9,7 +10,7 @@ import (
 
 type Lickquidator struct {
     Entity
-	ActionSequence
+	action.ActionPlan
 	types.Inventory
 	types.Stats
 }
@@ -31,7 +32,7 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 			X: x,
 			Y: y,
         },
-        ActionSequence: ActionSequence{
+        ActionPlan: action.ActionPlan{
 			Actions: make([]types.IAction, 0),
 		},
 		Inventory: *newInventory,
@@ -51,16 +52,7 @@ func (l *Lickquidator) GetSnapshotData() interface{} {
 	}
 }
 
-func (g *Lickquidator) Update(dt_s float64) {
-	log.Printf("Lickquidator at (%d, %d)", g.X, g.Y)
-	g.DisplayInventory()
-
-	// process the oldest action until its done
-	if len(g.Actions) > 0 {
-		isComplete := g.Actions[0].Update(dt_s)
-
-		if isComplete {
-			g.Actions = g.Actions[1:]
-		}
-	}
+func (l *Lickquidator) Update(dt_s float64) {
+	// process actions
+	// l.ProcessActions(dt_s)
 }

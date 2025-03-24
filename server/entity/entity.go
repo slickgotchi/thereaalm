@@ -12,6 +12,7 @@ type Entity struct {
 	Type string
     X int
     Y int
+    types.Zoned
 }
 
 func (e *Entity) GetUUID() uuid.UUID { return e.ID }
@@ -26,20 +27,4 @@ func (e *Entity) SetPosition(x, y int) {
 }
 func (e *Entity) GetCustomData() interface{} {
     return nil
-}
-
-
-type ActionSequence struct {
-    Actions []types.IAction
-}
-
-func (a *ActionSequence) QueueAction(action types.IAction) {
-    a.Actions = append(a.Actions, action)
-}
-
-func (a *ActionSequence) ProcessActions(dt_s float64) {
-    for _, action := range a.Actions {
-        action.Execute(action.GetActor(), action.GetTarget()) // You can replace `nil` with actual actor/target when needed
-    }
-    a.Actions = nil // Clear actions after processing, if needed
 }

@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"log"
+	// "log"
 	"thereaalm/types"
 
 	"github.com/google/uuid"
@@ -32,6 +32,10 @@ func NewBerryBush(zoneId, x, y int) *BerryBush {
     }
 }
 
+func (b *BerryBush) CanBeHarvested() bool {
+	return b.Items["berry"] > 0
+}
+
 func (b *BerryBush) GetSnapshotData() interface{} {
 	return struct {
 		BerryCount int `json:"berryCount"`
@@ -45,8 +49,8 @@ func (b *BerryBush) GetType() string {
 }
 
 func (b *BerryBush) Update(dt_s float64) {
-	log.Printf("BerryBush at (%d, %d)", b.X, b.Y)
-	b.DisplayInventory()
+	// log.Printf("BerryBush at (%d, %d)", b.X, b.Y)
+	// b.DisplayInventory()
 
 	respawnInterval := 20.0
 	respawnAmount := 10
@@ -54,7 +58,7 @@ func (b *BerryBush) Update(dt_s float64) {
 	// recharge the berries on the bush
 	b.BerryTimer_s += dt_s
 	if b.BerryTimer_s > respawnInterval {
-		log.Println("Bush respawned 10 berry's")
+		// log.Println("Bush respawned 10 berry's")
 		b.BerryTimer_s -= respawnInterval
 		b.Items["Berry"] += respawnAmount
 		if b.Items["Berry"] > b.MaxBerries {
@@ -64,12 +68,12 @@ func (b *BerryBush) Update(dt_s float64) {
 }
 
 func (b *BerryBush) Harvest() (string, int) {
-	harvestAmount := min(5, b.Items["Berry"])
+	harvestAmount := min(5, b.Items["berry"])
 
-	b.RemoveItem("Berry", harvestAmount)
+	b.RemoveItem("berry", harvestAmount)
 
 	if harvestAmount > 0 {
-		return "Berry", harvestAmount
+		return "berry", harvestAmount
 	} else {
 		return "", 0
 	}

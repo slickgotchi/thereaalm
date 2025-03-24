@@ -86,7 +86,7 @@ func writeError(w http.ResponseWriter, message string, statusCode int) {
 // handleZoneSnapshot returns a handler for the /zones/{id}/snapshot endpoint.
 func handleZoneSnapshot(worldManager *world.WorldManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+		// log.Printf("Received request: %s %s", r.Method, r.URL.Path)
 
 		// Only allow GET requests
 		if r.Method != http.MethodGet {
@@ -138,7 +138,7 @@ func handleZoneSnapshot(worldManager *world.WorldManager) http.HandlerFunc {
 // handleZoneMap returns a handler for the /zonemap endpoint.
 func handleZoneMap() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+		// log.Printf("Received request: %s %s", r.Method, r.URL.Path)
 
 		// Only allow GET requests
 		if r.Method != http.MethodGet {

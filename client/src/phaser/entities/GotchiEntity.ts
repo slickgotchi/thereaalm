@@ -42,7 +42,6 @@ export class GotchiEntity extends BaseEntity {
     }
 
     destroy(): void {
-        
         super.destroy();
     }
 

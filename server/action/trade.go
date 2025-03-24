@@ -12,7 +12,7 @@ type TradeAction struct {
 	TradeType string
 }
 
-func NewTradeAction(actor, target types.IEntity, tradeType string) *TradeAction {
+func NewTradeAction(actor, target types.IEntity, weighting float64, tradeType string) *TradeAction {
 	trader, _ := actor.(types.IStats)
 	if trader == nil {
 		log.Println("ERROR: Trading actor does not have IStats, returning...")
@@ -29,14 +29,27 @@ func NewTradeAction(actor, target types.IEntity, tradeType string) *TradeAction 
 	return &TradeAction{
 		Action: Action{
 			Type: "trade",
-			IsStarted: false,
+			Weighting: weighting,
 			Actor: actor,
 			Target: target,
 		},
 		Duration_s: float64(traderDuration_s),
-		Timer_s: 0,
+		Timer_s: float64(traderDuration_s),
 		TradeType: tradeType,
 	}
+}
+
+func (action *TradeAction) CanBeExecuted() bool {
+	// check actor and target are correct type
+	respondingItemHolder, _ := action.Target.(types.IInventory) 
+	initiatingItemHolder, _ := action.Actor.(types.IInventory)
+	if respondingItemHolder == nil || initiatingItemHolder == nil {
+		log.Printf("Invalid item holders passed to SellAction Update()")
+		return false
+	}
+
+	items := initiatingItemHolder.GetItemsExceptGold()
+	return len(items) > 0
 }
 
 func (action *TradeAction) Update(dt_s float64) bool {
@@ -48,14 +61,10 @@ func (action *TradeAction) Update(dt_s float64) bool {
 		return true
 	}
 
-	// if first time, move to target
-	if (!action.IsStarted) {
-		action.IsStarted = true
-
-		tx, ty := action.Target.GetPosition()
-		action.Actor.SetPosition(tx, ty +1)
-	}
-
+	// move to target
+	tx, ty := action.Target.GetPosition()
+	action.Actor.SetPosition(tx, ty +1)
+	
 	action.Timer_s -= dt_s
 	if action.Timer_s <= 0 {
 		// this is where we iterate over different trade types OR
@@ -67,7 +76,7 @@ func (action *TradeAction) Update(dt_s float64) bool {
 			allInitiatorItems := initiatingItemHolder.GetItems()
 			var filteredInitiatorItems []types.Item
 			for _, item := range allInitiatorItems {
-				if item.Name != "Gold" {
+				if item.Name != "gold" {
 					count += item.Quantity
 					filteredInitiatorItems = append(filteredInitiatorItems, item)
 				} 
@@ -75,7 +84,7 @@ func (action *TradeAction) Update(dt_s float64) bool {
 
 			var requestedItems []types.Item
 			requestedItems = append(requestedItems, types.Item{
-				Name: "Gold",
+				Name: "gold",
 				Quantity: count * 5,
 			})
 

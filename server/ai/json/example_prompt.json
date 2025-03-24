@@ -2,97 +2,68 @@
     "background": "You are an autonomous Aavegotchi within The Reaalm, a persistent AI world threatened by the Lickquidator Scourge. Your personality, memory, and surroundings determine your actions.",
 
     "instructions": [
-        "Create three unique potential_day_plans that are aligned with the *context* fields below for our Aavegotchi",
-        "Each potential_day_plan must have a unique plan_description",
-        "Each potential_day_plan must have a chance assigned to it based on liklihood of it being chosen when taking into account the *context* fields",
-        "Each potential_day_plan must have 10 actions wihin its action_sequence",
+        "Create a plan of potential_actions that is aligned with the *context* fields below for our Aavegotchi",
+        "The plan must have a unique plan_description",
+        "The plan must have 10 potential_actions.", 
+        "A minimum of 3 of the potential_actions MUST target an entity_group to ensure our Aavegotchi can consider new entities that enter the field of view",
+        "In the target field for each potential_action choose either an entity_id OR entity_group, NEVER both and ensure the unused field is removed.",
+        "The weighting for each potential action will be a float number between 0.0 and 1.0",
+        "Each potential_action must have a weighting assigned to it aligned with the liklihood of the Aaevgotchi using that action based on the *context* fields",
         "You can only use action types from available_actions",
         "You can only use target_entity's from entities_in_field_of_view",
         "Return output as a json following the *output_example* structure below."
     ],
 
     "critical_instructions_that_must_always_be_adhered_to": {
-        "always_validate_target_entities": true,
+        "always_validate_target_entity_id_and_or_entity_group": true,
         "always_validate_action_types": true,
-        "always_have_10_actions_in_action_sequence": true
+        "always_have_10_potential_actions_in_the_plan": true,
+        "a_minimum_of_3_potential_actions_must_target_an_entity_group": true
     },
 
     "output_example": {
-        "potential_day_plans": [
-            {
-                "plan_description": "",
-                "chance": "%",
-                "action_sequence": [
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" }
-                ]
-            },
-            {
-                "plan_description": "",
-                "chance": "%",
-                "action_sequence": [
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" }
-                ]
-            },
-            {
-                "plan_description": "",
-                "chance": "%",
-                "action_sequence": [
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" },
-                    { "type": "", "target_entity": "" }
-                ]
+        "plan_description": "",
+        "potential_actions": [
+            { 
+                "type": "", 
+                "weighting": "", 
+                "target": {
+                    "entity_id": "",
+                    "entity_group": ""
+                }
             }
         ]
     },
 
     "entities_in_field_of_view": [
         {
-            "entity": "ally_guard_tower_023",
+            "entity_id": "ally_guard_tower_023",
+            "entity_group": "ally_guard_tower",
             "state": "Under attack by Entity id: 456"
         },
         {
-            "entity": "enemy_lickquidator_542",
+            "entity_id": "enemy_lickquidator_542",
+            "entity_group": "enemy_lickquidator",
             "state": "Attacking ally_guard_tower_023"
         },
         {
-            "entity": "resource_lumber_056",
+            "entity_id": "resource_lumber_056",
+            "entity_group": "resource_lumber",
             "state": "Available for harvesting"
         },
         {
-            "entity": "resource_ore_122",
+            "entity_id": "resource_ore_122",
+            "entity_group": "resource_ore",
             "state": "Available for harvesting"
         },
         {
-            "entity": "ally_gotchi_223",
+            "entity_id": "ally_gotchi_223",
+            "entity_group": "ally_gotchi",
             "state": "HP 5/100"
         },
         {
-            "entity": "resource_grass_root_herb",
+            "entity_id": "resource_grass_root_herb_546",
+            "entity_group": "resource_grass_root_herb",
             "state": "Available for harvesting"
         }
     ],
@@ -100,7 +71,7 @@
     "available_actions": [
         {
             "type": "attack",
-            "description": "Attack an opposition entity."
+            "description": "Attack an enemy entity. Do not attack ally entities."
         },
         {
             "type": "gather",
@@ -108,7 +79,7 @@
         },
         {
             "type": "sell_inventory_item",
-            "description": "Sell an item of inventory to another entity"
+            "description": "Sell an item of inventory to an ally gotchi entity"
         }
     ],
 
