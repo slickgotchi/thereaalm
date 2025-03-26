@@ -17,6 +17,7 @@ type Gotchi struct {
 	types.Inventory
 	stats.Stats
 	GotchiId string
+	Name string
 	SubgraphData web3.SubgraphGotchiData
 	Personality []string
 }
@@ -48,6 +49,8 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 	newStats.SetStat(stats.HarvestDuration_s, 5)
 	newStats.SetStat(stats.TradeDuration_s, 5)
 
+	log.Println("NewGotchi: ", subgraphGotchiData)
+
 	// make new gotchi
 	return &Gotchi{
         Entity: Entity{
@@ -62,6 +65,7 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 		Inventory: *newItemHolder,
 		Stats: *newStats,
 		SubgraphData: subgraphGotchiData,
+		Name: subgraphGotchiData.Name,
 		GotchiId: subgraphGotchiData.ID,
 		Personality: CreatePersonalityFromSubgraphData(subgraphGotchiData),
     }
@@ -69,11 +73,13 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 
 func (g *Gotchi) GetSnapshotData() interface{} {
 	return struct {
+		Name string `json:"name"`
 		GotchiID  string `json:"gotchiId"`
 		Stats interface{} `json:"stats"`
 		Inventory interface{} `json:"inventory"`
 		Personality interface{} `json:"personality"`
 	}{
+		Name: g.Name,
 		GotchiID:  g.GotchiId,
 		Stats: g.Stats.StatMap,
 		Inventory: g.Items,
@@ -131,13 +137,13 @@ func CreatePersonalityFromSubgraphData(subgraphData web3.SubgraphGotchiData) []s
 
     // Brain Size (BRN) - Index 3
     addPersonalityTrait(traits[3],
-        "Ditsy", "Quirky", "Goofy", "Basic",
-        "Witty", "Genius", "Visionary", "5D-Chess")
+        "Glitchy", "Ditsy", "Quirky", "Basic",
+        "Witty", "Genius", "Visionary", "Mindbender")
 
 	// Eye Shape (EYS) - Index 4
 	addPersonalityTrait(traits[4],
-		"Ravishing", "Rugged", "Cute", "Pretty",
-		"Striking", "Stunning", "Gorgeous", "Eye-Candy")
+		"Ravishing", "Rugged", "Striking", "Cute",
+		"Pretty", "Stunning", "Gorgeous", "Smokeshow")
 
 	// Eye Color (EYC) - Index 5
 	addPersonalityTrait(traits[5], 

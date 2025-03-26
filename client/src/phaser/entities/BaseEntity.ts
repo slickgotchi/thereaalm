@@ -16,6 +16,8 @@ export class BaseEntity {
     zoneId: number;
     sprite: Phaser.GameObjects.Sprite;
     scene: Phaser.Scene;
+    tileX: number;
+    tileY: number;
     x: number;
     y: number;
     type: string;
@@ -25,12 +27,14 @@ export class BaseEntity {
     private hoverUpdateTimer: Phaser.Time.TimerEvent | null = null; // Timer for hover updates
 
 
-    constructor(scene: Phaser.Scene, id: string, zoneId: number, x: number, y: number, type: string, texture: string, data: any) {
+    constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, type: string, texture: string, data: any) {
         this.scene = scene;
         this.id = id;
         this.zoneId = zoneId;
-        this.x = x * TILE_PIXELS;
-        this.y = y * TILE_PIXELS;
+        this.tileX = tileX;
+        this.tileY = tileY;
+        this.x = tileX * TILE_PIXELS;
+        this.y = tileY * TILE_PIXELS;
         this.type = type;
 
         this.sprite = scene.add.sprite(this.x, this.y, texture)
@@ -49,6 +53,8 @@ export class BaseEntity {
 
     update(snapshot: EntitySnapshot) {
         const { tileX, tileY, data } = snapshot;
+        this.tileX = tileX;
+        this.tileY = tileY;
 
         this.x = tileX * TILE_PIXELS;
         this.y = tileY * TILE_PIXELS;

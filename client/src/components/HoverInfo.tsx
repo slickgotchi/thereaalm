@@ -8,7 +8,7 @@ export const HoverInfo = () => {
     useEffect(() => {
         const handleHover = (event: Event) => {
             const customEvent = event as CustomEvent;
-            console.log("hover: ", customEvent.detail);
+            // console.log("hover: ", customEvent.detail);
             setHoverData(customEvent.detail);
         };
 

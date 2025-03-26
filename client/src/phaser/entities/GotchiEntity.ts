@@ -1,6 +1,8 @@
-import { fetchBulkGotchiSVGs } from "../FetchGotchis";
+import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../FetchGotchis";
 import { HPBar } from "../HPBar";
 import { BaseEntity, EntitySnapshot } from "./BaseEntity";
+import { TweenableEntity } from "./TweenableEntity";
+import { Direction, TweenWorker } from "./TweenWorker";
 
 interface SVGState {
     gotchiId: string;
@@ -8,16 +10,21 @@ interface SVGState {
         | "ToBeFetched"
         | "Fetching"
         | "LoadingImage"
-        | "ImageLoaded"
-        | "ImageSet";
-    entity: BaseEntity;
-    // sprite: Phaser.GameObjects.Sprite;
+        | "ImageLoaded";
 }
 
-export class GotchiEntity extends BaseEntity {
+interface TextureSet {
+    svg: string;
+    left: string;
+    right: string;
+    back: string;
+}
+
+export class GotchiEntity extends TweenableEntity {
     // hpBar: HPBar;
     gotchiId: string = "";
-    
+    textureSet!: TextureSet;
+
     // static map of svg states
     static svgMap: Map<string, SVGState> = new Map();
 
@@ -33,47 +40,83 @@ export class GotchiEntity extends BaseEntity {
         GotchiEntity.svgMap.set(this.gotchiId, {
             gotchiId: this.gotchiId,
             svgState: "ToBeFetched",
-            entity: this,
         });
     }
 
     update(snapshot: EntitySnapshot) {
         super.update(snapshot);
+
+        this.updateSVG();
+    }
+
+    updateSVG() {
+        // check svg is loaded
+        if (!this.textureSet) {
+            // try get svg map
+            const svgMapItem = GotchiEntity.svgMap.get(this.gotchiId);
+            if (!svgMapItem) return;
+            if (svgMapItem.svgState === "ImageLoaded") {
+                this.textureSet = {
+                    svg: `gotchi-${this.gotchiId}-svg`,
+                    left: `gotchi-${this.gotchiId}-left`,
+                    right: `gotchi-${this.gotchiId}-right`,
+                    back: `gotchi-${this.gotchiId}-back`,
+                }
+                this.sprite.stop();
+                this.sprite.setTexture(this.textureSet.svg);
+                this.outlineEffect.rebuild();
+            }
+        }
+    }
+
+    protected updateDirection() {
+        if (!this.textureSet) return;
+        this.sprite.stop();
+        switch (this.direction) {
+            case "left":
+                this.sprite.setTexture(this.textureSet.left);
+                break;
+            case "right":
+                this.sprite.setTexture(this.textureSet.right);
+                break;
+            case "up":
+                this.sprite.setTexture(this.textureSet.back);
+                break;
+            case "down":
+            case "none":
+            default:
+                this.sprite.setTexture(this.textureSet.svg);
+                break;
+        }
     }
 
     destroy(): void {
         super.destroy();
     }
 
-    // static function to update all gotchi entity svgs
     static async fetchAndLoadSVGs(scene: Phaser.Scene) {
-        // filter out all the gotchis that need svg fetched
         const gotchisToFetch = Array.from(GotchiEntity.svgMap.entries())
-                .filter(([id, state]) => {
-                return state.svgState === "ToBeFetched";
-            })
-            .map(([id, state]) => state.gotchiId); // Use gotchiId for SVG fetching
-
+            .filter(([_, state]) => state.svgState === "ToBeFetched")
+            .map(([_, state]) => state.gotchiId);
+    
         if (gotchisToFetch.length <= 0) return;
-
-        // set states to fetching
+    
         gotchisToFetch.forEach(gotchiId => {
             const state = GotchiEntity.svgMap.get(gotchiId);
             if (state) state.svgState = "Fetching";
         });
-
-
-        // try fetch
+    
         try {
-            const svgSets = await fetchBulkGotchiSVGs(gotchisToFetch);
-
-            svgSets.forEach((svgSet: any, index: number) => {
-                const gotchiId = gotchisToFetch[index];
+            const svgSets: GotchiSVGSet[] = await fetchBulkGotchiSVGs(gotchisToFetch);
+            svgSets.forEach((svgSet) => {
+                const gotchiId = svgSet.id; // Use 'id' from GotchiSVGSet
                 const state = GotchiEntity.svgMap.get(gotchiId);
                 if (state) {
                     state.svgState = "LoadingImage";
-                    this.loadGotchiSVG(scene, gotchiId, svgSet);
-                } 
+                    // Pass the full svgSet minus the id as the texture data
+                    const { svg, left, right, back } = svgSet;
+                    this.loadGotchiSVG(scene, gotchiId, { svg, left, right, back });
+                }
             });
         } catch (error) {
             console.error("Failed to fetch bulk SVGs:", error);
@@ -129,19 +172,10 @@ export class GotchiEntity extends BaseEntity {
     static onAllImagesLoaded(gotchiId: string) {
         // Search through gotchiMap values to find the matching gotchiId
         const state = Array.from(GotchiEntity.svgMap.values()).find(
-            (gotchi) => gotchi.gotchiId === gotchiId
+            (svgState) => svgState.gotchiId === gotchiId
         );
 
         if (!state) return; // Gotchi might have been removed
-
-        if (state.entity.sprite) {
-            // Update the existing sprite
-            state.entity.sprite.stop();
-            state.entity.sprite.setTexture(`gotchi-${gotchiId}-svg`);
-
-            // recalc outline
-            state.entity.outlineEffect.rebuild();
-            state.svgState = "ImageSet";
-        } 
+        state.svgState = "ImageLoaded";
     }
 }
