@@ -3,6 +3,7 @@ package entity
 import (
 	// "log"
 	"thereaalm/action"
+	"thereaalm/stats"
 	"thereaalm/types"
 
 	"github.com/google/uuid"
@@ -12,7 +13,7 @@ type Lickquidator struct {
     Entity
 	action.ActionPlan
 	types.Inventory
-	types.Stats
+	stats.Stats
 }
 
 func NewLickquidator(zoneId, x, y int) *Lickquidator {
@@ -21,9 +22,10 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 	newInventory.Items["tongue"] = 1
 
 	// give a base hp stat
-	newStats := types.NewStats()
-	newStats.AddDynamicStat("hp", 50, 50)
-	newStats.AddStaticStat("attack", 3)
+	newStats := stats.NewStats()
+	newStats.SetStat(stats.HpCurrent, 50)
+	newStats.SetStat(stats.HpMax, 50)
+	newStats.SetStat(stats.Attack, 3)
 
     return &Lickquidator{
         Entity: Entity{
@@ -44,11 +46,11 @@ func (l *Lickquidator) GetSnapshotData() interface{} {
 	return struct {
 		Stats interface{} `json:"stats"`
 	}{
-		Stats: l.Stats,
+		Stats: l.Stats.StatMap,
 	}
 }
 
 func (l *Lickquidator) Update(dt_s float64) {
 	// process actions
-	// l.ProcessActions(dt_s)
+	l.ProcessActions(dt_s)
 }

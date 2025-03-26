@@ -1,3 +1,4 @@
+import { AltarEntity } from "./AltarEntity";
 import { BaseEntity, EntitySnapshot } from "./BaseEntity";
 import { BerrybushEntity } from "./BerrybushEntity";
 import { GotchiEntity } from "./GotchiEntity";
@@ -18,6 +19,8 @@ export class EntityFactory {
                 return new BerrybushEntity(scene, id, zoneId, tileX, tileY, data);
             case "shop":
                 return new ShopEntity(scene, id, zoneId, tileX, tileY, data);
+            case "altar":
+                return new AltarEntity(scene, id, zoneId, tileX, tileY, data);
             default:
                 return new BaseEntity(scene, id, zoneId, tileX, tileY, type, type, data);
         }

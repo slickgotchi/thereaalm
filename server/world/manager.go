@@ -2,6 +2,7 @@
 package world
 
 import (
+	"fmt"
 	"log"
 	"runtime"
 	"sync"
@@ -9,6 +10,7 @@ import (
 	"thereaalm/config"
 	"thereaalm/entity"
 	"thereaalm/types"
+	"thereaalm/web3"
 
 	// "thereaalm/storage"
 	"time"
@@ -59,7 +61,7 @@ func NewWorldManager(workerCount int) *WorldManager {
 }
 
 func (wm *WorldManager) loadTestEntities() {
-    log.Println("Loading Gotchis from subgraph...")
+    // log.Println("Loading Gotchis from subgraph...")
 
     // OUR TEST SCENARIO
     // - create gotchi, shop and berrybush
@@ -72,31 +74,42 @@ func (wm *WorldManager) loadTestEntities() {
     // - berry bush replenished with berries
     // - repeat
 
+    // grab a few gotchis to use
+    gotchisMap, err := web3.FetchGotchisByIDs([]string{"4285", "19005", "21550"})
+    if err != nil {
+        fmt.Printf("Error fetching gotchis: %v\n", err)
+        return
+    }
+    log.Println("4285", gotchisMap["4285"])
+
     zoneX := wm.Zones[42].X
     zoneY := wm.Zones[42].Y
 
-    // bush
+    // ENTITIES
     bush := entity.NewBerryBush(42, 12+zoneX, 10+zoneY)
     wm.Zones[42].AddEntity(bush)
 
-    // shop
     shop := entity.NewShop(42, 8+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(shop)
 
-    // gotchi
-    gotchi := entity.NewGotchi(42, 18+zoneX, 14+zoneY)
+    log.Println("Gotchi 4285: ", gotchisMap["4285"])
+    gotchi := entity.NewGotchi(42, 18+zoneX, 14+zoneY, gotchisMap["4285"])
     wm.Zones[42].AddEntity(gotchi)
 
-    // lickquidator
     lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
     wm.Zones[42].AddEntity(lickquidator)
 
+    altar := entity.NewAltar(42, 15+zoneX, 12+zoneY)
+    wm.Zones[42].AddEntity(altar)
+
+    // ACTIONS
     gotchi.AddAction(action.NewHarvestAction(gotchi, bush, 0.5))
     gotchi.AddAction(action.NewAttackAction(gotchi, lickquidator, 0.3))
     gotchi.AddAction(action.NewTradeAction(gotchi, shop, 0.2, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
     gotchi.AddAction(action.NewRoamAction(gotchi, 0.1))
 
-    lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchi, 1))
+    lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchi, 0.2))
+    lickquidator.AddAction(action.NewAttackAction(lickquidator, altar, 0.8))
 
     // gotchiData := storage.GetLatestDatabaseGotchiEntities(1)
     // if len(gotchiData) == 0 {

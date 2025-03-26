@@ -2,6 +2,7 @@ package action
 
 import (
 	"log"
+	"thereaalm/stats"
 	"thereaalm/types"
 )
 
@@ -16,14 +17,14 @@ func NewHarvestAction(actor, target types.IEntity, weighting float64) *HarvestAc
 	if actorItemHolder == nil {
 		log.Println("failed test")
 	}
-	actorStats, _ := actor.(types.IStats)
+	actorStats, _ := actor.(stats.IStats)
 	if actorStats == nil {
 		log.Println("ERROR: Harvesting actor does not have IStats, returning...")
 		return nil
 	}
 
-	harvestDuration_s, ok := actorStats.GetStatValue("harvest_duration_s")
-	if !ok {
+	harvestDuration_s := actorStats.GetStat(stats.HarvestDuration_s)
+	if harvestDuration_s <= 0 {
 		log.Println("ERROR: Harvesting actor must have 'harvest_duration_s' stat, returning...")
 		return nil
 	}

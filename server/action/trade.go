@@ -2,6 +2,7 @@ package action
 
 import (
 	"log"
+	"thereaalm/stats"
 	"thereaalm/types"
 )
 
@@ -13,14 +14,14 @@ type TradeAction struct {
 }
 
 func NewTradeAction(actor, target types.IEntity, weighting float64, tradeType string) *TradeAction {
-	trader, _ := actor.(types.IStats)
+	trader, _ := actor.(stats.IStats)
 	if trader == nil {
 		log.Println("ERROR: Trading actor does not have IStats, returning...")
 		return nil
 	}
 
-	traderDuration_s, ok := trader.GetStatValue("trade_duration_s")
-	if !ok {
+	traderDuration_s := trader.GetStat(stats.TradeDuration_s)
+	if traderDuration_s <= 0 {
 		log.Println("ERROR: Trading actor must have 'trade_duration_s' stat, returning...")
 		return nil
 	}

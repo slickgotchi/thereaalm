@@ -1,11 +1,8 @@
 import Phaser from "phaser";
-import { fetchBulkGotchiSVGs } from "./FetchGotchis"; // Adjust path as needed
-import { resizeGame } from "./ResizeGame";
 import { WorldMap } from "./WorldMap";
 import { CameraController } from "./CameraController";
 import { TileMap } from "./TileMap";
 import { HPBar } from "./HPBar";
-import { EntityManager } from "./entities/EntityManager";
 import { BaseEntity, EntitySnapshot } from "./entities/BaseEntity";
 import { EntityFactory } from "./entities/EntityFactory";
 import { GotchiEntity } from "./entities/GotchiEntity";
@@ -14,8 +11,8 @@ import { GotchiEntity } from "./entities/GotchiEntity";
 
 export const TILE_PIXELS = 64;
 export const ZONE_TILES = 512;
-const GAME_WIDTH = 1920;
-const GAME_HEIGHT = 1200;
+// const GAME_WIDTH = 1920;
+// const GAME_HEIGHT = 1200;
 
 export class GameScene extends Phaser.Scene {
     private entityMap: Map<string, BaseEntity> = new Map();
@@ -54,16 +51,12 @@ export class GameScene extends Phaser.Scene {
         this.load.image("berrybush", "assets/images/berrybush.png");
         this.load.image("shop", "assets/images/shop.png");
         this.load.image("berry_icon", "assets/images/berry_icon.png");
+        this.load.image("altar", "assets/images/golden_altar_l1.png");
     }
 
     async create() {
-        // this.entityManager = new EntityManager(this);
-
         // create tilemap
         this.tileMap.create();
-
-        // this.gotchiMap.clear(); // Initialize the map
-        // console.log("Initialized gotchiMap:", this.gotchiMap.size); // Debug initial map state
 
         // Set up the camera controller
         this.cameraController = new CameraController(
