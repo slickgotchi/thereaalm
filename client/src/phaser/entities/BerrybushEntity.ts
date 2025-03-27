@@ -1,4 +1,5 @@
 
+import { NavigationGrid } from "../navigation/NavigationGrid";
 import { ResourceIcon } from "../ResourceIcon";
 import { BaseEntity, EntitySnapshot } from "./BaseEntity";
 
@@ -6,8 +7,11 @@ import { BaseEntity, EntitySnapshot } from "./BaseEntity";
 export class BerrybushEntity extends BaseEntity {
     // resourceIcon: ResourceIcon;
 
-    constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, data: any) {
+    constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, 
+        data: any, navigationGrid: NavigationGrid) {
         super(scene, id, zoneId, tileX, tileY, "berrybush", "berrybush", data);
+
+        navigationGrid.setPassable(tileX, tileY, false);
 
         // this.resourceIcon = new ResourceIcon({
         //     scene: this.scene,

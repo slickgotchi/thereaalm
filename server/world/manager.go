@@ -88,7 +88,15 @@ func (wm *WorldManager) loadTestEntities() {
     bush := entity.NewBerryBush(42, 12+zoneX, 10+zoneY)
     wm.Zones[42].AddEntity(bush)
 
-    shop := entity.NewShop(42, 8+zoneX, 12+zoneY)
+    // obstacles
+    // wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 8+zoneY))
+    // wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 9+zoneY))
+    wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 10+zoneY))
+    // wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 11+zoneY))
+    // wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 12+zoneY))
+
+    // shop
+    shop := entity.NewShop(42, 6+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(shop)
 
     gotchiA := entity.NewGotchi(42, 18+zoneX, 14+zoneY, gotchisMap["4285"])
@@ -107,10 +115,10 @@ func (wm *WorldManager) loadTestEntities() {
     wm.Zones[42].AddEntity(altar)
 
     // ACTIONS
-    // gotchiA.AddAction(action.NewHarvestAction(gotchiA, bush, 0.5))
+    gotchiA.AddAction(action.NewHarvestAction(gotchiA, bush, 0.5))
+    gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
     // gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
-    // gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
-    gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
+    // gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
 
     // gotchiB.AddAction(action.NewRoamAction(gotchiB, 0.1))
 

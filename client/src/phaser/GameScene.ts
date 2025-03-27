@@ -6,6 +6,7 @@ import { HPBar } from "./HPBar";
 import { BaseEntity, EntitySnapshot } from "./entities/BaseEntity";
 import { EntityFactory } from "./entities/EntityFactory";
 import { GotchiEntity } from "./entities/GotchiEntity";
+import { NavigationGrid } from "./navigation/NavigationGrid";
 
 
 
@@ -21,6 +22,8 @@ export class GameScene extends Phaser.Scene {
     private worldWidth: number = 10 * ZONE_TILES * TILE_PIXELS;
     private worldHeight: number = 10 * ZONE_TILES * TILE_PIXELS;
     private tileMap!: TileMap;
+
+    private navigationGrid!: NavigationGrid;
 
     private hpBars: HPBar[] = [];
 
@@ -57,6 +60,8 @@ export class GameScene extends Phaser.Scene {
     async create() {
         // create tilemap
         this.tileMap.create();
+
+        this.navigationGrid = new NavigationGrid(10*ZONE_TILES,10*ZONE_TILES);
 
         // Set up the camera controller
         this.cameraController = new CameraController(
@@ -153,7 +158,7 @@ export class GameScene extends Phaser.Scene {
 
             // NEW ENTITY
             if (!existingState) {
-                const newEntity = EntityFactory.create(this, entitySnapshot);
+                const newEntity = EntityFactory.create(this, entitySnapshot, this.navigationGrid);
                 this.entityMap.set(entitySnapshot.id, newEntity);
             }
             // EXISTING ENTITY

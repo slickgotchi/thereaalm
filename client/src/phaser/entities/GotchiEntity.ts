@@ -1,8 +1,7 @@
 import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../FetchGotchis";
-import { HPBar } from "../HPBar";
-import { BaseEntity, EntitySnapshot } from "./BaseEntity";
+import { NavigationGrid } from "../navigation/NavigationGrid";
+import { EntitySnapshot } from "./BaseEntity";
 import { TweenableEntity } from "./TweenableEntity";
-import { Direction, TweenWorker } from "./TweenWorker";
 
 interface SVGState {
     gotchiId: string;
@@ -28,8 +27,8 @@ export class GotchiEntity extends TweenableEntity {
     // static map of svg states
     static svgMap: Map<string, SVGState> = new Map();
 
-    constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, data: any) {
-        super(scene, id, zoneId, tileX, tileY, "gotchi", "loading_gotchi", data);
+    constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, data: any, navigationGrid: NavigationGrid) {
+        super(scene, id, zoneId, tileX, tileY, "gotchi", "loading_gotchi", data, navigationGrid);
         
         // Add animation
         this.sprite.play("loading_gotchi_anim");
