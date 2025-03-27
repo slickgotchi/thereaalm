@@ -1,9 +1,11 @@
 package action
 
 import (
+	"fmt"
 	"log"
 	"thereaalm/stats"
 	"thereaalm/types"
+	"time"
 )
 
 type HarvestAction struct {
@@ -69,16 +71,8 @@ func (a *HarvestAction) CanBeExecuted() bool {
 func (a *HarvestAction) Start() {
 	a.Timer_s = a.Duration_s
 
-	tx, ty := a.Target.GetPosition()
-	cx, cy := a.Actor.GetPosition()
-	log.Printf("bush %d %d", tx, ty)
-	log.Printf("actor %d %d", cx, cy)
-
 	// move to target
 	a.TryMoveToTargetEntity(a.Target)
-
-	nx, ny := a.Actor.GetPosition()
-	log.Printf("actor %d %d", nx, ny)
 }
 
 func (a *HarvestAction) Update(dt_s float64) bool {
@@ -98,6 +92,15 @@ func (a *HarvestAction) Update(dt_s float64) bool {
 		if typeRemoved != "" && amountRemoved > 0 {
 			itemHolder.AddItem(typeRemoved, amountRemoved)
 			log.Printf("%s added %d %s to inventory", a.Actor.GetType(), amountRemoved, typeRemoved)
+
+			// see if harvester has an activity log
+			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
+				entry := types.ActivityLogEntry{
+					Description: fmt.Sprintf("Harvested %d %s", amountRemoved, typeRemoved),
+					LogTime: time.Now(),
+				}
+				activityLog.NewLogEntry(entry)
+			}
 		}
 
 		itemHolder.DisplayInventory()

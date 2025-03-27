@@ -1,9 +1,11 @@
 package action
 
 import (
+	"fmt"
 	"log"
 	"thereaalm/stats"
 	"thereaalm/types"
+	"time"
 )
 
 type TradeAction struct {
@@ -110,7 +112,26 @@ func (a *TradeAction) Update(dt_s float64) bool {
 			}
 
 			// make the trade offer
-			initiatingItemHolder.ProposeTrade(respondingItemHolder, tradeOffer)
+			isAccepted := initiatingItemHolder.ProposeTrade(respondingItemHolder, tradeOffer)
+
+			// Check if the actor has an activity log
+			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
+				var logEntry types.ActivityLogEntry
+				if isAccepted {
+					logEntry = types.ActivityLogEntry{
+						Description: fmt.Sprintf("Trade accepted: Sold %d items for %d gold", count, count*5),
+						LogTime:     time.Now(),
+					}
+				} else {
+					logEntry = types.ActivityLogEntry{
+						Description: "Trade rejected: No deal was made.",
+						LogTime:     time.Now(),
+					}
+				}
+				activityLog.NewLogEntry(logEntry)
+			}
+
+
 			return true
 		}
 	}

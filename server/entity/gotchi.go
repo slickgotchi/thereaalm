@@ -3,6 +3,7 @@ package entity
 import (
 	// "log"
 	"log"
+	"strconv"
 	"thereaalm/action"
 	"thereaalm/stats"
 	"thereaalm/types"
@@ -20,36 +21,25 @@ type Gotchi struct {
 	Name string
 	SubgraphData web3.SubgraphGotchiData
 	Personality []string
+	types.ActivityLog
 }
-
-// type Personality struct {
-// 	Zen int `json:"zen"`
-// 	Energetic int `json:"energetic"`
-// 	Peaceful int `json:"peaceful"`
-// 	Combative int `json:"combative"`
-// 	Cuddly int `json:"cuddly"`
-// 	Terrifying int `json:"terrifying"`
-// 	Curious int `json:"curious"`
-// 	Wise int `json:"wise"`
-// 	Rugged int `json:"rugged"`
-// 	Beautiful int `json:"beautiful"`
-// 	Demonic int `json:"demonic"`
-// 	Angelic int `json:"angelic"`
-// }
 
 func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 	// add item holder
 	newItemHolder := types.NewInventory()
 
+	// get brs duration modifier
+	brsMultiplier := GetBRSMultiplier(subgraphGotchiData)
+
+	log.Print(brsMultiplier, int(400*brsMultiplier))
+
 	// add some stats
 	newStats := stats.NewStats()
-	newStats.SetStat(stats.HpCurrent, 400)
-	newStats.SetStat(stats.HpMax, 400)
-	newStats.SetStat(stats.Attack, 5)
-	newStats.SetStat(stats.HarvestDuration_s, 5)
-	newStats.SetStat(stats.TradeDuration_s, 5)
-
-	log.Println("NewGotchi: ", subgraphGotchiData)
+	newStats.SetStat(stats.HpCurrent, int(400*brsMultiplier))
+	newStats.SetStat(stats.HpMax, int(400*brsMultiplier))
+	newStats.SetStat(stats.Attack, int(10*brsMultiplier))
+	newStats.SetStat(stats.HarvestDuration_s, int(10/brsMultiplier))
+	newStats.SetStat(stats.TradeDuration_s, int(10/brsMultiplier))
 
 	// make new gotchi
 	return &Gotchi{
@@ -79,6 +69,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		Inventory interface{} `json:"inventory"`
 		Personality interface{} `json:"personality"`
 		Direction string `json:"direction"`
+		ActivityLog interface{} `json:"activityLog"`
 	}{
 		Name: g.Name,
 		GotchiID:  g.GotchiId,
@@ -86,6 +77,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		Inventory: g.Items,
 		Personality: g.Personality,
 		Direction: g.Direction,
+		ActivityLog: g.ActivityLog.Entries,
 	}
 }
 
@@ -150,4 +142,16 @@ func CreatePersonalityFromSubgraphData(subgraphData web3.SubgraphGotchiData) []s
 		"Earthy", "Bubbly", "Soulful", "Angelic")
 
     return personality
+}
+
+func GetBRSMultiplier(subgraphData web3.SubgraphGotchiData) float64 {
+	brs, _ := strconv.Atoi(subgraphData.WithSetsRarityScore)
+	if brs < 500 {
+		brs = 500
+	}
+	if brs > 1000 {
+		brs = 1000
+	}
+
+	return float64(brs) / 500.0
 }

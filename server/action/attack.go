@@ -1,9 +1,11 @@
 package action
 
 import (
+	"fmt"
 	"log"
 	"thereaalm/stats"
 	"thereaalm/types"
+	"time"
 )
 
 type AttackAction struct {
@@ -92,6 +94,15 @@ func (a *AttackAction) Update(dt_s float64) bool {
 		if newHp <= 0 {
 			targetStats.SetStat(stats.HpCurrent, 0)
 			log.Println("Defeated enemy")
+
+			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
+				entry := types.ActivityLogEntry{
+					Description: fmt.Sprintf("Vanquished enemy ", a.Target.GetType()),
+					LogTime: time.Now(),
+				}
+				activityLog.NewLogEntry(entry)
+			}
+
 			return true
 		}
 	}
