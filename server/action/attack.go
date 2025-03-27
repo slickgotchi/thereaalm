@@ -22,64 +22,63 @@ func NewAttackAction(actor, target types.IEntity, weighting float64) *AttackActi
 	}
 }
 
-func NextToEachOther(a, b types.IEntity) bool {
-    ax, ay := a.GetPosition()
-    bx, by := b.GetPosition()
+func (a *AttackAction) CanBeExecuted() bool {
+	targetStats, _ := a.Target.(stats.IStats)
+	attackerStats, _ := a.Actor.(stats.IStats)
 
-    // Check if the entities are next to each other (left, right, up, down)
-    return (ax == bx && (ay == by+1 || ay == by-1)) || // Vertical check (up, down)
-           (ay == by && (ax == bx+1 || ax == bx-1))   // Horizontal check (left, right)
-}
-
-func (action *AttackAction) Start() {
-	// check actor and target are of correct type
-	targetStats, _ := action.Target.(stats.IStats)
-	attackerStats, _ := action.Actor.(stats.IStats)
-	if targetStats == nil || attackerStats == nil {
-		log.Printf("Invalid IStats for actor or target in AttackAction Update()")
-		return 	
-	}
-
-	// check if already next to target
-	if NextToEachOther(action.Actor, action.Target) {
-		return
-	} else {
-		// move to target
-		tx, ty := action.Target.GetPosition()
-		action.Actor.SetPosition(tx, ty +1)
-	}
-}
-
-func (action *AttackAction) CanBeExecuted() bool {
-	targetStats, _ := action.Target.(stats.IStats)
-	attackerStats, _ := action.Actor.(stats.IStats)
+	// do both the target and attacker have stats?
 	if targetStats == nil || attackerStats == nil {
 		log.Printf("Invalid IStats for actor or target in AttackAction CanBeExecuted()")
 		return false // can not execute, invalid actor or target
 	}
 
-	targetHp := targetStats.GetStat(stats.HpCurrent)
-	return targetHp > 0
+	// can we move to the target?
+	if !a.CanMoveToTargetEntity(a.Target) {
+		return false
+	}
+
+	// is target still alive?
+	if targetStats.GetStat(stats.HpCurrent) <= 0 {
+		return false
+	}
+	
+	// ok we can execute
+	return true
 }
 
-func (action *AttackAction) Update(dt_s float64) bool {
+
+func (a *AttackAction) Start() {
 	// check actor and target are of correct type
-	targetStats, _ := action.Target.(stats.IStats)
-	attackerStats, _ := action.Actor.(stats.IStats)
+	targetStats, _ := a.Target.(stats.IStats)
+	attackerStats, _ := a.Actor.(stats.IStats)
+	if targetStats == nil || attackerStats == nil {
+		log.Printf("Invalid IStats for actor or target in AttackAction Update()")
+		return 	
+	}
+
+	// move to target
+	a.TryMoveToTargetEntity(a.Target)
+}
+
+
+func (a *AttackAction) Update(dt_s float64) bool {
+	// check actor and target are of correct type
+	targetStats, _ := a.Target.(stats.IStats)
+	attackerStats, _ := a.Actor.(stats.IStats)
 	if targetStats == nil || attackerStats == nil {
 		log.Printf("Invalid IStats for actor or target in AttackAction Update()")
 		return true	// action is complete we have invalid actor or target
 	}
 
 	// If target no longer next to us, our action is done
-	if !NextToEachOther(action.Actor, action.Target) {
+	if !a.Actor.IsNextToTargetEntity(a.Target) {
 		return true
 	}
 
 	// we attack once per second
-	action.Timer_s -= dt_s
-	for action.Timer_s <= 0 {
-		action.Timer_s += 1
+	a.Timer_s -= dt_s
+	for a.Timer_s <= 0 {
+		a.Timer_s += 1
 
 		attackDamage:= attackerStats.GetStat(stats.Attack); 
 		if attackDamage <= 0 {

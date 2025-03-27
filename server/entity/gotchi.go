@@ -78,19 +78,18 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		Stats interface{} `json:"stats"`
 		Inventory interface{} `json:"inventory"`
 		Personality interface{} `json:"personality"`
+		Direction string `json:"direction"`
 	}{
 		Name: g.Name,
 		GotchiID:  g.GotchiId,
 		Stats: g.Stats.StatMap,
 		Inventory: g.Items,
 		Personality: g.Personality,
+		Direction: g.Direction,
 	}
 }
 
 func (g *Gotchi) Update(dt_s float64) {
-	// log.Printf("Gotchi at (%d, %d)", g.X, g.Y)
-	// g.DisplayInventory()
-
 	// process our actions
 	g.ProcessActions(dt_s);
 }

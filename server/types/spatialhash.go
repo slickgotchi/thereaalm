@@ -78,7 +78,7 @@ func (sh *SpatialHash) GetEntitiesInCell(x, y int) []IEntity {
 }
 
 // IsOccupied checks if a specific grid position is occupied
-func (sh *SpatialHash) IsOccupied(x, y int) bool {
+func (sh *SpatialHash) IsTileOccupied(x, y int) bool {
     entities := sh.GetEntitiesInCell(x, y)
     for _, entity := range entities {
         ex, ey := entity.GetPosition()
@@ -88,3 +88,4 @@ func (sh *SpatialHash) IsOccupied(x, y int) bool {
     }
     return false
 }
+

@@ -10,7 +10,7 @@ type RoamAction struct {
 	Action
 
 	// Additional fields
-	NewX, NewY  int
+	// NewX, NewY  int
 	StartTime   time.Time
 	Duration    time.Duration
 }
@@ -45,22 +45,16 @@ func (r *RoamAction) Update(dt_s float64) bool {
 		return true
 	}
 
-	// cast actor to a IZoned type
-	zonedActor, ok := r.Actor.(types.IZoned)
-	if zonedActor == nil || !ok {
-		log.Println("Error: We are not zoned!")
-		return true
-	}
-
 	// If not completed, attempt to find a new empty cell using the zone's FindNearbyEmptyCell method
-	zone := zonedActor.GetZone() // Get the actor's zone
+	zone := r.Actor.GetZone() // Get the actor's zone
 	actorX, actorY := r.Actor.GetPosition()
 
 	// Use the zone's FindNearbyEmptyCell with radius 3
-	newX, newY, found := zone.FindNearbyEmptyCell(actorX, actorY, 3)
+	newX, newY, found := zone.FindNearbyEmptyTile(actorX, actorY, 3)
 	if found {
-		log.Println("found empty cell")
-		r.NewX, r.NewY = newX, newY
+		// set direction to new position
+		r.Actor.SetDirectionToTargetPosition(newX, newY)
+
 		// Move the actor to the new position
 		r.Actor.SetPosition(newX, newY)
 		log.Printf("Actor %s moved to (%d, %d)\n", r.Actor.GetUUID(), newX, newY)

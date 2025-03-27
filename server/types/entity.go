@@ -4,8 +4,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// type EntityUUID uuid.UUID
-
 // IEntity is the core interface for all entities.
 type IEntity interface {
     GetUUID() uuid.UUID
@@ -14,13 +12,16 @@ type IEntity interface {
     GetPosition() (int, int)
     SetPosition(x, y int)
     GetSnapshotData() interface{}
+    GetZone() *Zone
+    SetZone(zone *Zone)
+    IsNextToTargetEntity(target IEntity) bool
+    SetDirection(direction string)
+    GetDirection() string
+    SetDirectionToTargetEntity(target IEntity)
+    GetDirectionToTargetEntity(target IEntity) string
+    SetDirectionToTargetPosition(x, y int)
+    GetDirectionToTargetPosition(x, y int) string
 }
-
-// // IMovable is for entities that can move.
-// type IMovable interface {
-// }
-
-
 
 type IHarvestable interface {
     Harvest() (string, int)

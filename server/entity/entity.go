@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"log"
+	"math"
 	"thereaalm/types"
 
 	"github.com/google/uuid"
@@ -12,7 +14,8 @@ type Entity struct {
 	Type string
     X int
     Y int
-    types.Zoned
+	CurrentZone *types.Zone
+	Direction string
 }
 
 func (e *Entity) GetUUID() uuid.UUID { return e.ID }
@@ -27,4 +30,89 @@ func (e *Entity) SetPosition(x, y int) {
 }
 func (e *Entity) GetCustomData() interface{} {
     return nil
+}
+
+func (e *Entity) SetZone(zone *types.Zone) {
+    e.CurrentZone = zone
+}
+
+func (e *Entity) GetZone() *types.Zone {
+    return e.CurrentZone
+}
+
+func (e *Entity) GetSnapshotData() interface {} {
+	return nil
+}
+
+func (e *Entity) IsNextToTargetEntity(target types.IEntity) bool {
+    ax, ay := e.GetPosition()
+    bx, by := target.GetPosition()
+
+    // Check if the entities are next to each other (left, right, up, down)
+    return (ax == bx && (ay == by+1 || ay == by-1)) || // Vertical check (up, down)
+           (ay == by && (ax == bx+1 || ax == bx-1))   // Horizontal check (left, right)
+}
+
+func (e *Entity) SetDirectionToTargetEntity(target types.IEntity) {
+	e.SetDirection(e.GetDirectionToTargetEntity(target))
+}
+
+func (e *Entity) GetDirectionToTargetEntity(target types.IEntity) string {
+	ax, ay := e.GetPosition()
+	bx, by := target.GetPosition()
+
+	dx := bx - ax
+	dy := by - ay
+
+	if math.Abs(float64(dx)) > math.Abs(float64(dy)) {
+		if dx < 0 {
+			return "left"
+		} else {
+			return "right"
+		}
+	} else {
+		if dy < 0 {
+			return "up"
+		} else {
+			return "down"
+		}
+	}
+}
+
+func (e *Entity) SetDirection(direction string) {
+	if direction == "left" || direction == "right" || 
+	direction == "up" || direction == "down" {
+		e.Direction = direction	
+	} else {
+		log.Printf("ERROR: Invalid direction '%s' passed to setDirection()", direction)
+	}
+}
+
+func (e *Entity) GetDirection() string {
+	return e.Direction
+}
+
+func (e *Entity) SetDirectionToTargetPosition(x, y int) {
+	e.SetDirection(e.GetDirectionToTargetPosition(x, y))
+}
+
+func (e *Entity) GetDirectionToTargetPosition(x, y int) string {
+	ax, ay := e.GetPosition()
+
+	dx := x - ax
+	dy := y - ay
+
+	if math.Abs(float64(dx)) > math.Abs(float64(dy)) {
+		if dx < 0 {
+			return "left"
+		} else {
+			return "right"
+		}
+	} else {
+		if dy < 0 {
+			return "up"
+		} else {
+			return "down"
+		}
+	}
 }

@@ -39,42 +39,54 @@ func NewTradeAction(actor, target types.IEntity, weighting float64, tradeType st
 	}
 }
 
-func (action *TradeAction) Start() {
-	action.Timer_s = action.Duration_s
-}
-
-func (action *TradeAction) CanBeExecuted() bool {
+func (a *TradeAction) CanBeExecuted() bool {
 	// check actor and target are correct type
-	respondingItemHolder, _ := action.Target.(types.IInventory) 
-	initiatingItemHolder, _ := action.Actor.(types.IInventory)
+	respondingItemHolder, _ := a.Target.(types.IInventory) 
+	initiatingItemHolder, _ := a.Actor.(types.IInventory)
+
+	// correct types?
 	if respondingItemHolder == nil || initiatingItemHolder == nil {
 		log.Printf("Invalid item holders passed to SellAction Update()")
 		return false
 	}
 
-	items := initiatingItemHolder.GetItemsExceptGold()
-	return len(items) > 0
+	// can move to target?
+	if !a.CanMoveToTargetEntity(a.Target) {
+		return false
+	}
+
+	// has items?
+	if len(initiatingItemHolder.GetItemsExceptGold()) <= 0 {
+		return false
+	}
+
+	// ok can execute
+	return true
 }
 
-func (action *TradeAction) Update(dt_s float64) bool {
+func (a *TradeAction) Start() {
+	a.Timer_s = a.Duration_s
+
+	a.TryMoveToTargetEntity(a.Target)
+}
+
+
+
+func (a *TradeAction) Update(dt_s float64) bool {
 	// check actor and target are correct type
-	respondingItemHolder, _ := action.Target.(types.IInventory) 
-	initiatingItemHolder, _ := action.Actor.(types.IInventory)
+	respondingItemHolder, _ := a.Target.(types.IInventory) 
+	initiatingItemHolder, _ := a.Actor.(types.IInventory)
 	if respondingItemHolder == nil || initiatingItemHolder == nil {
 		log.Printf("Invalid item holders passed to SellAction Update()")
 		return true
 	}
-
-	// move to target
-	tx, ty := action.Target.GetPosition()
-	action.Actor.SetPosition(tx, ty +1)
 	
-	action.Timer_s -= dt_s
-	if action.Timer_s <= 0 {
+	a.Timer_s -= dt_s
+	if a.Timer_s <= 0 {
 		// this is where we iterate over different trade types OR
 		// we insert custom logic from the holders that dictate
 		// what they have for sale, what price they want to sell/buy at etc.
-		if action.TradeType == "SellAllForGold" {
+		if a.TradeType == "SellAllForGold" {
 			// add up all items that aren't gold
 			count := 0
 			allInitiatorItems := initiatingItemHolder.GetItems()

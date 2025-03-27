@@ -2,8 +2,8 @@
 package types
 
 import (
-	"log"
 	"math/rand"
+	"time"
 )
 
 type Zone struct {
@@ -14,23 +14,6 @@ type Zone struct {
     X        int
     Y        int
     SpatialMap *SpatialHash
-}
-
-type IZoned interface {
-    SetZone(zone *Zone)
-    GetZone() *Zone
-}
-
-type Zoned struct {
-    CurrentZone *Zone
-}
-
-func (z *Zoned) SetZone(zone *Zone) {
-    z.CurrentZone = zone
-}
-
-func (z *Zoned) GetZone() *Zone {
-    return z.CurrentZone
 }
 
 func NewZone(id, width, height, x, y, cellSize int) *Zone {
@@ -48,11 +31,7 @@ func NewZone(id, width, height, x, y, cellSize int) *Zone {
 func (z *Zone) AddEntity(e IEntity) {
     z.Entities = append(z.Entities, e)
     z.SpatialMap.Insert(e)
-    
-    zoned, ok := e.(IZoned)
-    if zoned != nil && ok {
-        zoned.SetZone(z)
-    }
+    e.SetZone(z)
 }
 
 // RemoveEntity removes an entity from the zone and updates the spatial hash
@@ -82,8 +61,8 @@ func (z *Zone) Update(dt_s float64) {
 }
 
 // IsCellOccupied checks if a specific position in the zone is occupied
-func (z *Zone) IsCellOccupied(x, y int) bool {
-    return z.SpatialMap.IsOccupied(x, y)
+func (z *Zone) IsTileOccupied(x, y int) bool {
+    return z.SpatialMap.IsTileOccupied(x, y)
 }
 
 // FindNearbyEntities finds entities within a specified radius
@@ -101,7 +80,7 @@ func (z *Zone) FindNearbyEntities(x, y, radius int) []IEntity {
 }
 
 // FindNearbyEmptyCell finds a random empty cell within a given radius.
-func (z *Zone) FindNearbyEmptyCell(x, y, radius int) (int, int, bool) {
+func (z *Zone) FindNearbyEmptyTile(x, y, radius int) (int, int, bool) {
 	// Create a random seed based on the current time (optional, for better randomness)
 	// rand.Seed(time.Now().UnixNano())
 
@@ -125,8 +104,6 @@ func (z *Zone) FindNearbyEmptyCell(x, y, radius int) (int, int, bool) {
 		}
 	}
 
-    log.Println("candidates: ", len(candidates))
-
 	// If no candidates were found, return false
 	if len(candidates) == 0 {
 		return 0, 0, false
@@ -142,10 +119,40 @@ func (z *Zone) FindNearbyEmptyCell(x, y, radius int) (int, int, bool) {
 		nx, ny := candidate.dx, candidate.dy
 
 		// Check if the cell is empty
-		if !z.IsCellOccupied(nx, ny) {
+		if !z.IsTileOccupied(nx, ny) {
 			return nx, ny, true
 		}
 	}
 
 	return 0, 0, false // No empty cell found
+}
+
+// TryGetEmptyCellAdjacentToEntity attempts to find an empty adjacent cell to the given entity
+// Returns (x, y, true) if an empty cell is found, (0, 0, false) if no empty cell is available
+func (z *Zone) TryGetEmptyTileNextToTargetEntity(target IEntity) (int, int, bool) {
+    // Get entity's current position
+    x, y := target.GetPosition()
+    
+    // Define the four adjacent positions
+    adjacent := [4][2]int{
+        {x - 1, y}, // left
+        {x + 1, y}, // right
+        {x, y - 1}, // up
+        {x, y + 1}, // down
+    }
+    
+    var emptyTiles [][2]int
+    for _, pos := range adjacent {
+        if !z.IsTileOccupied(pos[0], pos[1]) { // Rename this call later
+            emptyTiles = append(emptyTiles, pos)
+        }
+    }
+    
+    if len(emptyTiles) == 0 {
+        return 0, 0, false
+    }
+    
+    r := rand.New(rand.NewSource(time.Now().UnixNano()))
+    chosen := emptyTiles[r.Intn(len(emptyTiles))]
+    return chosen[0], chosen[1], true
 }

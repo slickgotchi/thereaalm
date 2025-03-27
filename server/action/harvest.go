@@ -41,42 +41,63 @@ func NewHarvestAction(actor, target types.IEntity, weighting float64) *HarvestAc
 	}
 }
 
-func (action *HarvestAction) Start() {
-	action.Timer_s = action.Duration_s
-}
+func (a *HarvestAction) CanBeExecuted() bool {
+	harvestable, _ := a.Target.(types.IHarvestable); 
+	itemHolder, _ := a.Actor.(types.IInventory);
 
-func (action *HarvestAction) CanBeExecuted() bool {
-	harvestable, _ := action.Target.(types.IHarvestable); 
-	itemHolder, _ := action.Actor.(types.IInventory);
+	// actor and target of correct types?
 	if itemHolder == nil || harvestable == nil {
 		log.Printf("Invalid actor or target in HarvestAction CanBeExecuted()")
 		return false	// action is complete we have invalid actor or target
 	}
 
-	return harvestable.CanBeHarvested()
+	// can move to target?
+	if !a.CanMoveToTargetEntity(a.Target) {
+		return false
+	}
+
+	// is harvestable?
+	if !harvestable.CanBeHarvested() {
+		return false
+	}
+
+	log.Println("Its HARVEST time!!!")
+	// ok can execute
+	return true
 }
 
-func (action *HarvestAction) Update(dt_s float64) bool {
+func (a *HarvestAction) Start() {
+	a.Timer_s = a.Duration_s
+
+	tx, ty := a.Target.GetPosition()
+	cx, cy := a.Actor.GetPosition()
+	log.Printf("bush %d %d", tx, ty)
+	log.Printf("actor %d %d", cx, cy)
+
+	// move to target
+	a.TryMoveToTargetEntity(a.Target)
+
+	nx, ny := a.Actor.GetPosition()
+	log.Printf("actor %d %d", nx, ny)
+}
+
+func (a *HarvestAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
-	harvestable, _ := action.Target.(types.IHarvestable); 
-	itemHolder, _ := action.Actor.(types.IInventory);
+	harvestable, _ := a.Target.(types.IHarvestable); 
+	itemHolder, _ := a.Actor.(types.IInventory);
 	if itemHolder == nil || harvestable == nil {
 		log.Printf("Invalid actor or target in HarvestAction Update()")
 		return true	// action is complete we have invalid actor or target
 	}
 
-	// move to target
-	tx, ty := action.Target.GetPosition()
-	action.Actor.SetPosition(tx, ty +1)
-
 	// check duration expired
-	action.Timer_s -= dt_s
-	if action.Timer_s <= 0 {
+	a.Timer_s -= dt_s
+	if a.Timer_s <= 0 {
 		typeRemoved, amountRemoved := harvestable.Harvest()
 		log.Println(typeRemoved, amountRemoved)
 		if typeRemoved != "" && amountRemoved > 0 {
 			itemHolder.AddItem(typeRemoved, amountRemoved)
-			log.Printf("%s added %d %s to inventory", action.Actor.GetType(), amountRemoved, typeRemoved)
+			log.Printf("%s added %d %s to inventory", a.Actor.GetType(), amountRemoved, typeRemoved)
 		}
 
 		itemHolder.DisplayInventory()
