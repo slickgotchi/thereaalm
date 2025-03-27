@@ -119,6 +119,7 @@ export class TweenWorker {
                 const finalWaypoint = this.waypoints[this.waypoints.length - 1];
                 this.updateCallback(finalWaypoint.tileX * this.tileSize, finalWaypoint.tileY * this.tileSize, "none", true);
                 this.waypoints = [];
+                
             },
         });
     }
