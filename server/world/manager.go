@@ -100,17 +100,17 @@ func (wm *WorldManager) loadTestEntities() {
     // gotchiC := entity.NewGotchi(42, 14+zoneX, 19+zoneY, gotchisMap["21550"])
     // wm.Zones[42].AddEntity(gotchiC)
 
-    lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
-    wm.Zones[42].AddEntity(lickquidator)
+    // lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
+    // wm.Zones[42].AddEntity(lickquidator)
 
     altar := entity.NewAltar(42, 15+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(altar)
 
     // ACTIONS
-    gotchiA.AddAction(action.NewHarvestAction(gotchiA, bush, 0.5))
-    gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
-    gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.2, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
-    // gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
+    // gotchiA.AddAction(action.NewHarvestAction(gotchiA, bush, 0.5))
+    // gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
+    // gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
+    gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
 
     // gotchiB.AddAction(action.NewRoamAction(gotchiB, 0.1))
 
