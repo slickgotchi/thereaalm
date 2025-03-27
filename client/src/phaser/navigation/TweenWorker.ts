@@ -41,7 +41,7 @@ export class TweenWorker {
 
         this.waypoints = waypoints;
         this.totalTweenDuration = this.waypoints.length * this.tweenDurationPerTile; // 200ms per tile
-        console.log(`[TweenWorker.tweenToWaypoints] Starting tween from (${startTileX}, ${startTileY}) with ${waypoints.length} waypoints, total duration=${this.totalTweenDuration}ms`);
+        // console.log(`[TweenWorker.tweenToWaypoints] Starting tween from (${startTileX}, ${startTileY}) with ${waypoints.length} waypoints, total duration=${this.totalTweenDuration}ms`);
         this.startTweening(startTileX, startTileY);
     }
 
@@ -82,7 +82,7 @@ export class TweenWorker {
                 this.currentTween = null;
                 const finalWaypoint = this.waypoints[this.waypoints.length - 1];
                 this.updateCallback(finalWaypoint.tileX * this.tileSize, finalWaypoint.tileY * this.tileSize, "none");
-                console.log(`[TweenWorker.startTweening] Tween completed to (${finalWaypoint.tileX}, ${finalWaypoint.tileY})`);
+                // console.log(`[TweenWorker.startTweening] Tween completed to (${finalWaypoint.tileX}, ${finalWaypoint.tileY})`);
                 this.waypoints = [];
             },
         });

@@ -4,6 +4,7 @@ package world
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"runtime"
 	"sync"
 	"thereaalm/action"
@@ -75,7 +76,8 @@ func (wm *WorldManager) loadTestEntities() {
     // - repeat
 
     // grab a few gotchis to use
-    gotchisMap, err := web3.FetchGotchisByIDs([]string{"4285", "19005", "21550"})
+    gotchisMap, err := web3.FetchGotchisByIDs([]string{"4285", "19005", "21550",
+    "8281", "5401"})
     if err != nil {
         fmt.Printf("Error fetching gotchis: %v\n", err)
         return
@@ -88,25 +90,27 @@ func (wm *WorldManager) loadTestEntities() {
     bush := entity.NewBerryBush(42, 12+zoneX, 10+zoneY)
     wm.Zones[42].AddEntity(bush)
 
-    // obstacles
-    // wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 8+zoneY))
-    // wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 9+zoneY))
-    wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 10+zoneY))
-    // wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 11+zoneY))
-    // wm.Zones[42].AddEntity(entity.NewBerryBush(42, 9+zoneX, 12+zoneY))
+    // Generate berry bush obstacles
+    generateBerryBushes(wm, 42, zoneX, zoneY)
 
     // shop
     shop := entity.NewShop(42, 6+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(shop)
 
-    gotchiA := entity.NewGotchi(42, 18+zoneX, 14+zoneY, gotchisMap["4285"])
+    gotchiA := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["4285"])
     wm.Zones[42].AddEntity(gotchiA)
 
-    // gotchiB := entity.NewGotchi(42, 20+zoneX, 10+zoneY, gotchisMap["19005"])
-    // wm.Zones[42].AddEntity(gotchiB)
+    gotchiB := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["19005"])
+    wm.Zones[42].AddEntity(gotchiB)
 
-    // gotchiC := entity.NewGotchi(42, 14+zoneX, 19+zoneY, gotchisMap["21550"])
-    // wm.Zones[42].AddEntity(gotchiC)
+    gotchiC := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["21550"])
+    wm.Zones[42].AddEntity(gotchiC)
+
+    gotchiD := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["8281"])
+    wm.Zones[42].AddEntity(gotchiD)
+
+    gotchiE := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["5401"])
+    wm.Zones[42].AddEntity(gotchiE)
 
     // lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
     // wm.Zones[42].AddEntity(lickquidator)
@@ -115,14 +119,18 @@ func (wm *WorldManager) loadTestEntities() {
     wm.Zones[42].AddEntity(altar)
 
     // ACTIONS
-    gotchiA.AddAction(action.NewHarvestAction(gotchiA, bush, 0.5))
-    gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
+    // gotchiA.AddAction(action.NewHarvestAction(gotchiA, bush, 0.5))
+    // gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
     // gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
-    // gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
+    gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
 
-    // gotchiB.AddAction(action.NewRoamAction(gotchiB, 0.1))
+    gotchiB.AddAction(action.NewRoamAction(gotchiB, 0.1))
 
-    // gotchiC.AddAction(action.NewRoamAction(gotchiC, 0.1))
+    gotchiC.AddAction(action.NewRoamAction(gotchiC, 0.1))
+
+    gotchiD.AddAction(action.NewRoamAction(gotchiD, 0.1))
+
+    gotchiE.AddAction(action.NewRoamAction(gotchiE, 0.1))
 
     // lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchiA, 0.2))
     // lickquidator.AddAction(action.NewAttackAction(lickquidator, altar, 0.8))
@@ -178,6 +186,30 @@ func (wm *WorldManager) loadTestEntities() {
     //     }
     //     gotchi.SetActionSequence(actionSequence)
     // }
+}
+
+// generateBerryBushes generates 100 unique berry bushes in a 100x100 area within the specified zone
+func generateBerryBushes(wm *WorldManager, zoneID int, zoneX, zoneY int) {
+    // Seed the random number generator
+    rand.Seed(time.Now().UnixNano())
+
+    // Track occupied positions to avoid duplicates
+    occupied := make(map[[2]int]bool)
+    bushesToGenerate := 400
+    zone := wm.Zones[zoneID]
+
+    for len(occupied) < bushesToGenerate {
+        // Generate random coordinates within 100x100 area
+        x := zoneX + rand.Intn(60) // 0+zoneX to 100+zoneX
+        y := zoneY + rand.Intn(60) // 0+zoneY to 100+zoneY
+
+        // Check if position is already occupied
+        pos := [2]int{x, y}
+        if !occupied[pos] {
+            occupied[pos] = true
+            zone.AddEntity(entity.NewBerryBush(zoneID, x, y))
+        }
+    }
 }
 
 func (wm *WorldManager) Run() {

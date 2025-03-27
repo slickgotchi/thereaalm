@@ -35,9 +35,8 @@ export class TweenableEntity extends BaseEntity {
         if (lastTile.x !== snapshot.tileX || lastTile.y !== snapshot.tileY) {
             this.sprite.setPosition(lastTile.x * TILE_PIXELS, lastTile.y * TILE_PIXELS);
 
-            const waypoints = this.pathfinder.findPath(lastTile.x, lastTile.y, snapshot.tileX, snapshot.tileY);
+            const waypoints = this.pathfinder.findPath(lastTile.x, lastTile.y, snapshot.tileX, snapshot.tileY, true);
             this.tweenWorker.tweenToWaypoints(lastTile.x, lastTile.y, waypoints);
-            console.log(`waypoints between (${lastTile.x}, ${lastTile.y}) and (${snapshot.tileX}, ${snapshot.tileY})`, waypoints);
         }
 
         if (!this.tweenWorker.getIsTweening()) {
