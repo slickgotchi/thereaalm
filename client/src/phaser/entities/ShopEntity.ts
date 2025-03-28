@@ -8,7 +8,7 @@ export class ShopEntity extends BaseEntity {
         super(scene, id, zoneId, tileX, tileY, "shop", "shop", data);
     }
 
-    update(snapshot: EntitySnapshot) {
-        super.update(snapshot);
+    snapshotUpdate(snapshot: EntitySnapshot) {
+        super.snapshotUpdate(snapshot);
     }
 }

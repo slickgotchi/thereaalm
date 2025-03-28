@@ -1,31 +1,55 @@
-// HoverInfo.tsx
 import { useEffect, useState } from "react";
 import "./HoverInfo.css";
+import { GotchiHoverInfo } from "./GotchiHoverInfo";
+
+interface HoverData {
+  type: string;
+  data: any;
+}
 
 export const HoverInfo = () => {
-    const [hoverData, setHoverData] = useState<any | null>(null);
+  const [hoverData, setHoverData] = useState<HoverData | null>(null);
 
-    useEffect(() => {
-        const handleHover = (event: Event) => {
-            const customEvent = event as CustomEvent;
-            // console.log("hover: ", customEvent.detail);
-            setHoverData(customEvent.detail);
-        };
+  useEffect(() => {
+    const handleHover = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const newData = customEvent.detail;
 
-        window.addEventListener("entityHover", handleHover);
+      if (!newData || !newData.data) {
+        setHoverData(null); // No data, set to null and show nothing
+      } else {
+        setHoverData(newData); // Set new hover data when available
+      }
+    };
 
-        return () => {
-            window.removeEventListener("entityHover", handleHover);
-        };
-    }, []);
+    window.addEventListener("entityHover", handleHover);
 
-    if (!hoverData) return null;
+    // Cleanup on component unmount
+    return () => {
+      window.removeEventListener("entityHover", handleHover);
+    };
+  }, []);
 
-    return (
-        <div className="hover-info-container">
-            <h3 className="hover-info-title">Entity Info</h3>
-            <pre className="hover-info-content">{JSON.stringify(hoverData, null, 2)}</pre>
-        </div>
-    );
+  // Only render if there's hoverData (no need for a loading screen)
+  if (!hoverData) return null;
 
+  return (
+    <div className="hover-info-container">
+      {(() => {
+        switch (hoverData?.type) {
+          case "gotchi":
+            return <GotchiHoverInfo data={hoverData?.data} />;
+          default:
+            return (
+              <div className="hover-info-fallback">
+                <h3 className="hover-info-title">Entity Info</h3>
+                <pre className="hover-info-content">
+                  {JSON.stringify(hoverData, null, 2)}
+                </pre>
+              </div>
+            );
+        }
+      })()}
+    </div>
+  );
 };

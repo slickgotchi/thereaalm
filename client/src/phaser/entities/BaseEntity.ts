@@ -51,7 +51,7 @@ export class BaseEntity {
         this.data = data;
     }
 
-    update(snapshot: EntitySnapshot) {
+    snapshotUpdate(snapshot: EntitySnapshot) {
         const { tileX, tileY, data } = snapshot;
         this.tileX = tileX;
         this.tileY = tileY;

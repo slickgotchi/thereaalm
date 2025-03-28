@@ -51,6 +51,11 @@ export class GameScene extends Phaser.Scene {
             "assets/spritesheets/lickquidator_spritesheet.png",
             { frameWidth: 64, frameHeight: 64 }
         );
+        this.load.spritesheet(
+            "emoticons",
+            "assets/emoticons/emoticons_48px.png",
+            {frameWidth: 48, frameHeight: 48, margin: 2, spacing: 4}
+        )
         this.load.image("berrybush", "assets/images/berrybush.png");
         this.load.image("shop", "assets/images/shop.png");
         this.load.image("berry_icon", "assets/images/berry_icon.png");
@@ -115,6 +120,10 @@ export class GameScene extends Phaser.Scene {
         })
     }
 
+    postUpdate(time: number, delta: number) {
+        this.events.emit("postUpdate");
+    }
+
     shutdown() {
         // window.removeEventListener("resize", () => resizeGame(this));
     }
@@ -163,7 +172,7 @@ export class GameScene extends Phaser.Scene {
             }
             // EXISTING ENTITY
             else {
-                existingState.update(entitySnapshot);
+                existingState.snapshotUpdate(entitySnapshot);
             }
         });
 

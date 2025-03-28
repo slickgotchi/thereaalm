@@ -1,30 +1,36 @@
-/* HoverInfo.css */
+@font-face {
+    font-family: "Pixelar";
+    src: url("/path/to/pixelar.woff2") format("woff2");
+}
 
-/* Fixed position ensures it doesn't affect document flow */
 .hover-info-container {
-    position: fixed; /* Stays relative to the viewport */
-    top: 1rem;       /* 4 units of padding from the top */
-    left: 1rem;     /* 4 units of padding from the right */
-    padding: 1rem;   /* Internal padding for content */
-    background: white; /* Background color */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-    border: 1px solid #e5e7eb; /* Light gray border */
-    border-radius: 0.5rem; /* Rounded corners */
-    z-index: 50; /* Ensure it's on top of other elements */
-
-    /* display: flex;
-    flex-flow: column nowrap;
-    align-items: left; */
-    text-align: left;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    bottom: 1rem;
+    /* margin: 1rem; */
+    width: 30%;
+    /* height: calc(100%-2rem); */
+    padding: 1.5rem;
+    background: #f8f8f8;
+    box-shadow: -4px 0 6px rgba(0, 0, 0, 0.1);
+    border-left: 1px solid #e5e7eb;
+    z-index: 50;
+    font-family: "Pixelar", monospace;
+    overflow-y: auto;
 }
 
-/* Styling for the title */
 .hover-info-title {
-    font-weight: 600; /* Semi-bold */
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
 }
 
-/* Styling for the data output */
 .hover-info-content {
-    font-size: 0.875rem; /* Small text (14px) */
-    white-space: pre-wrap; /* Preserve formatting for JSON */
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+}
+
+.hover-info-fallback {
+    padding: 1rem;
 }

@@ -1,0 +1,27 @@
+.gotchi-hover-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.gotchi-avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.gotchi-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    border: 2px solid #333;
+}
+
+.gotchi-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Other styles remain the same */

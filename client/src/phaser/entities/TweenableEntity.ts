@@ -9,120 +9,75 @@ export class TweenableEntity extends BaseEntity {
     private tweenWorker: TweenWorker;
     private pathfinder: Pathfinder;
     protected direction: Direction = "none";
+
+    private targetPosition = {x: 0, y: 0}
     private targetDirection: Direction = "none";
+
+    private currentPosition = {x: 0, y: 0};
+    private currentDirection: Direction = "none";
 
     constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, type: string, texture: string, data: any, navigationGrid: NavigationGrid) {
         super(scene, id, zoneId, tileX, tileY, type, texture, data);
 
+        this.currentPosition = {x: tileX * TILE_PIXELS, y: tileY * TILE_PIXELS}
+        this.currentDirection = "down";
+
         const updateCallback: TweenUpdateCallback = (x: number, y: number, direction: Direction) => {
-            this.sprite.setPosition(x, y);
+            // this.sprite.setPosition(x, y);
+            this.currentPosition = {x, y}
             if (direction !== "none") {
-                this.direction = direction;
+                this.currentDirection = direction;
             }
-            this.updateDirection();
         };
 
         this.tweenWorker = new TweenWorker(scene, updateCallback);
         this.pathfinder = new Pathfinder(navigationGrid);
+
+        // listen for phaser updates
+        scene.events.on("update", this.frameUpdate, this);
     }
 
-    update(snapshot: EntitySnapshot) {
+    frameUpdate() {
+        this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y);
+
+        if (this.tweenWorker.getIsTweening()) {
+            this.direction = this.currentDirection;
+        } else {
+            this.direction = this.targetDirection;
+        }
+        this.updateDirection();
+    }
+
+    snapshotUpdate(snapshot: EntitySnapshot) {
         const lastTile = {x: this.tileX, y: this.tileY};
 
-        super.update(snapshot);
+        super.snapshotUpdate(snapshot);
         this.targetDirection = snapshot.data.direction;
+        this.targetPosition = {x: snapshot.tileX * TILE_PIXELS, y: snapshot.tileY * TILE_PIXELS}
 
-        if (lastTile.x !== snapshot.tileX || lastTile.y !== snapshot.tileY) {
-            this.sprite.setPosition(lastTile.x * TILE_PIXELS, lastTile.y * TILE_PIXELS);
+        if (lastTile.x !== snapshot.tileX || lastTile.y !== snapshot.tileY && !this.tweenWorker.getIsTweening()) {
+            // this.sprite.setPosition(lastTile.x * TILE_PIXELS, lastTile.y * TILE_PIXELS);
+            this.currentPosition = {x: lastTile.x * TILE_PIXELS, y: lastTile.y * TILE_PIXELS}
 
             const waypoints = this.pathfinder.findPath(lastTile.x, lastTile.y, snapshot.tileX, snapshot.tileY, true);
             this.tweenWorker.tweenToWaypoints(lastTile.x, lastTile.y, waypoints);
-        }
-
-        if (!this.tweenWorker.getIsTweening()) {
-            this.direction = this.targetDirection;
-            this.updateDirection();
-        }
-    }
-
-    setDirection(direction: Direction) {
-        this.targetDirection = direction;
-        if (!this.tweenWorker.getIsTweening()) {
-            this.direction = direction;
-            this.updateDirection();
+        } else {
+            this.currentPosition = this.targetPosition;
+            this.currentDirection = this.targetDirection;
         }
     }
 
     protected updateDirection() {
         // Default does nothing; subclasses can override
+        // NOTE: GotchiEntity overrides this
+    }
+
+    // Add destroy method to clean up
+    destroy(): void {
+        // Remove the update listener
+        this.scene.events.off("update", this.frameUpdate, this);
+        
+        // Call parent destroy
+        super.destroy();
     }
 }
-
-/*
-import Phaser from "phaser";
-import { BaseEntity, EntitySnapshot } from "./BaseEntity";
-import { TweenWorker, Direction, TweenUpdateCallback } from "./TweenWorker";
-import { TILE_PIXELS } from "../GameScene";
-
-export class TweenableEntity extends BaseEntity {
-    private tweenWorker: TweenWorker;
-    protected direction: Direction = "none";
-    private lastTileX: number;
-    private lastTileY: number;
-    private targetDirection: Direction = "none";
-
-    constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, type: string, texture: string, data: any) {
-        super(scene, id, zoneId, tileX, tileY, type, texture, data);
-
-        this.lastTileX = tileX;
-        this.lastTileY = tileY;
-
-        const updateCallback: TweenUpdateCallback = (x: number, y: number, direction: Direction, isComplete?: boolean) => {
-            this.sprite.setPosition(x, y);
-            if (direction !== "none") {
-                this.direction = direction;
-            }
-            this.updateDirection();
-            if (isComplete) {
-                this.lastTileX = x / TILE_PIXELS;
-                this.lastTileY = y / TILE_PIXELS;
-                if (!this.tweenWorker.getIsTweening()) {
-                    this.direction = this.targetDirection;
-                    this.updateDirection();
-                }
-            }
-        };
-
-        this.tweenWorker = new TweenWorker(scene, updateCallback);
-    }
-
-    update(snapshot: EntitySnapshot) {
-        super.update(snapshot);
-        this.targetDirection = snapshot.data.direction;
-
-        if (this.lastTileX !== snapshot.tileX || this.lastTileY !== snapshot.tileY) {
-            // Set sprite to last known position to prevent flicker
-            this.sprite.setPosition(this.lastTileX * TILE_PIXELS, this.lastTileY * TILE_PIXELS);
-            this.tweenWorker.setTargetTilePosition(this.lastTileX, this.lastTileY, snapshot.tileX, snapshot.tileY);
-            this.tileX = snapshot.tileX; // Update tileX/tileY for state, but don't set sprite yet
-            this.tileY = snapshot.tileY;
-        }
-
-        if (!this.tweenWorker.getIsTweening()) {
-            this.direction = this.targetDirection;
-            this.updateDirection();
-        }
-    }
-
-    setDirection(direction: Direction) {
-        this.targetDirection = direction;
-        if (!this.tweenWorker.getIsTweening()) {
-            this.direction = direction;
-            this.updateDirection();
-        }
-    }
-
-    protected updateDirection() {
-        // Default does nothing; subclasses can override
-    }
-}*/

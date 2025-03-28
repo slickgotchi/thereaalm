@@ -1,5 +1,8 @@
+import { EmoticonEmitter } from "../emoticons/EmoticonEmitter";
 import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../FetchGotchis";
+import { ZONE_TILES } from "../GameScene";
 import { NavigationGrid } from "../navigation/NavigationGrid";
+import { Direction } from "../navigation/TweenWorker";
 import { EntitySnapshot } from "./BaseEntity";
 import { TweenableEntity } from "./TweenableEntity";
 
@@ -24,6 +27,10 @@ export class GotchiEntity extends TweenableEntity {
     gotchiId: string = "";
     textureSet!: TextureSet;
 
+    emoticonEmitter!: EmoticonEmitter;
+
+    jumpY = 0;
+
     // static map of svg states
     static svgMap: Map<string, SVGState> = new Map();
 
@@ -33,6 +40,13 @@ export class GotchiEntity extends TweenableEntity {
         // Add animation
         this.sprite.play("loading_gotchi_anim");
 
+        // var test = scene.add.sprite(this.sprite.x, this.sprite.y, "loading_gotchi");
+        // test.setDepth(10000);
+        // test.play("loading_gotchi_anim");
+
+        // console.log("play loading anim");
+        console.log(this.sprite.x, this.sprite.y);
+
         this.gotchiId = data.gotchiId;
 
         // add this gotchi to svg map
@@ -40,10 +54,22 @@ export class GotchiEntity extends TweenableEntity {
             gotchiId: this.gotchiId,
             svgState: "ToBeFetched",
         });
+
+        this.emoticonEmitter = new EmoticonEmitter(scene, "emoticons", 
+            tileX*ZONE_TILES, tileY*ZONE_TILES, 0);
+
+        scene.tweens.add({
+            targets: this,
+            jumpY: -8,
+            duration: 250,
+            yoyo: true,
+            repeat: -1,
+            ease: `Quad.easeOut`
+        });
     }
 
-    update(snapshot: EntitySnapshot) {
-        super.update(snapshot);
+    snapshotUpdate(snapshot: EntitySnapshot) {
+        super.snapshotUpdate(snapshot);
 
         this.updateSVG();
     }
@@ -55,6 +81,8 @@ export class GotchiEntity extends TweenableEntity {
             const svgMapItem = GotchiEntity.svgMap.get(this.gotchiId);
             if (!svgMapItem) return;
             if (svgMapItem.svgState === "ImageLoaded") {
+                console.log("apply svg");
+                console.log(this.sprite.x, this.sprite.y);
                 this.textureSet = {
                     svg: `gotchi-${this.gotchiId}-svg`,
                     left: `gotchi-${this.gotchiId}-left`,
@@ -73,17 +101,21 @@ export class GotchiEntity extends TweenableEntity {
         this.sprite.stop();
         switch (this.direction) {
             case "left":
+                // console.log("LEFT");
                 this.sprite.setTexture(this.textureSet.left);
                 break;
             case "right":
+                // console.log("RIGHT");
                 this.sprite.setTexture(this.textureSet.right);
                 break;
             case "up":
+                // console.log("UP");
                 this.sprite.setTexture(this.textureSet.back);
                 break;
             case "down":
             case "none":
             default:
+                // console.log("DOWN");
                 this.sprite.setTexture(this.textureSet.svg);
                 break;
         }

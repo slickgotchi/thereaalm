@@ -91,26 +91,26 @@ func (wm *WorldManager) loadTestEntities() {
     wm.Zones[42].AddEntity(bush)
 
     // Generate berry bush obstacles
-    generateBerryBushes(wm, 42, zoneX, zoneY)
+    // generateBerryBushes(wm, 42, zoneX, zoneY)
 
     // shop
     shop := entity.NewShop(42, 6+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(shop)
 
-    gotchiA := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["4285"])
+    gotchiA := entity.NewGotchi(42, 10+zoneX, 10+zoneY, gotchisMap["4285"])
     wm.Zones[42].AddEntity(gotchiA)
 
-    gotchiB := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["19005"])
-    wm.Zones[42].AddEntity(gotchiB)
+    // gotchiB := entity.NewGotchi(42, 10+zoneX, 11+zoneY, gotchisMap["19005"])
+    // wm.Zones[42].AddEntity(gotchiB)
 
-    gotchiC := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["21550"])
-    wm.Zones[42].AddEntity(gotchiC)
+    // gotchiC := entity.NewGotchi(42, 10+zoneX, 12+zoneY, gotchisMap["21550"])
+    // wm.Zones[42].AddEntity(gotchiC)
 
-    gotchiD := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["8281"])
-    wm.Zones[42].AddEntity(gotchiD)
+    // gotchiD := entity.NewGotchi(42, 10+zoneX, 13+zoneY, gotchisMap["8281"])
+    // wm.Zones[42].AddEntity(gotchiD)
 
-    gotchiE := entity.NewGotchi(42, 30+zoneX, 30+zoneY, gotchisMap["5401"])
-    wm.Zones[42].AddEntity(gotchiE)
+    // gotchiE := entity.NewGotchi(42, 10+zoneX, 14+zoneY, gotchisMap["5401"])
+    // wm.Zones[42].AddEntity(gotchiE)
 
     lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
     wm.Zones[42].AddEntity(lickquidator)
@@ -124,10 +124,10 @@ func (wm *WorldManager) loadTestEntities() {
     gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
     gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
 
-    gotchiB.AddAction(action.NewRoamAction(gotchiB, 0.1))
-    gotchiC.AddAction(action.NewRoamAction(gotchiC, 0.1))
-    gotchiD.AddAction(action.NewRoamAction(gotchiD, 0.1))
-    gotchiE.AddAction(action.NewRoamAction(gotchiE, 0.1))
+    // gotchiB.AddAction(action.NewRoamAction(gotchiB, 0.1))
+    // gotchiC.AddAction(action.NewRoamAction(gotchiC, 0.1))
+    // gotchiD.AddAction(action.NewRoamAction(gotchiD, 0.1))
+    // gotchiE.AddAction(action.NewRoamAction(gotchiE, 0.1))
 
     lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchiA, 0.2))
     lickquidator.AddAction(action.NewAttackAction(lickquidator, altar, 0.8))

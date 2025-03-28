@@ -23,8 +23,8 @@ export class BerrybushEntity extends BaseEntity {
         // });
     }
 
-    update(snapshot: EntitySnapshot) {
-        super.update(snapshot);
+    snapshotUpdate(snapshot: EntitySnapshot) {
+        super.snapshotUpdate(snapshot);
 
         // this.data = snapshot.data;
 

@@ -8,7 +8,7 @@ export class AltarEntity extends BaseEntity {
         super(scene, id, zoneId, tileX, tileY, "altar", "altar", data);
     }
 
-    update(snapshot: EntitySnapshot) {
-        super.update(snapshot);
+    snapshotUpdate(snapshot: EntitySnapshot) {
+        super.snapshotUpdate(snapshot);
     }
 }

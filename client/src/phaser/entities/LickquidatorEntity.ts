@@ -29,8 +29,8 @@ export class LickquidatorEntity extends BaseEntity {
         // });
     }
 
-    update(snapshot: EntitySnapshot) {
-        super.update(snapshot);
+    snapshotUpdate(snapshot: EntitySnapshot) {
+        super.snapshotUpdate(snapshot);
         // this.hpBar.updateHP(data.currentHp); // Example: Update HP bar dynamically
     }
 }
