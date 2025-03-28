@@ -3,6 +3,8 @@ package action
 import (
 	"fmt"
 	"log"
+	"thereaalm/jobs"
+	"thereaalm/mathext"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"time"
@@ -40,7 +42,7 @@ func (a *AttackAction) CanBeExecuted() bool {
 	}
 
 	// is target still alive?
-	if targetStats.GetStat(stats.HpCurrent) <= 0 {
+	if targetStats.GetStat(stats.Spark) <= 0 {
 		return false
 	}
 	
@@ -51,9 +53,9 @@ func (a *AttackAction) CanBeExecuted() bool {
 
 func (a *AttackAction) Start() {
 	// check actor and target are of correct type
-	targetStats, _ := a.Target.(stats.IStats)
+	defenderStats, _ := a.Target.(stats.IStats)
 	attackerStats, _ := a.Actor.(stats.IStats)
-	if targetStats == nil || attackerStats == nil {
+	if defenderStats == nil || attackerStats == nil {
 		log.Printf("Invalid IStats for actor or target in AttackAction Update()")
 		return 	
 	}
@@ -65,9 +67,9 @@ func (a *AttackAction) Start() {
 
 func (a *AttackAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
-	targetStats, _ := a.Target.(stats.IStats)
+	defenderStats, _ := a.Target.(stats.IStats)
 	attackerStats, _ := a.Actor.(stats.IStats)
-	if targetStats == nil || attackerStats == nil {
+	if defenderStats == nil || attackerStats == nil {
 		log.Printf("Invalid IStats for actor or target in AttackAction Update()")
 		return true	// action is complete we have invalid actor or target
 	}
@@ -82,17 +84,40 @@ func (a *AttackAction) Update(dt_s float64) bool {
 	for a.Timer_s <= 0 {
 		a.Timer_s += 1
 
-		attackDamage:= attackerStats.GetStat(stats.Attack); 
-		if attackDamage <= 0 {
-			log.Printf("attacker does not have attack stat")
+		// attack logic:
+		// - pulse => attack power => reduces defenders spark
+		// - ecto => crit chance => improves attack power (sometimes) 
+
+		attackerPulse := attackerStats.GetStat(stats.Pulse)
+		if attackerPulse <= 0 {
+			log.Printf("Attacker has no pulse to attack with")
 			return true
 		}
 
-		targetStats.DeltaStat(stats.HpCurrent, -attackDamage)
-		newHp := targetStats.GetStat(stats.HpCurrent)
+		defemderSpark := defenderStats.GetStat(stats.Spark)
+		if defemderSpark <= 0 {
+			log.Printf("Defender has no spark to defend with")
+			return true
+		}
 
-		if newHp <= 0 {
-			targetStats.SetStat(stats.HpCurrent, 0)
+		// use mercenary peak pulse to determine attack power
+		deltaPulse := mathext.Abs(attackerPulse - jobs.Mercenary.Peak.Pulse)
+		
+		// clamp between 0 and 500
+		deltaPulse = mathext.Clamp(deltaPulse, 0, 500)
+
+		// attacks should be between 1 and 10 attack power for simplicity
+		alpha := float64(500 - deltaPulse) / 500
+		finalSparkReduction := int(alpha * 10.0)
+		finalSparkReduction = mathext.Clamp(finalSparkReduction, 1, 10)
+
+		// deal damage to defenders spark
+		defenderStats.DeltaStat(stats.Spark, -finalSparkReduction)
+		newDefenderSpark := defenderStats.GetStat(stats.Spark)
+
+		// ecto goes below 10% (100) we need to finish the attack
+		if newDefenderSpark <= 0 {
+			defenderStats.SetStat(stats.Spark, 0)
 			log.Println("Defeated enemy")
 
 			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
@@ -105,8 +130,24 @@ func (a *AttackAction) Update(dt_s float64) bool {
 
 			return true
 		}
+
+		// lets make each attack also reduce the attackers ecto by 1 each attack
+		attackerStats.DeltaStat(stats.Ecto, -1)
+		newAttackerEcto := attackerStats.GetStat(stats.Ecto)
+
+		if newAttackerEcto < 100 {
+			return true
+		}
+
 	}
 
 	// harvesting is not complete so we return FALSE
 	return false
+}
+
+func AbsInt(x int) int {
+    if x < 0 {
+        return -x
+    }
+    return x
 }

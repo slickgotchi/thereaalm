@@ -31,6 +31,8 @@ export class GotchiEntity extends TweenableEntity {
 
     jumpY = 0;
 
+    shadowSprite!: Phaser.GameObjects.Sprite;
+
     // static map of svg states
     static svgMap: Map<string, SVGState> = new Map();
 
@@ -40,12 +42,10 @@ export class GotchiEntity extends TweenableEntity {
         // Add animation
         this.sprite.play("loading_gotchi_anim");
 
-        // var test = scene.add.sprite(this.sprite.x, this.sprite.y, "loading_gotchi");
-        // test.setDepth(10000);
-        // test.play("loading_gotchi_anim");
-
-        // console.log("play loading anim");
-        console.log(this.sprite.x, this.sprite.y);
+        this.shadowSprite = scene.add.sprite(this.sprite.x+32, this.sprite.y+64, "shadow");
+        this.shadowSprite.setDepth(this.sprite.depth-1);
+        this.shadowSprite.setOrigin(0.5,0.5);
+        this.shadowSprite.setAlpha(0.3);
 
         this.gotchiId = data.gotchiId;
 
@@ -55,17 +55,29 @@ export class GotchiEntity extends TweenableEntity {
             svgState: "ToBeFetched",
         });
 
-        this.emoticonEmitter = new EmoticonEmitter(scene, "emoticons", 
-            tileX*ZONE_TILES, tileY*ZONE_TILES, 0);
+        const delay_ms = Math.random() * 500 // Random delay between 0 and 500ms
 
         scene.tweens.add({
             targets: this,
             jumpY: -8,
-            duration: 250,
+            duration: 150,
             yoyo: true,
             repeat: -1,
-            ease: `Quad.easeOut`
+            ease: `Quad.easeOut`,
+            delay: delay_ms,
         });
+
+        const emoticonFrame = Phaser.Math.Between(0,31);
+        this.emoticonEmitter = new EmoticonEmitter(scene, "emoticons", 
+            tileX*ZONE_TILES, tileY*ZONE_TILES, emoticonFrame, delay_ms);
+    }
+
+    protected frameUpdate(): void {
+        super.frameUpdate();
+
+        this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y - this.jumpY);
+        this.shadowSprite.setPosition(this.currentPosition.x+32, this.currentPosition.y+64);
+        this.emoticonEmitter.setPosition(this.currentPosition.x+32, this.currentPosition.y);
     }
 
     snapshotUpdate(snapshot: EntitySnapshot) {
@@ -81,8 +93,8 @@ export class GotchiEntity extends TweenableEntity {
             const svgMapItem = GotchiEntity.svgMap.get(this.gotchiId);
             if (!svgMapItem) return;
             if (svgMapItem.svgState === "ImageLoaded") {
-                console.log("apply svg");
-                console.log(this.sprite.x, this.sprite.y);
+                // console.log("apply svg");
+                // console.log(this.sprite.x, this.sprite.y);
                 this.textureSet = {
                     svg: `gotchi-${this.gotchiId}-svg`,
                     left: `gotchi-${this.gotchiId}-left`,

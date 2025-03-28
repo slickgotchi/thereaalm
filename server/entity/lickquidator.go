@@ -23,9 +23,12 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 
 	// give a base hp stat
 	newStats := stats.NewStats()
-	newStats.SetStat(stats.HpCurrent, 50)
-	newStats.SetStat(stats.HpMax, 50)
-	newStats.SetStat(stats.Attack, 3)
+	newStats.SetStat(stats.Ecto, 50)
+	newStats.SetStat(stats.Spark, 50)
+	newStats.SetStat(stats.Pulse, 50)
+	// newStats.SetStat(stats.HpCurrent, 50)
+	// newStats.SetStat(stats.HpMax, 50)
+	// newStats.SetStat(stats.Attack, 3)
 
     return &Lickquidator{
         Entity: Entity{

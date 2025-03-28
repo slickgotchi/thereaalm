@@ -13,6 +13,7 @@ export class EmoticonEmitter {
         x: number,
         y: number,
         frame?: string | number,
+        delay_ms: number = 0,
     ) {
         this.scene = scene;
         this.texture = texture;

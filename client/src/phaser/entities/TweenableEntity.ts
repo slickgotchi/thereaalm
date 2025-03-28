@@ -13,8 +13,8 @@ export class TweenableEntity extends BaseEntity {
     private targetPosition = {x: 0, y: 0}
     private targetDirection: Direction = "none";
 
-    private currentPosition = {x: 0, y: 0};
-    private currentDirection: Direction = "none";
+    protected currentPosition = {x: 0, y: 0};
+    protected currentDirection: Direction = "none";
 
     constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, type: string, texture: string, data: any, navigationGrid: NavigationGrid) {
         super(scene, id, zoneId, tileX, tileY, type, texture, data);
@@ -37,7 +37,7 @@ export class TweenableEntity extends BaseEntity {
         scene.events.on("update", this.frameUpdate, this);
     }
 
-    frameUpdate() {
+    protected frameUpdate() {
         this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y);
 
         if (this.tweenWorker.getIsTweening()) {

@@ -22,7 +22,7 @@ func NewTradeAction(actor, target types.IEntity, weighting float64, tradeType st
 		return nil
 	}
 
-	traderDuration_s := trader.GetStat(stats.TradeDuration_s)
+	traderDuration_s := 5	// we need to swap this for ESP stat calcs later
 	if traderDuration_s <= 0 {
 		log.Println("ERROR: Trading actor must have 'trade_duration_s' stat, returning...")
 		return nil

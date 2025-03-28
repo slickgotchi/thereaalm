@@ -22,6 +22,13 @@ type Gotchi struct {
 	SubgraphData web3.SubgraphGotchiData
 	Personality []string
 	types.ActivityLog
+	ESP
+}
+
+type ESP struct {
+	Ecto int
+	Spark int
+	Pulse int
 }
 
 func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
@@ -35,9 +42,12 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 
 	// add some stats
 	newStats := stats.NewStats()
-	newStats.SetStat(stats.HpCurrent, int(400*brsMultiplier))
-	newStats.SetStat(stats.HpMax, int(400*brsMultiplier))
-	newStats.SetStat(stats.Attack, int(10*brsMultiplier))
+	newStats.SetStat(stats.Ecto, 500)
+	newStats.SetStat(stats.Spark, 500)
+	newStats.SetStat(stats.Pulse, 500)
+	// newStats.SetStat(stats.HpCurrent, int(400*brsMultiplier))
+	// newStats.SetStat(stats.HpMax, int(400*brsMultiplier))
+	// newStats.SetStat(stats.Attack, int(10*brsMultiplier))
 	newStats.SetStat(stats.HarvestDuration_s, int(10/brsMultiplier))
 	newStats.SetStat(stats.TradeDuration_s, int(10/brsMultiplier))
 
@@ -58,6 +68,7 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 		Name: subgraphGotchiData.Name,
 		GotchiId: subgraphGotchiData.ID,
 		Personality: CreatePersonalityFromSubgraphData(subgraphGotchiData),
+		ESP: ESP{Ecto: 500, Spark: 500, Pulse: 500},
     }
 }
 

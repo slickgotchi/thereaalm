@@ -60,6 +60,7 @@ export class GameScene extends Phaser.Scene {
         this.load.image("shop", "assets/images/shop.png");
         this.load.image("berry_icon", "assets/images/berry_icon.png");
         this.load.image("altar", "assets/images/golden_altar_l1.png");
+        this.load.image("shadow", "assets/images/shadow.png");
     }
 
     async create() {

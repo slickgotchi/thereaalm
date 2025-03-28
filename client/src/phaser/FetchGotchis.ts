@@ -152,10 +152,10 @@ export async function fetchBulkGotchiSVGs(
 
         return data.data.aavegotchis.map((g: any) => ({
             id: g.id,
-            svg: removeBackgroundFromAndSetDimensionsForSVG(g.svg),
-            left: removeBackgroundFromAndSetDimensionsForSVG(g.left || g.svg),
-            right: removeBackgroundFromAndSetDimensionsForSVG(g.right || g.svg),
-            back: removeBackgroundFromAndSetDimensionsForSVG(g.back || g.svg),
+            svg: removeBackgroundFromAndSetDimensionsForSVG(removeShadow(g.svg)),
+            left: removeBackgroundFromAndSetDimensionsForSVG(removeShadow(g.left || g.svg)),
+            right: removeBackgroundFromAndSetDimensionsForSVG(removeShadow(g.right || g.svg)),
+            back: removeBackgroundFromAndSetDimensionsForSVG(removeShadow(g.back || g.svg)),
         }));
     };
 
@@ -237,6 +237,54 @@ export const removeBackgroundFromAndSetDimensionsForSVG = (
     }
 
     // Ensure the SVG is valid and serialize it
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(svg);
+};
+
+
+export const removeShadow = (svgString: string, pixels: number = 64): string => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    const svg = doc.getElementsByTagName("svg")[0];
+
+    // Set dimensions
+    svg.setAttribute("width", `${pixels}`);
+    svg.setAttribute("height", `${pixels}`);
+
+    // Helper function to find the shadow group
+    const findShadowGroup = (element: Element): Element | null => {
+        // Check all <g> elements for the shadow class
+        const groups = element.getElementsByTagName("g");
+        for (const group of groups) {
+            if (group.classList.contains("gotchi-shadow")) {
+                return group;
+            }
+        }
+        return null;
+    };
+
+    // Search for the shadow in the top-level SVG and its nested SVGs
+    let shadow: Element | null = findShadowGroup(svg);
+    if (!shadow) {
+        // Check nested <svg> elements if shadow isn't found at top level
+        const nestedSvgs = svg.getElementsByTagName("svg");
+        for (const nestedSvg of nestedSvgs) {
+            shadow = findShadowGroup(nestedSvg);
+            if (shadow) break;
+        }
+    }
+
+    // Remove the shadow if found
+    if (shadow && svg.contains(shadow)) {
+        const parent = shadow.parentElement;
+        if (parent) {
+            parent.removeChild(shadow);
+        }
+    } else {
+        console.log("No shadow group found in SVG (checked for class 'gotchi-shadow')");
+    }
+
+    // Serialize and return the modified SVG
     const serializer = new XMLSerializer();
     return serializer.serializeToString(svg);
 };

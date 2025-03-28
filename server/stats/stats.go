@@ -6,11 +6,14 @@ import (
 
 // Stat constants to avoid mistyped stat names.
 const (
-	HpCurrent = "hp_current"
-	HpMax     = "hp_max"
-	Attack    = "attack"
-	HarvestDuration_s   = "harvest_duration_s"
-    TradeDuration_s = "trade_duration_s"
+    Ecto = "ecto"
+    Spark = "spark"
+    Pulse = "pulse"
+	// HpCurrent = "hp_current"
+	// HpMax     = "hp_max"
+	// Attack    = "attack"
+	// HarvestDuration_s   = "harvest_duration_s"
+    // TradeDuration_s = "trade_duration_s"
 )
 
 type IStats interface {
