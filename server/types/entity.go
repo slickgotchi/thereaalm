@@ -23,7 +23,7 @@ type IEntity interface {
     GetDirectionToTargetPosition(x, y int) string
 }
 
-type IHarvestable interface {
-    Harvest() (string, int)
-    CanBeHarvested() bool
+type IGatherable interface {
+    Gather() (string, int)
+    CanBeGathered() bool
 }

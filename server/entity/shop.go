@@ -37,6 +37,5 @@ func (s *Shop) GetSnapshotData() interface{} {
 }
 
 func (s *Shop) Update(dt_s float64) {
-	// log.Printf("Shop at (%d, %d)", s.X, s.Y)
-	// s.DisplayInventory()
+
 }

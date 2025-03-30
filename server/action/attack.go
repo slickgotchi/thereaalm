@@ -85,44 +85,42 @@ func (a *AttackAction) Update(dt_s float64) bool {
 		a.Timer_s += 1
 
 		// attack logic:
-		// - pulse => attack power => reduces defenders spark
-		// - ecto => crit chance => improves attack power (sometimes) 
+		// - spark = attacker power
+		// - pulse = defender "HP"
 
-		attackerPulse := attackerStats.GetStat(stats.Pulse)
-		if attackerPulse <= 0 {
-			log.Printf("Attacker has no pulse to attack with")
+		attackerSpark := attackerStats.GetStat(stats.Spark)
+		if attackerSpark <= 0 {
+			log.Printf("Attacker has no spark to attack with")
 			return true
 		}
 
-		defemderSpark := defenderStats.GetStat(stats.Spark)
-		if defemderSpark <= 0 {
-			log.Printf("Defender has no spark to defend with")
+		defenderPulse := defenderStats.GetStat(stats.Pulse)
+		if defenderPulse <= 0 {
+			log.Printf("Defender has no pulse to defend with")
 			return true
 		}
 
-		// use mercenary peak pulse to determine attack power
-		deltaPulse := mathext.Abs(attackerPulse - jobs.Mercenary.Peak.Pulse)
-		
+		// use mercenary peak spark to determine attack power
 		// clamp between 0 and 500
-		deltaPulse = mathext.Clamp(deltaPulse, 0, 500)
+		deltaSpark := mathext.Abs(attackerSpark - jobs.Mercenary.Peak.Spark)
+		deltaSpark = mathext.Clamp(deltaSpark, 0, 500)
 
 		// attacks should be between 1 and 10 attack power for simplicity
-		alpha := float64(500 - deltaPulse) / 500
-		finalSparkReduction := int(alpha * 10.0)
-		finalSparkReduction = mathext.Clamp(finalSparkReduction, 1, 10)
+		alpha := float64(500 - deltaSpark) / 500
+		finalPulseReduction := int(alpha * 10.0)
+		finalPulseReduction = mathext.Clamp(finalPulseReduction, 1, 10)
 
 		// deal damage to defenders spark
-		defenderStats.DeltaStat(stats.Spark, -finalSparkReduction)
-		newDefenderSpark := defenderStats.GetStat(stats.Spark)
+		defenderStats.DeltaStat(stats.Pulse, -finalPulseReduction)
+		newDefenderPulse := defenderStats.GetStat(stats.Pulse)
 
 		// ecto goes below 10% (100) we need to finish the attack
-		if newDefenderSpark <= 0 {
-			defenderStats.SetStat(stats.Spark, 0)
-			log.Println("Defeated enemy")
+		if newDefenderPulse <= 0 {
+			defenderStats.SetStat(stats.Pulse, 0)
 
 			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
 				entry := types.ActivityLogEntry{
-					Description: fmt.Sprintf("Vanquished enemy ", a.Target.GetType()),
+					Description: fmt.Sprintln("Vanquished enemy ", a.Target.GetType()),
 					LogTime: time.Now(),
 				}
 				activityLog.NewLogEntry(entry)

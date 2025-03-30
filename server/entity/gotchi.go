@@ -35,6 +35,12 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 	// add item holder
 	newItemHolder := types.NewInventory()
 
+	// check for invalid subgraph data (requiring a default gotchi be used)
+	if subgraphGotchiData.ID == "" {
+		subgraphGotchiData = web3.DefaultSubgraphGotchiData
+		log.Println("Using default gotchi data: ", subgraphGotchiData)
+	}
+
 	// get brs duration modifier
 	brsMultiplier := GetBRSMultiplier(subgraphGotchiData)
 
@@ -45,11 +51,6 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 	newStats.SetStat(stats.Ecto, 500)
 	newStats.SetStat(stats.Spark, 500)
 	newStats.SetStat(stats.Pulse, 500)
-	// newStats.SetStat(stats.HpCurrent, int(400*brsMultiplier))
-	// newStats.SetStat(stats.HpMax, int(400*brsMultiplier))
-	// newStats.SetStat(stats.Attack, int(10*brsMultiplier))
-	newStats.SetStat(stats.HarvestDuration_s, int(10/brsMultiplier))
-	newStats.SetStat(stats.TradeDuration_s, int(10/brsMultiplier))
 
 	// make new gotchi
 	return &Gotchi{

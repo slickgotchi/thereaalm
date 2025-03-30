@@ -3,18 +3,20 @@ package action
 import (
 	"fmt"
 	"log"
+	"thereaalm/jobs"
+	"thereaalm/mathext"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"time"
 )
 
-type HarvestAction struct {
+type GatherAction struct {
 	Action
 	Timer_s float64
 	Duration_s float64
 }
 
-func NewHarvestAction(actor, target types.IEntity, weighting float64) *HarvestAction {
+func NewGatherAction(actor, target types.IEntity, weighting float64) *GatherAction {
 	actorItemHolder, _ := actor.(types.IInventory)
 	if actorItemHolder == nil {
 		log.Println("failed test")
@@ -25,30 +27,39 @@ func NewHarvestAction(actor, target types.IEntity, weighting float64) *HarvestAc
 		return nil
 	}
 
-	harvestDuration_s := actorStats.GetStat(stats.HarvestDuration_s)
-	if harvestDuration_s <= 0 {
-		log.Println("ERROR: Harvesting actor must have 'harvest_duration_s' stat, returning...")
+	// ecto determines gather duration
+	actorEcto := actorStats.GetStat(stats.Ecto)
+	if actorEcto < 0 {
+		log.Printf("Actor does not have an ecto stat. One must be assigned to use 'gather'")
 		return nil
 	}
 
-	return &HarvestAction{
+	// find ecto delta from farmer peak and clamp it between 0 and 500
+	deltaToPeakEcto := mathext.Abs(actorEcto - jobs.Farmer.Peak.Ecto)
+	deltaToPeakEcto = mathext.Clamp(deltaToPeakEcto, 0, 500)
+
+	// vary gather duration between 5 - 30 seconds
+	alpha := float64(deltaToPeakEcto) / 500.0
+	gatherDuration_s := int(5 + 25 * alpha)
+
+	return &GatherAction{
 		Action: Action{
-			Type: "harvest",
+			Type: "gather",
 			Weighting: weighting,
 			Actor: actor,
 			Target: target,
 		},
-		Timer_s: float64(harvestDuration_s),
-		Duration_s: float64(harvestDuration_s),
+		Timer_s: float64(gatherDuration_s),
+		Duration_s: float64(gatherDuration_s),
 	}
 }
 
-func (a *HarvestAction) CanBeExecuted() bool {
-	harvestable, _ := a.Target.(types.IHarvestable); 
+func (a *GatherAction) CanBeExecuted() bool {
+	gatherable, _ := a.Target.(types.IGatherable); 
 	itemHolder, _ := a.Actor.(types.IInventory);
 
 	// actor and target of correct types?
-	if itemHolder == nil || harvestable == nil {
+	if itemHolder == nil || gatherable == nil {
 		log.Printf("Invalid actor or target in HarvestAction CanBeExecuted()")
 		return false	// action is complete we have invalid actor or target
 	}
@@ -59,7 +70,7 @@ func (a *HarvestAction) CanBeExecuted() bool {
 	}
 
 	// is harvestable?
-	if !harvestable.CanBeHarvested() {
+	if !gatherable.CanBeGathered() {
 		return false
 	}
 
@@ -68,18 +79,18 @@ func (a *HarvestAction) CanBeExecuted() bool {
 	return true
 }
 
-func (a *HarvestAction) Start() {
+func (a *GatherAction) Start() {
 	a.Timer_s = a.Duration_s
 
 	// move to target
 	a.TryMoveToTargetEntity(a.Target)
 }
 
-func (a *HarvestAction) Update(dt_s float64) bool {
+func (a *GatherAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
-	harvestable, _ := a.Target.(types.IHarvestable); 
+	gatherable, _ := a.Target.(types.IGatherable); 
 	itemHolder, _ := a.Actor.(types.IInventory);
-	if itemHolder == nil || harvestable == nil {
+	if itemHolder == nil || gatherable == nil {
 		log.Printf("Invalid actor or target in HarvestAction Update()")
 		return true	// action is complete we have invalid actor or target
 	}
@@ -87,23 +98,26 @@ func (a *HarvestAction) Update(dt_s float64) bool {
 	// check duration expired
 	a.Timer_s -= dt_s
 	if a.Timer_s <= 0 {
-		typeRemoved, amountRemoved := harvestable.Harvest()
-		log.Println(typeRemoved, amountRemoved)
+		typeRemoved, amountRemoved := gatherable.Gather()
+		// log.Println(typeRemoved, amountRemoved)
 		if typeRemoved != "" && amountRemoved > 0 {
+			// add item to item holder
 			itemHolder.AddItem(typeRemoved, amountRemoved)
-			log.Printf("%s added %d %s to inventory", a.Actor.GetType(), amountRemoved, typeRemoved)
 
-			// see if harvester has an activity log
+			// remove spark equivalent to the gather duration from the gatherer
+			if gathererStats, ok := a.Actor.(stats.IStats); ok {
+				gathererStats.DeltaStat(stats.Spark, -int(a.Duration_s))
+			}
+
+			// see if gatherer has an activity log
 			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
 				entry := types.ActivityLogEntry{
-					Description: fmt.Sprintf("Harvested %d %s", amountRemoved, typeRemoved),
+					Description: fmt.Sprintf("Gathered %d %s", amountRemoved, typeRemoved),
 					LogTime: time.Now(),
 				}
 				activityLog.NewLogEntry(entry)
 			}
 		}
-
-		itemHolder.DisplayInventory()
 
 		// harvesting is complete so we return TRUE
 		return true

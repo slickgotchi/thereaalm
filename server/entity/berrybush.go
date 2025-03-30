@@ -49,8 +49,6 @@ func (b *BerryBush) GetType() string {
 }
 
 func (b *BerryBush) Update(dt_s float64) {
-	// log.Printf("BerryBush at (%d, %d)", b.X, b.Y)
-	// b.DisplayInventory()
 
 	respawnInterval := 20.0
 	respawnAmount := 10

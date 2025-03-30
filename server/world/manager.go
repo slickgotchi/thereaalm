@@ -119,7 +119,7 @@ func (wm *WorldManager) loadTestEntities() {
     wm.Zones[42].AddEntity(altar)
 
     // ACTIONS
-    gotchiA.AddAction(action.NewHarvestAction(gotchiA, bush, 0.5))
+    gotchiA.AddAction(action.NewGatherAction(gotchiA, bush, 0.5))
     gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
     gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
     gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
@@ -131,7 +131,6 @@ func (wm *WorldManager) loadTestEntities() {
 
     lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchiA, 0.2))
     lickquidator.AddAction(action.NewAttackAction(lickquidator, altar, 0.8))
-
 
 
 

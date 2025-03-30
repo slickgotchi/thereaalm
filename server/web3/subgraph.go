@@ -18,6 +18,17 @@ type SubgraphGotchiData struct {
 	Level string	`json:"level"`
 }
 
+var (
+	DefaultSubgraphGotchiData = SubgraphGotchiData{
+		ID: "69420",
+		Name: "Default",
+		ModifiedNumericTraits: []int{50,50,50,50,50,50},
+		WithSetsRarityScore: "500",
+		Kinship: "50",
+		Level: "1",
+	}
+)
+
 // fetchGotchisBatch fetches a batch of Gotchis from the subgraph
 func FetchGotchisBatch(first, skip int) (map[string]SubgraphGotchiData, error) {
 	query := fmt.Sprintf(`

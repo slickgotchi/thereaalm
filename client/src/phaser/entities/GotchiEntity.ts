@@ -2,7 +2,6 @@ import { EmoticonEmitter } from "../emoticons/EmoticonEmitter";
 import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../FetchGotchis";
 import { ZONE_TILES } from "../GameScene";
 import { NavigationGrid } from "../navigation/NavigationGrid";
-import { Direction } from "../navigation/TweenWorker";
 import { EntitySnapshot } from "./BaseEntity";
 import { TweenableEntity } from "./TweenableEntity";
 
@@ -49,11 +48,21 @@ export class GotchiEntity extends TweenableEntity {
 
         this.gotchiId = data.gotchiId;
 
-        // add this gotchi to svg map
-        GotchiEntity.svgMap.set(this.gotchiId, {
-            gotchiId: this.gotchiId,
-            svgState: "ToBeFetched",
-        });
+        // add this gotchi to svg map if its not the default
+        if (this.gotchiId !== "69420") {
+            GotchiEntity.svgMap.set(this.gotchiId, {
+                gotchiId: this.gotchiId,
+                svgState: "ToBeFetched",
+            });
+        } else {
+            // we set the default aavegotchi images to our texture set
+            this.textureSet = {
+                svg: "default_gotchi_svg",
+                left: "default_gotchi_left",
+                right: "default_gotchi_right",
+                back: "default_gotchi_back",
+            }
+        }
 
         const delay_ms = Math.random() * 500 // Random delay between 0 and 500ms
 
@@ -93,8 +102,6 @@ export class GotchiEntity extends TweenableEntity {
             const svgMapItem = GotchiEntity.svgMap.get(this.gotchiId);
             if (!svgMapItem) return;
             if (svgMapItem.svgState === "ImageLoaded") {
-                // console.log("apply svg");
-                // console.log(this.sprite.x, this.sprite.y);
                 this.textureSet = {
                     svg: `gotchi-${this.gotchiId}-svg`,
                     left: `gotchi-${this.gotchiId}-left`,
@@ -113,21 +120,17 @@ export class GotchiEntity extends TweenableEntity {
         this.sprite.stop();
         switch (this.direction) {
             case "left":
-                // console.log("LEFT");
                 this.sprite.setTexture(this.textureSet.left);
                 break;
             case "right":
-                // console.log("RIGHT");
                 this.sprite.setTexture(this.textureSet.right);
                 break;
             case "up":
-                // console.log("UP");
                 this.sprite.setTexture(this.textureSet.back);
                 break;
             case "down":
             case "none":
             default:
-                // console.log("DOWN");
                 this.sprite.setTexture(this.textureSet.svg);
                 break;
         }
