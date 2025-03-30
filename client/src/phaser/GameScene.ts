@@ -7,6 +7,7 @@ import { BaseEntity, EntitySnapshot } from "./entities/BaseEntity";
 import { EntityFactory } from "./entities/EntityFactory";
 import { GotchiEntity } from "./entities/GotchiEntity";
 import { NavigationGrid } from "./navigation/NavigationGrid";
+import { SelectionManager } from "./SelectionManager";
 
 
 
@@ -29,7 +30,8 @@ export class GameScene extends Phaser.Scene {
 
     private currentZoneIndex = 0;
 
-    private selectedEntity: BaseEntity | null = null;
+    // private selectedEntity: BaseEntity | null = null;
+    selectionManager!: SelectionManager;
 
     constructor() {
         super("GameScene");
@@ -120,44 +122,7 @@ export class GameScene extends Phaser.Scene {
         // Continue every 5000ms
         setInterval(fetchAndProcessZone, 3000);
 
-        // Single listener for all interactive objects
-        this.input.on("gameobjectdown", this.handleObjectClick, this);
-        // Background click to deselect
-        this.input.on("pointerdown", this.handleBackgroundClick, this);
-    }
-
-    private handleObjectClick(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) {
-        const entity = gameObject.getData("entity") as BaseEntity;
-        if (entity instanceof BaseEntity) {
-            // console.log(`[GameScene] Clicked entity: ${entity.id}`);
-            this.setSelectedEntity(entity);
-        }
-    }
-
-    private handleBackgroundClick(pointer: Phaser.Input.Pointer) {
-        // Check if click hit any interactive object
-        const hitObjects = this.input.manager.hitTest(pointer, this.children.list, this.cameras.main);
-        if (hitObjects.length === 0 && this.selectedEntity) {
-            // console.log(`[GameScene] Background click, deselecting`);
-            this.setSelectedEntity(null);
-        }
-    }
-
-    private setSelectedEntity(entity: BaseEntity | null) {
-        if (this.selectedEntity === entity) return; // No change
-
-        if (this.selectedEntity) {
-            this.selectedEntity.setSelected(false); // Deselect old
-        }
-
-        this.selectedEntity = entity;
-        if (entity) {
-            entity.setSelected(true); // Select new
-        }
-
-        const eventData = entity ? { id: entity.id, type: entity.type, data: entity.data } : null;
-        // console.log(`[GameScene] Dispatching entitySelection:`, eventData);
-        window.dispatchEvent(new CustomEvent("entitySelection", { detail: eventData }));
+        this.selectionManager = new SelectionManager(this);
     }
 
     update(time: number, delta: number): void {
