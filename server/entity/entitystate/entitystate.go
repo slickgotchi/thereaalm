@@ -1,4 +1,4 @@
-package state
+package entitystate
 
 type EntityState string
 
@@ -10,4 +10,5 @@ const (
 	Repairing EntityState = "repairing"
 	Building  EntityState = "building"
 	Upgrading EntityState = "upgrading"
+	Regrowing EntityState = "regrowing"
 )

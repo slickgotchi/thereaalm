@@ -8,8 +8,10 @@ import (
 	"runtime"
 	"sync"
 	"thereaalm/action"
+	"thereaalm/action/resourceaction"
 	"thereaalm/config"
 	"thereaalm/entity"
+	"thereaalm/entity/resourceentity"
 	"thereaalm/types"
 	"thereaalm/web3"
 
@@ -87,7 +89,7 @@ func (wm *WorldManager) loadTestEntities() {
     zoneY := wm.Zones[42].Y
 
     // ENTITIES
-    bush := entity.NewBerryBush(42, 12+zoneX, 10+zoneY)
+    bush := resourceentity.NewFomoBerryBush(42, 12+zoneX, 10+zoneY)
     wm.Zones[42].AddEntity(bush)
 
     // Generate berry bush obstacles
@@ -119,7 +121,7 @@ func (wm *WorldManager) loadTestEntities() {
     wm.Zones[42].AddEntity(altar)
 
     // ACTIONS
-    gotchiA.AddAction(action.NewGatherAction(gotchiA, bush, 0.5))
+    gotchiA.AddAction(resourceaction.NewForageAction(gotchiA, bush, 0.5))
     gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
     gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
     gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
@@ -203,7 +205,7 @@ func generateBerryBushes(wm *WorldManager, zoneID int, zoneX, zoneY int) {
         pos := [2]int{x, y}
         if !occupied[pos] {
             occupied[pos] = true
-            zone.AddEntity(entity.NewBerryBush(zoneID, x, y))
+            zone.AddEntity(resourceentity.NewFomoBerryBush(zoneID, x, y))
         }
     }
 }

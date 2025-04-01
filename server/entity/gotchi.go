@@ -77,19 +77,23 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 	return struct {
 		Name string `json:"name"`
 		GotchiID  string `json:"gotchiId"`
+		Description string `json:"description"`
 		Stats interface{} `json:"stats"`
 		Inventory interface{} `json:"inventory"`
 		Personality interface{} `json:"personality"`
 		Direction string `json:"direction"`
 		ActivityLog interface{} `json:"activityLog"`
+		ActionPlan interface{} `json:"actionPlan"`
 	}{
 		Name: g.Name,
 		GotchiID:  g.GotchiId,
+		Description: "The ethereal frens and sworn protectors of The Reaalm",
 		Stats: g.Stats.StatMap,
 		Inventory: g.Items,
 		Personality: g.Personality,
 		Direction: g.Direction,
 		ActivityLog: g.ActivityLog.Entries,
+		ActionPlan: g.ActionPlan,
 	}
 }
 

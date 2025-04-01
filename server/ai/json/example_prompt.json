@@ -74,7 +74,7 @@
             "description": "Attack an enemy entity. Do not attack ally entities."
         },
         {
-            "type": "gather",
+            "type": "forage",
             "description": "Gather resources from a resource entity."
         },
         {

@@ -7,7 +7,7 @@
                     "description": "Attack an opposition entity."
                 },
                 {
-                    "type": "gather",
+                    "type": "forage",
                     "description": "Gather resources from a resource entity."
                 },
                 {

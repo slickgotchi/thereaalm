@@ -23,7 +23,4 @@ type IEntity interface {
     GetDirectionToTargetPosition(x, y int) string
 }
 
-type IGatherable interface {
-    Gather() (string, int)
-    CanBeGathered() bool
-}
+

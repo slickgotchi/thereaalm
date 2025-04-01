@@ -127,7 +127,7 @@ export const GotchiHoverInfo = ({ data }: GotchiHoverInfoProps) => {
                 <img
                   src={`data:image/svg+xml;base64,${btoa(
                     `<svg width="32" height="32"><rect width="32" height="32" fill="${
-                      item === "berry" ? "#ff4444" : "#888"
+                      item === "fomoberry" ? "#ff4444" : "#888"
                     }"/></svg>`
                   )}`}
                   alt={item}

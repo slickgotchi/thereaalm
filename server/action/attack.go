@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/jobs"
-	"thereaalm/mathext"
 	"thereaalm/stats"
 	"thereaalm/types"
+	"thereaalm/utils"
 	"time"
 )
 
@@ -102,13 +102,13 @@ func (a *AttackAction) Update(dt_s float64) bool {
 
 		// use mercenary peak spark to determine attack power
 		// clamp between 0 and 500
-		deltaSpark := mathext.Abs(attackerSpark - jobs.Mercenary.Peak.Spark)
-		deltaSpark = mathext.Clamp(deltaSpark, 0, 500)
+		deltaSpark := utils.Abs(attackerSpark - jobs.Mercenary.Peak.Spark)
+		deltaSpark = utils.Clamp(deltaSpark, 0, 500)
 
 		// attacks should be between 1 and 10 attack power for simplicity
 		alpha := float64(500 - deltaSpark) / 500
 		finalPulseReduction := int(alpha * 10.0)
-		finalPulseReduction = mathext.Clamp(finalPulseReduction, 1, 10)
+		finalPulseReduction = utils.Clamp(finalPulseReduction, 1, 10)
 
 		// deal damage to defenders spark
 		defenderStats.DeltaStat(stats.Pulse, -finalPulseReduction)

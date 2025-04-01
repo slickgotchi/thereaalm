@@ -30,8 +30,12 @@ func NewShop(zoneId, x, y int) *Shop {
 
 func (s *Shop) GetSnapshotData() interface{} {
 	return struct {
+		Name string `json:"name"`
+		Description string `json:"description"`
 		Inventory map[string]int `json:"inventory"`
 	}{
+		Name: s.Type,
+		Description: "Buy and sell items from one convenient location",
 		Inventory: s.Items,
 	}
 }

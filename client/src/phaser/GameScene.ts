@@ -69,6 +69,9 @@ export class GameScene extends Phaser.Scene {
         this.load.image("default_gotchi_left", "assets/images/logo-gotchi-left.png");
         this.load.image("default_gotchi_right", "assets/images/logo-gotchi-right.png");
         this.load.image("default_gotchi_back", "assets/images/logo-gotchi-back.png");
+        this.load.image("fomoberry_bush", "assets/images/fomoberry_bush.png");
+        this.load.image("kekwood_tree", "assets/images/kekwood_tree.png");
+        this.load.image("alphaslate_boulders", "assets/images/alphaslate_boulders.png");
     }
 
     async create() {

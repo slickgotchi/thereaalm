@@ -26,9 +26,6 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 	newStats.SetStat(stats.Ecto, 50)
 	newStats.SetStat(stats.Spark, 50)
 	newStats.SetStat(stats.Pulse, 50)
-	// newStats.SetStat(stats.HpCurrent, 50)
-	// newStats.SetStat(stats.HpMax, 50)
-	// newStats.SetStat(stats.Attack, 3)
 
     return &Lickquidator{
         Entity: Entity{
@@ -47,8 +44,12 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 
 func (l *Lickquidator) GetSnapshotData() interface{} {
 	return struct {
+		Name string `json:"name"`
+		Description string `json:"description"`
 		Stats interface{} `json:"stats"`
 	}{
+		Name: l.Type,
+		Description: "The arch enemies of the Gotchi-kin, born from the souls of liquidated traders",
 		Stats: l.Stats.StatMap,
 	}
 }

@@ -1,4 +1,4 @@
-package mathext
+package utils
 
 func Abs[T int | int8 | int16 | int32 | int64](x T) T {
     if x < 0 {

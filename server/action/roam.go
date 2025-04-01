@@ -4,9 +4,9 @@ import (
 	"log"
 	"math/rand"
 	"thereaalm/jobs"
-	"thereaalm/mathext"
 	"thereaalm/stats"
 	"thereaalm/types"
+	"thereaalm/utils"
 	"time"
 )
 
@@ -57,7 +57,7 @@ func (r *RoamAction) Start() {
 
 	// find delta from peak explorer ecto
 	actorEcto := actorStats.GetStat(stats.Ecto)
-	deltaToPeakEcto := mathext.Abs(actorEcto - jobs.Explorer.Peak.Ecto)
+	deltaToPeakEcto := utils.Abs(actorEcto - jobs.Explorer.Peak.Ecto)
 	alpha := 1.0 - float64(deltaToPeakEcto)/500.0
 	explorationRadius := 2 + int(alpha * 8.0)
 
