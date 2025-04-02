@@ -1,10 +1,12 @@
 import { NavigationGrid } from "../navigation/NavigationGrid";
 import { AltarEntity } from "./AltarEntity";
 import { BaseEntity, EntitySnapshot } from "./BaseEntity";
-import { BerrybushEntity } from "./BerrybushEntity";
 import { GotchiEntity } from "./GotchiEntity";
 import { LickquidatorEntity } from "./LickquidatorEntity";
 import { ShopEntity } from "./ShopEntity";
+import { KekWoodTreeEntity } from "./resources/KekWoodTreeEntity";
+import { AlphaSlateBouldersEntity } from "./resources/AlphaSlateBouldersEntity";
+import { FomoBerryBushEntity } from "./resources/FomoBerrybushEntity";
 
 
 export class EntityFactory {
@@ -16,14 +18,18 @@ export class EntityFactory {
                 return new GotchiEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             case "lickquidator":
                 return new LickquidatorEntity(scene, id, zoneId, tileX, tileY, data);
-            case "berrybush":
-                return new BerrybushEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
+            case "fomoberrybush":
+                return new FomoBerryBushEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
+            case "kekwoodtree":
+                return new KekWoodTreeEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
+            case "alphaslateboulders":
+                return new AlphaSlateBouldersEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             case "shop":
-                return new ShopEntity(scene, id, zoneId, tileX, tileY, data);
+                return new ShopEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             case "altar":
                 return new AltarEntity(scene, id, zoneId, tileX, tileY, data);
             default:
-                return new BaseEntity(scene, id, zoneId, tileX, tileY, type, type, data);
+                return new BaseEntity({scene, id, zoneId, tileX, tileY, type, texture: "", data});
         }
     }
 }

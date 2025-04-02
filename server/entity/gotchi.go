@@ -93,7 +93,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		Personality: g.Personality,
 		Direction: g.Direction,
 		ActivityLog: g.ActivityLog.Entries,
-		ActionPlan: g.ActionPlan,
+		ActionPlan: g.ActionPlan.ToReporting(),
 	}
 }
 

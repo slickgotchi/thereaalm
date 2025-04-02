@@ -27,6 +27,10 @@ export class GotchiEntity extends TweenableEntity {
     textureSet!: TextureSet;
 
     emoticonEmitter!: EmoticonEmitter;
+    lastEmoticonEmitTime_ms: number = 0;
+    emoticonEmitInterval_ms: number = 3000;
+
+    currentActionType: string = "";
 
     jumpY = 0;
 
@@ -76,9 +80,8 @@ export class GotchiEntity extends TweenableEntity {
             delay: delay_ms,
         });
 
-        const emoticonFrame = Phaser.Math.Between(0,31);
-        this.emoticonEmitter = new EmoticonEmitter(scene, "emoticons", 
-            tileX*ZONE_TILES, tileY*ZONE_TILES, emoticonFrame, delay_ms);
+        this.emoticonEmitter = new EmoticonEmitter(scene, 
+            tileX*ZONE_TILES, tileY*ZONE_TILES);
     }
 
     protected frameUpdate(): void {
@@ -86,13 +89,32 @@ export class GotchiEntity extends TweenableEntity {
 
         this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y - this.jumpY);
         this.shadowSprite.setPosition(this.currentPosition.x+32, this.currentPosition.y+64);
-        this.emoticonEmitter.setPosition(this.currentPosition.x+32, this.currentPosition.y);
+        this.emoticonEmitter.setPosition(this.currentPosition.x+32, this.currentPosition.y+16);
+
+        // if tweening we reset our timer
+        if (this.tweenWorker.getIsTweening()) {
+            this.lastEmoticonEmitTime_ms = 0;
+        }
+
+        var currTime_ms = Date.now();
+        if (currTime_ms - this.lastEmoticonEmitTime_ms > this.emoticonEmitInterval_ms
+            && !this.tweenWorker.getIsTweening() && this.currentActionType !== ""
+        ) {
+            this.lastEmoticonEmitTime_ms = currTime_ms;
+            this.emoticonEmitter.emit(this.currentActionType, 750);
+        }
     }
 
     snapshotUpdate(snapshot: EntitySnapshot) {
         super.snapshotUpdate(snapshot);
 
         this.updateSVG();
+
+
+        var currentAction = snapshot.data.actionPlan.currentAction;
+        if (currentAction) {
+            this.currentActionType = currentAction.type;
+        }
     }
 
     updateSVG() {

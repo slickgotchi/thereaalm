@@ -25,7 +25,7 @@ func NewFomoBerryBush(zoneId, x, y int) *FomoBerryBush {
 	return &FomoBerryBush{
         Entity: entity.Entity{
             ID:   uuid.New(),
-            Type: "berrybush",
+            Type: "fomoberrybush",
 			X: x,
 			Y: y,
         },

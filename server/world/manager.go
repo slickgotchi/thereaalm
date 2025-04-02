@@ -88,17 +88,26 @@ func (wm *WorldManager) loadTestEntities() {
     zoneX := wm.Zones[42].X
     zoneY := wm.Zones[42].Y
 
+    // Generate berry bush obstacles
+    // generateBerryBushes(wm, 42, zoneX, zoneY)
+
     // ENTITIES
+
+    // resources
     bush := resourceentity.NewFomoBerryBush(42, 12+zoneX, 10+zoneY)
     wm.Zones[42].AddEntity(bush)
 
-    // Generate berry bush obstacles
-    // generateBerryBushes(wm, 42, zoneX, zoneY)
+    tree := resourceentity.NewKekWoodTree(42, 15+zoneX, 9+zoneY)
+    wm.Zones[42].AddEntity(tree)
+
+    boulders := resourceentity.NewAlphaSlateBoulders(42, 13+zoneX, 12+zoneY)
+    wm.Zones[42].AddEntity(boulders)
 
     // shop
     shop := entity.NewShop(42, 6+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(shop)
 
+    // gotchis
     gotchiA := entity.NewGotchi(42, 10+zoneX, 10+zoneY, gotchisMap["4285"])
     wm.Zones[42].AddEntity(gotchiA)
 
@@ -108,31 +117,42 @@ func (wm *WorldManager) loadTestEntities() {
     gotchiC := entity.NewGotchi(42, 10+zoneX, 12+zoneY, gotchisMap["21550"])
     wm.Zones[42].AddEntity(gotchiC)
 
-    gotchiD := entity.NewGotchi(42, 10+zoneX, 13+zoneY, gotchisMap["8281"])
-    wm.Zones[42].AddEntity(gotchiD)
+    // gotchiD := entity.NewGotchi(42, 10+zoneX, 13+zoneY, gotchisMap["8281"])
+    // wm.Zones[42].AddEntity(gotchiD)
 
-    gotchiE := entity.NewGotchi(42, 10+zoneX, 14+zoneY, gotchisMap["5401"])
-    wm.Zones[42].AddEntity(gotchiE)
+    // gotchiE := entity.NewGotchi(42, 10+zoneX, 14+zoneY, gotchisMap["5401"])
+    // wm.Zones[42].AddEntity(gotchiE)
 
-    lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
-    wm.Zones[42].AddEntity(lickquidator)
+    // lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
+    // wm.Zones[42].AddEntity(lickquidator)
 
-    altar := entity.NewAltar(42, 15+zoneX, 12+zoneY)
-    wm.Zones[42].AddEntity(altar)
+    // altar := entity.NewAltar(42, 15+zoneX, 12+zoneY)
+    // wm.Zones[42].AddEntity(altar)
 
     // ACTIONS
-    gotchiA.AddAction(resourceaction.NewForageAction(gotchiA, bush, 0.5))
-    gotchiA.AddAction(action.NewTradeAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
-    gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
-    gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
+    gotchiA.AddAction(resourceaction.NewForageAction(gotchiA, bush, 0.3))
+    gotchiA.AddAction(resourceaction.NewChopAction(gotchiA, tree, 0.3))
+    gotchiA.AddAction(resourceaction.NewMineAction(gotchiA, boulders, 0.3))
+    gotchiA.AddAction(action.NewSellAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
+    // gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
+    // gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
 
-    gotchiB.AddAction(action.NewRoamAction(gotchiB, 0.1))
-    gotchiC.AddAction(action.NewRoamAction(gotchiC, 0.1))
-    gotchiD.AddAction(action.NewRoamAction(gotchiD, 0.1))
-    gotchiE.AddAction(action.NewRoamAction(gotchiE, 0.1))
+    gotchiB.AddAction(resourceaction.NewForageAction(gotchiB, bush, 0.3))
+    gotchiB.AddAction(resourceaction.NewChopAction(gotchiB, tree, 0.3))
+    gotchiB.AddAction(resourceaction.NewMineAction(gotchiB, boulders, 0.3))
+    gotchiB.AddAction(action.NewSellAction(gotchiB, shop, 0.5, "SellAllForGold"))   
 
-    lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchiA, 0.2))
-    lickquidator.AddAction(action.NewAttackAction(lickquidator, altar, 0.8))
+    gotchiC.AddAction(resourceaction.NewForageAction(gotchiC, bush, 0.3))
+    gotchiC.AddAction(resourceaction.NewChopAction(gotchiC, tree, 0.3))
+    gotchiC.AddAction(resourceaction.NewMineAction(gotchiC, boulders, 0.3))
+    gotchiC.AddAction(action.NewSellAction(gotchiC, shop, 0.5, "SellAllForGold"))   
+
+
+    // gotchiD.AddAction(action.NewRoamAction(gotchiD, 0.1))
+    // gotchiE.AddAction(action.NewRoamAction(gotchiE, 0.1))
+
+    // lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchiA, 0.2))
+    // lickquidator.AddAction(action.NewAttackAction(lickquidator, altar, 0.8))
 
 
 

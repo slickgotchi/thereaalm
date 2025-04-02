@@ -150,3 +150,60 @@ func (a *ActionPlan) ProcessActions(dt_s float64) {
 		}
 	}
 }
+
+// New reporting struct
+type ActionPlanReporting struct {
+	Actions       []ActionReporting `json:"actions"`
+	CurrentAction *ActionReporting  `json:"currentAction,omitempty"`
+}
+
+type ActionReporting struct {
+	Type       string `json:"type"`
+	ActorType  string `json:"actorType"`
+	ActorID    string `json:"actorId"`
+	TargetType string `json:"targetType,omitempty"`
+	TargetID   string `json:"targetId,omitempty"`
+	Weighting float64 `json:"weighting"`
+}
+
+// ToReporting converts ActionPlan to a cycle-free reporting version
+func (a *ActionPlan) ToReporting() ActionPlanReporting {
+	actions := make([]ActionReporting, len(a.Actions))
+	for i, action := range a.Actions {
+		var targetType, targetID string
+		if action.GetTarget() != nil {
+			targetType = action.GetTarget().GetType()
+			targetID = action.GetTarget().GetUUID().String()
+		}
+		actions[i] = ActionReporting{
+			Type:       action.GetType(),
+			ActorType:  action.GetActor().GetType(),
+			ActorID:    action.GetActor().GetUUID().String(),
+			TargetType: targetType,
+			TargetID:   targetID,
+			Weighting: action.GetWeighting(),
+		}
+	}
+
+	var current *ActionReporting
+	if a.CurrentAction != nil {
+		var targetType, targetID string
+		if a.CurrentAction.GetTarget() != nil {
+			targetType = a.CurrentAction.GetTarget().GetType()
+			targetID = a.CurrentAction.GetTarget().GetUUID().String()
+		}
+		current = &ActionReporting{
+			Type:       a.CurrentAction.GetType(),
+			ActorType:  a.CurrentAction.GetActor().GetType(),
+			ActorID:    a.CurrentAction.GetActor().GetUUID().String(),
+			TargetType: targetType,
+			TargetID:   targetID,
+			Weighting: a.CurrentAction.GetWeighting(),
+		}
+	}
+
+	return ActionPlanReporting{
+		Actions:       actions,
+		CurrentAction: current,
+	}
+}

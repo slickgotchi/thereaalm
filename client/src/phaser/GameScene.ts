@@ -8,6 +8,7 @@ import { EntityFactory } from "./entities/EntityFactory";
 import { GotchiEntity } from "./entities/GotchiEntity";
 import { NavigationGrid } from "./navigation/NavigationGrid";
 import { SelectionManager } from "./SelectionManager";
+import { EmoticonEmitter } from "./emoticons/EmoticonEmitter";
 
 
 
@@ -55,11 +56,14 @@ export class GameScene extends Phaser.Scene {
             "assets/spritesheets/lickquidator_spritesheet.png",
             { frameWidth: 64, frameHeight: 64 }
         );
-        this.load.spritesheet(
-            "emoticons",
-            "assets/emoticons/emoticons_48px.png",
-            {frameWidth: 48, frameHeight: 48, margin: 2, spacing: 4}
-        )
+
+        EmoticonEmitter.preload(this);
+
+        // this.load.spritesheet(
+        //     "actionicons",
+        //     "assets/spritesheets/actionicons_spritesheet.png",
+        //     {frameWidth: 48, frameHeight: 48}
+        // );
         this.load.image("berrybush", "assets/images/berrybush.png");
         this.load.image("shop", "assets/images/shop.png");
         this.load.image("berry_icon", "assets/images/berry_icon.png");

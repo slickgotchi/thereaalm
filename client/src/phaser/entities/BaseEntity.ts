@@ -11,6 +11,17 @@ export interface EntitySnapshot {
     data: any;
 }
 
+interface Props {
+    scene: Phaser.Scene;
+    id: string;
+    zoneId: number;
+    tileX: number;
+    tileY: number;
+    type: string;
+    texture: string;
+    data: any;
+}
+
 export class BaseEntity {
     id: string;
     zoneId: number;
@@ -25,7 +36,9 @@ export class BaseEntity {
     data: any;
     private isSelected: boolean = false;
 
-    constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, type: string, texture: string, data: any) {
+    constructor(props: Props) {
+        const {scene, id, zoneId, tileX, tileY, type, texture, data} = props;
+        
         this.scene = scene;
         this.id = id;
         this.zoneId = zoneId;
@@ -48,7 +61,7 @@ export class BaseEntity {
 
         this.data = data;
         this.setupHoverEvents();
-        console.log(`[${this.id}] Entity constructed`);
+        // console.log(`[${this.id}] Entity constructed`);
     }
 
     snapshotUpdate(snapshot: EntitySnapshot) {
@@ -63,7 +76,7 @@ export class BaseEntity {
 
     destroy() {
         this.sprite.destroy();
-        console.log(`[${this.id}] Entity destroyed`);
+        // console.log(`[${this.id}] Entity destroyed`);
     }
 
     setSelected(selected: boolean) {

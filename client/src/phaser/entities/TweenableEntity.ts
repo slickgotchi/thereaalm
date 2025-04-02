@@ -6,7 +6,7 @@ import { Pathfinder } from "../navigation/Pathfinder";
 import { NavigationGrid } from "../navigation/NavigationGrid";
 
 export class TweenableEntity extends BaseEntity {
-    private tweenWorker: TweenWorker;
+    protected tweenWorker: TweenWorker;
     private pathfinder: Pathfinder;
     protected direction: Direction = "none";
 
@@ -17,7 +17,7 @@ export class TweenableEntity extends BaseEntity {
     protected currentDirection: Direction = "none";
 
     constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, type: string, texture: string, data: any, navigationGrid: NavigationGrid) {
-        super(scene, id, zoneId, tileX, tileY, type, texture, data);
+        super({scene, id, zoneId, tileX, tileY, type, texture, data});
 
         this.currentPosition = {x: tileX * TILE_PIXELS, y: tileY * TILE_PIXELS}
         this.currentDirection = "down";

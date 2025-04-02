@@ -8,7 +8,8 @@ export class LickquidatorEntity extends BaseEntity {
     // hpBar: HPBar;
 
     constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, data: any) {
-        super(scene, id, zoneId, tileX, tileY, "lickquidator", "lickquidator", data);
+        super({scene, id, zoneId, tileX, tileY, 
+            type: "lickquidator", texture: "lickquidator", data});
         
         // Add animation
         this.sprite.setFrame(1);

@@ -1,62 +1,97 @@
 export class EmoticonEmitter {
     private scene: Phaser.Scene;
-    private texture: string;
-    private frame?: string | number;
     private x: number;
     private y: number;
-    // private target?: Phaser.GameObjects.Sprite;
-    private timer: Phaser.Time.TimerEvent;
+    private isEmitting: boolean = false;
 
-    constructor(
-        scene: Phaser.Scene,
-        texture: string,
-        x: number,
-        y: number,
-        frame?: string | number,
-        delay_ms: number = 0,
-    ) {
+    constructor(scene: Phaser.Scene, x: number, y: number) {
         this.scene = scene;
-        this.texture = texture;
-        this.frame = frame;
         this.x = x;
         this.y = y;
-
-        this.timer = this.scene.time.addEvent({
-            delay: 300,
-            callback: this.emit,
-            callbackScope: this,
-            loop: true
-        });
     }
 
-    private emit(): void {
-        const offsetX: number = Phaser.Math.Between(-24, 24);
-        const offsetY: number = -Phaser.Math.Between(24, 32);
+    public static preload(scene: Phaser.Scene): void {
+        scene.load.spritesheet(
+            "emoticons",
+            "assets/emoticons/emoticons_48px.png",
+            {frameWidth: 48, frameHeight: 48, margin: 2, spacing: 4}
+        );
+        scene.load.spritesheet(
+            "actionicons",
+            "assets/spritesheets/actionicons_spritesheet.png",
+            {frameWidth: 48, frameHeight: 48}
+        );
+    }
 
-        const sprite = this.scene.add.sprite(this.x + offsetX*0.5, this.y, this.texture, this.frame);
+    private getTextureAndFrame(emoticonStr: string): { texture: string; frame?: string | number } {
+        switch (emoticonStr) {
+            case "attack": return { texture: 'actionicons', frame: 0 };
+            case "forage": return { texture: 'actionicons', frame: 1 };
+            case "chop": return { texture: 'actionicons', frame: 2 };
+            case "mine": return { texture: 'actionicons', frame: 3 };
+            case "harvest": return { texture: 'actionicons', frame: 4 };
+            case "flee": return { texture: 'actionicons', frame: 10 };
+            case "roam": return { texture: 'actionicons', frame: 12 };
+            case "sell": return { texture: 'actionicons', frame: 8 };
+            case "buy": return { texture: 'actionicons', frame: 9 };
+            case "rest": return { texture: 'actionicons', frame: 11 };
+            case "repair": return { texture: 'actionicons', frame: 7 };
+            case "build": return { texture: 'actionicons', frame: 6 };
+            default: {
+                console.log(`No emoticon for '${emoticonStr}'`);
+                return { texture: 'icons', frame: 'default' };
+            } 
+        }
+    }
 
-        sprite.setAlpha(1);
-        sprite.setDepth(10000);
-        sprite.setOrigin(0.5, 0.5);
-        sprite.setScale(0.5);
+    public emit(emoticon: string, duration_ms: number): void {
+        if (this.isEmitting) return;
+        this.isEmitting = true;
 
-        this.scene.tweens.add({
-            targets: sprite,
-            y: sprite.y + offsetY,
-            duration: 1000,
-            ease: 'Back.easeOut',
-            onComplete: () => {
-                sprite.destroy();
+        const { texture, frame } = this.getTextureAndFrame(emoticon);
+        const startTime = this.scene.time.now;
+
+        const emitAction = () => {
+            if (duration_ms >= 0 && this.scene.time.now - startTime > duration_ms) {
+                this.isEmitting = false;
+                return;
             }
-        });
 
-        this.scene.tweens.add({
-            targets: sprite,
-            x: sprite.x + offsetX,
-            scale: 0.4,
-            alpha: 0,
-            ease: "Linear"
-        })
+            const offsetX: number = Phaser.Math.Between(-24, 24);
+            const offsetY: number = -Phaser.Math.Between(24, 32);
+
+            const sprite = this.scene.add.sprite(this.x + offsetX * 0.5, this.y, texture, frame);
+            sprite.setAlpha(1).setDepth(10000).setOrigin(0.5, 0.5).setScale(0.5);
+
+            this.scene.tweens.add({
+                targets: sprite,
+                y: sprite.y + offsetY,
+                duration: 1000,
+                ease: 'Back.easeOut',
+                onComplete: () => sprite.destroy()
+            });
+
+            this.scene.tweens.add({
+                targets: sprite,
+                x: sprite.x + offsetX,
+                scale: 0.4,
+                ease: "Linear"
+            });
+
+            this.scene.tweens.add({
+                targets: sprite,
+                alpha: 0,
+                ease: "Quint.easeIn"
+            });
+
+            if (duration_ms < 0 || this.scene.time.now - startTime <= duration_ms) {
+                this.scene.time.delayedCall(300, emitAction);
+            } else {
+                this.isEmitting = false;
+            }
+        };
+
+        emitAction();
     }
 
     public setPosition(x: number, y: number) {
@@ -64,8 +99,5 @@ export class EmoticonEmitter {
         this.y = y;
     }
 
-    public stop(): void {
-        this.timer.remove(false);
-        // this.scene.events.off('update', this.update, this);
-    }
+
 }
