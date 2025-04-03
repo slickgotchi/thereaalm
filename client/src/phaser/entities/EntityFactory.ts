@@ -6,7 +6,7 @@ import { LickquidatorEntity } from "./LickquidatorEntity";
 import { ShopEntity } from "./ShopEntity";
 import { KekWoodTreeEntity } from "./resources/KekWoodTreeEntity";
 import { AlphaSlateBouldersEntity } from "./resources/AlphaSlateBouldersEntity";
-import { FomoBerryBushEntity } from "./resources/FomoBerrybushEntity";
+import { FomoBerryBushEntity } from "./resources/FomoBerryBushEntity";
 
 
 export class EntityFactory {

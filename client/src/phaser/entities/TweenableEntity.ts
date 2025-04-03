@@ -13,8 +13,8 @@ export class TweenableEntity extends BaseEntity {
     private targetPosition = {x: 0, y: 0}
     private targetDirection: Direction = "none";
 
-    protected currentPosition = {x: 0, y: 0};
-    protected currentDirection: Direction = "none";
+    public currentPosition = {x: 0, y: 0};
+    public currentDirection: Direction = "none";
 
     constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, type: string, texture: string, data: any, navigationGrid: NavigationGrid) {
         super({scene, id, zoneId, tileX, tileY, type, texture, data});

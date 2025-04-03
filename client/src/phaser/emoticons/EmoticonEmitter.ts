@@ -99,5 +99,7 @@ export class EmoticonEmitter {
         this.y = y;
     }
 
-
+    public destroy() {
+        
+    }
 }

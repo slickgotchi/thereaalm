@@ -20,7 +20,7 @@ export const ZONE_TILES = 512;
 export class GameScene extends Phaser.Scene {
     private entityMap: Map<string, BaseEntity> = new Map();
     private worldMap!: WorldMap;
-    private cameraController!: CameraController;
+    public cameraController!: CameraController;
     private worldWidth: number = 10 * ZONE_TILES * TILE_PIXELS;
     private worldHeight: number = 10 * ZONE_TILES * TILE_PIXELS;
     private tileMap!: TileMap;
@@ -59,11 +59,11 @@ export class GameScene extends Phaser.Scene {
 
         EmoticonEmitter.preload(this);
 
-        // this.load.spritesheet(
-        //     "actionicons",
-        //     "assets/spritesheets/actionicons_spritesheet.png",
-        //     {frameWidth: 48, frameHeight: 48}
-        // );
+        this.load.spritesheet(
+            "static_entities",
+            "assets/spritesheets/static_entities_spritesheet.png",
+            {frameWidth: 64, frameHeight: 64}
+        );
         this.load.image("berrybush", "assets/images/berrybush.png");
         this.load.image("shop", "assets/images/shop.png");
         this.load.image("berry_icon", "assets/images/berry_icon.png");

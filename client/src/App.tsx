@@ -4,6 +4,7 @@ import { GameScene } from "./phaser/GameScene";
 import "./index.css";
 import "./App.css";
 import { HoverInfo } from "./components/HoverInfo";
+import { ConnectWallet } from "./components/ConnectWallet";
 
 function App() {
     const gameRef = useRef<Phaser.Game | null>(null);
@@ -53,6 +54,7 @@ function App() {
     return (
     <div>
         <HoverInfo />
+        <ConnectWallet />
         <div ref={containerRef} className="game-container" />
     </div>
     );

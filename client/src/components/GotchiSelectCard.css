@@ -1,0 +1,33 @@
+.gotchi-select-card {
+    background: #333;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gotchi-select-card:hover {
+    background: #8c508c;
+}
+
+.gotchi-select-card.inactive {
+    background: #555;
+    color: #888;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.gotchi-select-card.inactive:hover {
+    background: #555; /* No hover effect for inactive */
+}
+
+.gotchi-name {
+    font-size: 1rem;
+}
+
+.gotchi-brs {
+    font-size: 1rem;
+}
