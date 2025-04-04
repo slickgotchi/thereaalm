@@ -18,7 +18,8 @@ type ChopAction struct {
 	StartTime time.Time
 }
 
-func NewChopAction(actor, target types.IEntity, weighting float64) *ChopAction {
+func NewChopAction(actor, target types.IEntity, weighting float64,
+		fallbackTargetSpec *action.TargetSpec) *ChopAction {
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
 	if actorStats == nil || actorItemHolder == nil {
@@ -41,7 +42,7 @@ func NewChopAction(actor, target types.IEntity, weighting float64) *ChopAction {
 	alpha := float64(deltaToPeakSpark) / 500.0
 	actionDuration_s := int(5 + 25 * alpha)
 
-	return &ChopAction{
+	a := &ChopAction{
 		Action: action.Action{
 			Type: "chop",
 			Weighting: weighting,
@@ -50,9 +51,18 @@ func NewChopAction(actor, target types.IEntity, weighting float64) *ChopAction {
 		},
 		Duration_s: time.Duration(actionDuration_s) * time.Second,
 	}
+
+	a.SetFallbackTargetSpec(fallbackTargetSpec)
+
+	return a
 }
 
 func (a *ChopAction) CanBeExecuted() bool {
+	// check current target validity and/or set a fallback if neccessary
+	if !a.EnsureValidTarget() {
+		return false
+	}
+
 	choppable, _ := a.Target.(types.IChoppable); 
 	itemHolder, _ := a.Actor.(types.IInventory);
 

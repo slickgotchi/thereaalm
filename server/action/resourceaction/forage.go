@@ -18,7 +18,9 @@ type ForageAction struct {
 	StartTime time.Time
 }
 
-func NewForageAction(actor, target types.IEntity, weighting float64) *ForageAction {
+func NewForageAction(actor, target types.IEntity, weighting float64,
+		fallbackTargetSpec *action.TargetSpec) *ForageAction {
+
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
 	if actorStats == nil || actorItemHolder == nil {
@@ -41,7 +43,7 @@ func NewForageAction(actor, target types.IEntity, weighting float64) *ForageActi
 	alpha := float64(deltaToPeakSpark) / 500.0
 	actionDuration_s := int(5 + 25 * alpha)
 
-	return &ForageAction{
+	a := &ForageAction{
 		Action: action.Action{
 			Type: "forage",
 			Weighting: weighting,
@@ -50,16 +52,29 @@ func NewForageAction(actor, target types.IEntity, weighting float64) *ForageActi
 		},
 		Duration_s: time.Duration(actionDuration_s) * time.Second,
 	}
+
+	a.SetFallbackTargetSpec(fallbackTargetSpec)
+
+    return a
 }
 
 func (a *ForageAction) CanBeExecuted() bool {
+	// check current target validity and/or set a fallback if neccessary
+	if !a.EnsureValidTarget() {
+		return false
+	}
+
 	forageable, _ := a.Target.(types.IForageable); 
 	itemHolder, _ := a.Actor.(types.IInventory);
 
 	// actor and target of correct types?
-	if itemHolder == nil || forageable == nil {
-		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
-		return false	// action is complete we have invalid actor or target
+	if itemHolder == nil {
+		log.Printf("ERROR [%s]: Invalid actor (not IInventory), returning...", utils.GetFuncName())
+		return true	// action is complete we have invalid actor or target
+	}
+	if forageable == nil {
+		log.Printf("ERROR [%s]: Invalid target (not IForageable), returning...", utils.GetFuncName())
+		return true	// action is complete we have invalid actor or target
 	}
 
 	// can move to target?
@@ -87,8 +102,12 @@ func (a *ForageAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
 	forageable, _ := a.Target.(types.IForageable); 
 	itemHolder, _ := a.Actor.(types.IInventory);
-	if itemHolder == nil || forageable == nil {
-		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
+	if itemHolder == nil {
+		log.Printf("ERROR [%s]: Invalid actor (not IInventory), returning...", utils.GetFuncName())
+		return true	// action is complete we have invalid actor or target
+	}
+	if forageable == nil {
+		log.Printf("ERROR [%s]: Invalid target (not IForageable), returning...", utils.GetFuncName())
 		return true	// action is complete we have invalid actor or target
 	}
 

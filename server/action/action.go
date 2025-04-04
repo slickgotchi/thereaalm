@@ -9,9 +9,50 @@ import (
 type Action struct {
 	Type string
 	Weighting float64
-	// IsStarted bool
 	Actor types.IEntity
 	Target types.IEntity
+	FallbackTargetSpec *TargetSpec // Fallback target specification
+    FallbackFunc    FallbackFunc   // Function to resolve a new target if the original fails
+}
+
+// default base function always just returns false (i.e SHOULD ALWAYS BE OVERIDDEN)
+func (a *Action) CanBeExecuted() bool { return false }
+
+func (a *Action) EnsureValidTarget() bool {
+	zone := a.Actor.GetZone()
+
+	// Validate current target
+	if a.Target != nil {
+		if target := zone.GetEntityByUUID(a.Target.GetUUID()); target != nil && a.isValidTarget(target, a.Type) {
+			a.Target = target // Update in case of modification
+			return true
+		}
+	}
+
+	// Attempt fallback resolution if no valid target
+	if a.FallbackFunc != nil && a.FallbackTargetSpec != nil {
+		if newTarget := a.FallbackFunc(a); newTarget != nil {
+			a.Target = newTarget
+			return true
+		}
+		log.Printf("Fallback target resolution failed for action %s", a.Type)
+	}
+
+	return false
+}
+
+
+// SetFallbackTargetSpec sets the fallback target specification and corresponding fallback function
+func (a *Action) SetFallbackTargetSpec(fallbackTargetSpec *TargetSpec) {
+    if fallbackTargetSpec == nil {
+        return
+    }
+    a.FallbackTargetSpec = fallbackTargetSpec
+    if handler, exists := FallbackHandlers[fallbackTargetSpec.TargetCriterion]; exists {
+        a.FallbackFunc = handler
+    } else {
+        log.Printf("No fallback handler for criterion %s in action %s", fallbackTargetSpec.TargetCriterion, a.Type)
+    }
 }
 
 // this should be overidden
@@ -23,7 +64,7 @@ func (a *Action) GetType() string {return a.Type}
 func (a *Action) GetWeighting() float64 {return a.Weighting}
 func (a *Action) GetTarget() types.IEntity {return a.Target}
 func (a *Action) GetActor() types.IEntity {return a.Actor}
-func (a *Action) CanBeExecuted() bool {return true}
+// func (a *Action) CanBeExecuted() bool {return true}
 
 // utility function to move to a target
 func (a *Action) CanMoveToTargetEntity(target types.IEntity) bool {
@@ -89,7 +130,7 @@ type ActionPlan struct {
     CurrentAction types.IAction
 }
 
-func (a *ActionPlan) AddAction(action types.IAction) {
+func (a *ActionPlan) AddActionToPlan(action types.IAction) {
     a.Actions = append(a.Actions, action)
 }
 

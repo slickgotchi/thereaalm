@@ -16,9 +16,11 @@ type TradeOffer struct {
 
 type IInventory interface {
     GetItems() []Item
+    GetItemsMap() *map[string]int
     GetItemsExceptGold() []Item
 	AddItem(name string, quantity int)
 	RemoveItem(name string, quantity int) int 
+    GetItemQuantity(name string) int
     ProposeTrade(responder IInventory, tradeOffer TradeOffer) bool
     RespondToTrade(initiator IInventory, tradeOffer TradeOffer) bool
 	DisplayInventory()
@@ -46,6 +48,10 @@ func (inv *Inventory) GetItems() []Item {
     }
 
     return items
+}
+
+func (inv *Inventory) GetItemsMap() *map[string]int {
+    return &inv.Items
 }
 
 func (inv *Inventory) GetItemsExceptGold() []Item {
@@ -87,6 +93,14 @@ func (inv *Inventory) RemoveItem(name string, quantity int) int {
         return currentQuantity
     }
     // If the item doesn't exist, return 0 (nothing was removed)
+    return 0
+}
+
+func (inv *Inventory) GetItemQuantity(name string) int {
+    if currentQuantity, exists := inv.Items[name]; exists {
+        return currentQuantity
+    }
+
     return 0
 }
 

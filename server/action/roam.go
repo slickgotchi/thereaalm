@@ -16,10 +16,12 @@ type RoamAction struct {
 	Duration    time.Duration
 }
 
-func NewRoamAction(actor types.IEntity, weighting float64) *RoamAction {
-	return &RoamAction{
+func NewRoamAction(actor types.IEntity, target types.IEntity, weighting float64,
+	fallbackTargetSpec *TargetSpec) *RoamAction {
+
+	a := &RoamAction{
 		Action: Action{
-			Type:      "Roam",
+			Type:      "roam",
 			Weighting: weighting,
 			Actor:     actor,
 			Target: nil,
@@ -27,6 +29,10 @@ func NewRoamAction(actor types.IEntity, weighting float64) *RoamAction {
 		Duration:  5 * time.Second, // Set the duration to 5 seconds
 		StartTime: time.Now(),
 	}
+
+	a.SetFallbackTargetSpec(fallbackTargetSpec)
+
+	return a
 }
 
 // CanBeExecuted always returns true for RoamAction

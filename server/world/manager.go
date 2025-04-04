@@ -64,19 +64,6 @@ func NewWorldManager(workerCount int) *WorldManager {
 }
 
 func (wm *WorldManager) loadTestEntities() {
-    // log.Println("Loading Gotchis from subgraph...")
-
-    // OUR TEST SCENARIO
-    // - create gotchi, shop and berrybush
-    // - gotchi gathers berrys from berrybush for 10 seconds
-    // - gotchi sells berrys to shop for 5 seconds
-    // - gotchi gathers berrys from berrybush for 10 seconds
-    // - gotchi sells berrys to shop for 5 seconds
-    // - berry bush out of berries
-    // - gotchi idles for 20 seconds
-    // - berry bush replenished with berries
-    // - repeat
-
     // grab a few gotchis to use
     gotchisMap, err := web3.FetchGotchisByIDs([]string{"4285", "19005", "21550",
     "8281", "5401"})
@@ -88,11 +75,7 @@ func (wm *WorldManager) loadTestEntities() {
     zoneX := wm.Zones[42].X
     zoneY := wm.Zones[42].Y
 
-    // Generate berry bush obstacles
-    // generateBerryBushes(wm, 42, zoneX, zoneY)
-
     // ENTITIES
-
     // resources
     bush := resourceentity.NewFomoBerryBush(42, 12+zoneX, 10+zoneY)
     wm.Zones[42].AddEntity(bush)
@@ -103,59 +86,27 @@ func (wm *WorldManager) loadTestEntities() {
     boulders := resourceentity.NewAlphaSlateBoulders(42, 13+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(boulders)
 
+    // generateBerryBushes(wm, 42, zoneX, zoneY)
+
     // shop
     shop := entity.NewShop(42, 6+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(shop)
 
     // gotchis
-    gotchiA := entity.NewGotchi(42, 10+zoneX, 10+zoneY, gotchisMap["4285"])
-    wm.Zones[42].AddEntity(gotchiA)
+    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["4285"])
+    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["19005"])
+    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["21550"])
+    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["8281"])
+    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["21550"])
 
-    gotchiB := entity.NewGotchi(42, 10+zoneX, 11+zoneY, gotchisMap["19005"])
-    wm.Zones[42].AddEntity(gotchiB)
+    // lickquidators
+    generateGenericLickquidator(wm, 42, 9+zoneX, 14+zoneY)
+    generateGenericLickquidator(wm, 42, 18+zoneX, 23+zoneY)
+    generateGenericLickquidator(wm, 42, 15+zoneX, 19+zoneY)
 
-    gotchiC := entity.NewGotchi(42, 10+zoneX, 12+zoneY, gotchisMap["21550"])
-    wm.Zones[42].AddEntity(gotchiC)
-
-    // gotchiD := entity.NewGotchi(42, 10+zoneX, 13+zoneY, gotchisMap["8281"])
-    // wm.Zones[42].AddEntity(gotchiD)
-
-    // gotchiE := entity.NewGotchi(42, 10+zoneX, 14+zoneY, gotchisMap["5401"])
-    // wm.Zones[42].AddEntity(gotchiE)
-
-    // lickquidator := entity.NewLickquidator(42, 9+zoneX, 14+zoneY)
-    // wm.Zones[42].AddEntity(lickquidator)
-
-    // altar := entity.NewAltar(42, 15+zoneX, 12+zoneY)
-    // wm.Zones[42].AddEntity(altar)
-
-    // ACTIONS
-    gotchiA.AddAction(resourceaction.NewForageAction(gotchiA, bush, 0.3))
-    gotchiA.AddAction(resourceaction.NewChopAction(gotchiA, tree, 0.3))
-    gotchiA.AddAction(resourceaction.NewMineAction(gotchiA, boulders, 0.3))
-    gotchiA.AddAction(action.NewSellAction(gotchiA, shop, 0.5, "SellAllForGold"))   // FUTURE: we pass a TradeOffer rather than "SellAllForGold"
-    // gotchiA.AddAction(action.NewAttackAction(gotchiA, lickquidator, 0.3))
-    // gotchiA.AddAction(action.NewRoamAction(gotchiA, 0.1))
-
-    gotchiB.AddAction(resourceaction.NewForageAction(gotchiB, bush, 0.3))
-    gotchiB.AddAction(resourceaction.NewChopAction(gotchiB, tree, 0.3))
-    gotchiB.AddAction(resourceaction.NewMineAction(gotchiB, boulders, 0.3))
-    gotchiB.AddAction(action.NewSellAction(gotchiB, shop, 0.5, "SellAllForGold"))   
-
-    gotchiC.AddAction(resourceaction.NewForageAction(gotchiC, bush, 0.3))
-    gotchiC.AddAction(resourceaction.NewChopAction(gotchiC, tree, 0.3))
-    gotchiC.AddAction(resourceaction.NewMineAction(gotchiC, boulders, 0.3))
-    gotchiC.AddAction(action.NewSellAction(gotchiC, shop, 0.5, "SellAllForGold"))   
-
-
-    // gotchiD.AddAction(action.NewRoamAction(gotchiD, 0.1))
-    // gotchiE.AddAction(action.NewRoamAction(gotchiE, 0.1))
-
-    // lickquidator.AddAction(action.NewAttackAction(lickquidator, gotchiA, 0.2))
-    // lickquidator.AddAction(action.NewAttackAction(lickquidator, altar, 0.8))
-
-
-
+    // altar
+    altar := entity.NewAltar(42, 15+zoneX, 12+zoneY)
+    wm.Zones[42].AddEntity(altar)
 
 
 
@@ -204,6 +155,63 @@ func (wm *WorldManager) loadTestEntities() {
     //     }
     //     gotchi.SetActionSequence(actionSequence)
     // }
+}
+
+func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
+    lickquidator := entity.NewLickquidator(zoneID, x, y)
+    wm.Zones[42].AddEntity(lickquidator)
+
+    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.2,
+        &action.TargetSpec{
+            TargetType: "gotchi",
+            TargetCriterion: "nearest",
+        }))
+    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.8,
+        &action.TargetSpec{
+            TargetType: "altar",
+            TargetCriterion: "nearest",
+        }))
+}
+
+func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int, 
+    subgraphData web3.SubgraphGotchiData) {
+
+    newGotchi := entity.NewGotchi(zoneID, x, y, subgraphData)
+    wm.Zones[42].AddEntity(newGotchi)
+
+    // ACTIONS
+    newGotchi.AddActionToPlan(
+        resourceaction.NewForageAction(newGotchi, nil, 0.3, 
+            &action.TargetSpec{
+                TargetType: "fomoberrybush",
+                TargetCriterion: "nearest",
+            }))
+    newGotchi.AddActionToPlan(
+        resourceaction.NewChopAction(newGotchi, nil, 0.3, 
+            &action.TargetSpec{
+                TargetType: "kekwoodtree",
+                TargetCriterion: "nearest",
+            }))
+    newGotchi.AddActionToPlan(
+        resourceaction.NewMineAction(newGotchi, nil, 0.3, 
+            &action.TargetSpec{
+                TargetType: "alphaslateboulders",
+                TargetCriterion: "nearest",
+            }))
+    newGotchi.AddActionToPlan(
+        action.NewSellAction(newGotchi, nil, 0.5, 
+            &action.TargetSpec{
+                TargetType: "shop",
+                TargetCriterion: "nearest",
+            }))
+    newGotchi.AddActionToPlan(
+        action.NewAttackAction(newGotchi, nil, 0.3, 
+            &action.TargetSpec{
+                TargetType: "liquidator",
+                TargetCriterion: "nearest",
+            }))
+    newGotchi.AddActionToPlan(
+        action.NewRoamAction(newGotchi, nil, 0.1, nil))
 }
 
 // generateBerryBushes generates 100 unique berry bushes in a 100x100 area within the specified zone

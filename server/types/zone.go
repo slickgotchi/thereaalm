@@ -3,7 +3,10 @@ package types
 
 import (
 	"math/rand"
+	"thereaalm/utils"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Zone struct {
@@ -155,4 +158,30 @@ func (z *Zone) TryGetEmptyTileNextToTargetEntity(target IEntity) (int, int, bool
     r := rand.New(rand.NewSource(time.Now().UnixNano()))
     chosen := emptyTiles[r.Intn(len(emptyTiles))]
     return chosen[0], chosen[1], true
+}
+
+// GetEntityByUUID retrieves an entity by its UUID
+func (z *Zone) GetEntityByUUID(uuid uuid.UUID) IEntity {
+    for _, entity := range z.Entities {
+        if entity.GetUUID() == uuid {
+            return entity
+        }
+    }
+    return nil
+}
+
+// GetEntitiesByType retrieves all entities of a specific type
+func (z *Zone) GetEntitiesByType(entityType string) []IEntity {
+    var entities []IEntity
+    for _, entity := range z.Entities {
+        if entity.GetType() == entityType {
+            entities = append(entities, entity)
+        }
+    }
+    return entities
+}
+
+// GetDistance calculates the simple distance between two points (x1, y1) and (x2, y2)
+func (z *Zone) GetDistance(x1, y1, x2, y2 int) int {
+    return utils.Abs(x1 - x2) + utils.Abs(y1 - y2)
 }

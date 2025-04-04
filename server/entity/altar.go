@@ -61,3 +61,52 @@ func (e *Altar) Update(dt_s float64) {
 		// do active altar stuff
 	} 
 }
+
+// IMaintainable functions
+func (e *Altar) Maintain(pulseRestored int) {
+	e.Stats.DeltaStat(stats.Pulse, pulseRestored)
+	if e.Stats.GetStat(stats.Pulse) > e.MaxPulse {
+		e.Stats.SetStat(stats.Pulse, e.MaxPulse)
+	}
+}
+
+func (e *Altar) CanBeMaintained() bool {
+	// structure must be Active state to be maintained
+	if e.State != entitystate.Active {
+		return false
+	}
+
+	// don't allow maintenance on structures above 80% pulse
+	currPulse := e.Stats.GetStat(stats.Pulse)
+	maxPulse := e.MaxPulse
+	if float64(currPulse) >= float64(maxPulse)*0.8 {
+		return false
+	}
+
+	// ok! we can be maintained
+	return true
+}
+
+func (e *Altar) GetMaxPulse() int {
+	return e.MaxPulse
+}
+
+// IRebuildable functions
+func (e *Altar) Rebuild(pulseRestored int) {
+	e.Stats.DeltaStat(stats.Pulse, pulseRestored)
+	if e.Stats.GetStat(stats.Pulse) > e.MaxPulse {
+		e.Stats.SetStat(stats.Pulse, e.MaxPulse)
+	}
+}
+
+func (e *Altar) CanBeRebuilt() bool {
+	// structure must be in Dead state to be rebuilt
+	if e.State != entitystate.Dead {
+		return false
+	}
+
+	// ok! we can be rebuilt
+	return true
+}
+
+// GetMaxPulse() already part of IMaintainable

@@ -15,7 +15,9 @@ type SellAction struct {
 	TradeType string
 }
 
-func NewSellAction(actor, target types.IEntity, weighting float64, tradeType string) *SellAction {
+func NewSellAction(actor, target types.IEntity, weighting float64,
+	fallbackTargetSpec *TargetSpec) *SellAction {
+
 	seller, _ := actor.(stats.IStats)
 	if seller == nil {
 		log.Println("ERROR: Selling actor does not have IStats, returning...")
@@ -28,7 +30,7 @@ func NewSellAction(actor, target types.IEntity, weighting float64, tradeType str
 		return nil
 	}
 	
-	return &SellAction{
+	a := &SellAction{
 		Action: Action{
 			Type: "sell",
 			Weighting: weighting,
@@ -37,11 +39,20 @@ func NewSellAction(actor, target types.IEntity, weighting float64, tradeType str
 		},
 		Duration_s: float64(sellDuration_s),
 		Timer_s: float64(sellDuration_s),
-		TradeType: tradeType,
+		TradeType: "SellAllForGold",
 	}
+
+	a.SetFallbackTargetSpec(fallbackTargetSpec)
+
+	return a
 }
 
 func (a *SellAction) CanBeExecuted() bool {
+	// check current target validity and/or set a fallback if neccessary
+	if !a.EnsureValidTarget() {
+		return false
+	}
+	
 	// check actor and target are correct type
 	respondingItemHolder, _ := a.Target.(types.IInventory) 
 	initiatingItemHolder, _ := a.Actor.(types.IInventory)

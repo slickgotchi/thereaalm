@@ -15,8 +15,10 @@ type AttackAction struct {
 	Timer_s float64
 }
 
-func NewAttackAction(actor, target types.IEntity, weighting float64) *AttackAction {
-	return &AttackAction{
+func NewAttackAction(actor, target types.IEntity, weighting float64,
+	fallbackTargetSpec *TargetSpec) *AttackAction {
+
+	a := &AttackAction{
 		Action: Action{
 			Type: "attack",
 			Weighting: weighting,
@@ -24,9 +26,18 @@ func NewAttackAction(actor, target types.IEntity, weighting float64) *AttackActi
 			Target: target,
 		},
 	}
+
+	a.SetFallbackTargetSpec(fallbackTargetSpec)
+
+	return a
 }
 
 func (a *AttackAction) CanBeExecuted() bool {
+	// check current target validity and/or set a fallback if neccessary
+	if !a.EnsureValidTarget() {
+		return false
+	}
+
 	targetStats, _ := a.Target.(stats.IStats)
 	attackerStats, _ := a.Actor.(stats.IStats)
 
@@ -42,7 +53,7 @@ func (a *AttackAction) CanBeExecuted() bool {
 	}
 
 	// is target still alive?
-	if targetStats.GetStat(stats.Spark) <= 0 {
+	if targetStats.GetStat(stats.Pulse) <= 0 {
 		return false
 	}
 	
@@ -110,11 +121,11 @@ func (a *AttackAction) Update(dt_s float64) bool {
 		finalPulseReduction := int(alpha * 10.0)
 		finalPulseReduction = utils.Clamp(finalPulseReduction, 1, 10)
 
-		// deal damage to defenders spark
+		// deal damage to defenders pulse
 		defenderStats.DeltaStat(stats.Pulse, -finalPulseReduction)
 		newDefenderPulse := defenderStats.GetStat(stats.Pulse)
 
-		// ecto goes below 10% (100) we need to finish the attack
+		// if defender pulse goes to 0, finish the attack
 		if newDefenderPulse <= 0 {
 			defenderStats.SetStat(stats.Pulse, 0)
 
@@ -139,7 +150,7 @@ func (a *AttackAction) Update(dt_s float64) bool {
 
 	}
 
-	// harvesting is not complete so we return FALSE
+	// attacking is not complete so we return FALSE
 	return false
 }
 

@@ -18,7 +18,9 @@ type MineAction struct {
 	StartTime time.Time
 }
 
-func NewMineAction(actor, target types.IEntity, weighting float64) *MineAction {
+func NewMineAction(actor, target types.IEntity, weighting float64,
+	fallbackTargetSpec *action.TargetSpec) *MineAction {
+
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
 	if actorStats == nil || actorItemHolder == nil {
@@ -41,7 +43,7 @@ func NewMineAction(actor, target types.IEntity, weighting float64) *MineAction {
 	alpha := float64(deltaToPeakSpark) / 500.0
 	actionDuration_s := int(5 + 25 * alpha)
 
-	return &MineAction{
+	a := &MineAction{
 		Action: action.Action{
 			Type: "mine",
 			Weighting: weighting,
@@ -50,9 +52,18 @@ func NewMineAction(actor, target types.IEntity, weighting float64) *MineAction {
 		},
 		Duration_s: time.Duration(actionDuration_s) * time.Second,
 	}
+
+	a.SetFallbackTargetSpec(fallbackTargetSpec)
+
+	return a
 }
 
 func (a *MineAction) CanBeExecuted() bool {
+	// check current target validity and/or set a fallback if neccessary
+	if !a.EnsureValidTarget() {
+		return false
+	}
+
 	mineable, _ := a.Target.(types.IMineable); 
 	itemHolder, _ := a.Actor.(types.IInventory);
 

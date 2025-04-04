@@ -15,7 +15,7 @@ type IAction interface {
 
 // IActionPlan is for entities that can process actions.
 type IActionPlan interface {
-    AddAction(a IAction)
+    AddActionToPlan(a IAction)
     SelectNextAction()
     ProcessActions(dt_s float64)
 }
