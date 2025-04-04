@@ -5,6 +5,18 @@ import { Direction, TweenUpdateCallback, TweenWorker } from "../navigation/Tween
 import { Pathfinder } from "../navigation/Pathfinder";
 import { NavigationGrid } from "../navigation/NavigationGrid";
 
+interface Props {
+    scene: Phaser.Scene;
+    id: string;
+    zoneId: number;
+    tileX: number;
+    tileY: number;
+    type: string;
+    texture: string;
+    data: any;
+    navigationGrid: NavigationGrid;
+}
+
 export class TweenableEntity extends BaseEntity {
     protected tweenWorker: TweenWorker;
     private pathfinder: Pathfinder;
@@ -16,7 +28,8 @@ export class TweenableEntity extends BaseEntity {
     public currentPosition = {x: 0, y: 0};
     public currentDirection: Direction = "none";
 
-    constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, type: string, texture: string, data: any, navigationGrid: NavigationGrid) {
+    constructor(props: Props) {
+        const {scene, id, zoneId, tileX, tileY, type, texture, data, navigationGrid } = props;
         super({scene, id, zoneId, tileX, tileY, type, texture, data});
 
         this.currentPosition = {x: tileX * TILE_PIXELS, y: tileY * TILE_PIXELS}

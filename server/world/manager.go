@@ -105,24 +105,11 @@ func (wm *WorldManager) loadTestEntities() {
     generateGenericLickquidator(wm, 42, 15+zoneX, 19+zoneY)
 
     // altar
-    altar := entity.NewAltar(42, 15+zoneX, 12+zoneY)
+    altar := entity.NewAltar(42, 19+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(altar)
-
-
-
-
-
-    // gotchiData := storage.GetLatestDatabaseGotchiEntities(1)
-    // if len(gotchiData) == 0 {
-    //     log.Println("No Gotchis loaded.")
-    //     return
-    // }
 
     // // TEMPORARY: start only in zone 42 for now
     // zoneIndex := 42
-
-    // // zoneX := wm.Zones[zoneIndex].X
-    // // zoneY := wm.Zones[zoneIndex].Y
 
     // // place gotchis across all available zones, in ZoneMap
     // // start with a known seed
@@ -140,20 +127,6 @@ func (wm *WorldManager) loadTestEntities() {
     //     y := wm.Zones[zoneIndex].Y + 8
 
     //     // create new gotchi
-    //     gotchi := entities.NewGotchi(42, x, y)
-    //     wm.Zones[zoneIndex].AddEntity(gotchi)
-
-    //     // Set initial action sequence
-    //     actionSequence := []action.IAction{
-    //         action.NewGatherAction(bush.UUID), // Gather (berries: 5 -> 3)
-    //         action.NewSellAction(shop.UUID),   // Sell (inventory: 2 -> 0)
-    //         action.NewGatherAction(bush.UUID), // Gather (berries: 3 -> 1)
-    //         action.NewSellAction(shop.UUID),   // Sell (inventory: 2 -> 0)
-    //         action.NewGatherAction(bush.UUID), // Gather (berries: 1 -> 0)
-    //         action.NewSellAction(shop.UUID),   // Sell (inventory: 1 -> 0)
-    //         action.NewIdleAction(),            // Idle (bush depleted, nothing to do)
-    //     }
-    //     gotchi.SetActionSequence(actionSequence)
     // }
 }
 
@@ -207,7 +180,7 @@ func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int,
     newGotchi.AddActionToPlan(
         action.NewAttackAction(newGotchi, nil, 0.3, 
             &action.TargetSpec{
-                TargetType: "liquidator",
+                TargetType: "lickquidator",
                 TargetCriterion: "nearest",
             }))
     newGotchi.AddActionToPlan(

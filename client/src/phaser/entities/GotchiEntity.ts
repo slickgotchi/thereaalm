@@ -31,7 +31,8 @@ export class GotchiEntity extends TweenableEntity {
     static activeGotchis: Map<string, GotchiEntity> = new Map(); // Tracks active GotchiEntity instances by gotchiId
 
     constructor(scene: Phaser.Scene, id: string, zoneId: number, tileX: number, tileY: number, data: any, navigationGrid: NavigationGrid) {
-        super(scene, id, zoneId, tileX, tileY, "gotchi", "loading_gotchi", data, navigationGrid);
+        super({scene, id, zoneId, tileX, tileY, 
+            type: "gotchi", texture: "loading_gotchi", data, navigationGrid});
         
         this.sprite.play("loading_gotchi_anim");
         this.shadowSprite = scene.add.sprite(this.sprite.x + 32, this.sprite.y + 64, "shadow");
@@ -75,6 +76,7 @@ export class GotchiEntity extends TweenableEntity {
 
     protected frameUpdate(): void {
         super.frameUpdate();
+
         this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y - this.jumpY);
         this.shadowSprite.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 64);
         this.emoticonEmitter.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 16);
@@ -90,7 +92,7 @@ export class GotchiEntity extends TweenableEntity {
             this.currentActionType !== ""
         ) {
             this.lastEmoticonEmitTime_ms = currTime_ms;
-            this.emoticonEmitter.emit(this.currentActionType, 750);
+            this.emoticonEmitter.emit(this.currentActionType, 240);
         }
     }
 

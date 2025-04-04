@@ -17,7 +17,7 @@ export class EntityFactory {
             case "gotchi":
                 return new GotchiEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             case "lickquidator":
-                return new LickquidatorEntity(scene, id, zoneId, tileX, tileY, data);
+                return new LickquidatorEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             case "fomoberrybush":
                 return new FomoBerryBushEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             case "kekwoodtree":
@@ -27,7 +27,7 @@ export class EntityFactory {
             case "shop":
                 return new ShopEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             case "altar":
-                return new AltarEntity(scene, id, zoneId, tileX, tileY, data);
+                return new AltarEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             default:
                 return new BaseEntity({scene, id, zoneId, tileX, tileY, type, texture: "", data});
         }

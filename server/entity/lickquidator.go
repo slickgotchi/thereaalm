@@ -47,10 +47,12 @@ func (l *Lickquidator) GetSnapshotData() interface{} {
 		Name string `json:"name"`
 		Description string `json:"description"`
 		Stats interface{} `json:"stats"`
+		Direction string `json:"direction"`
 	}{
 		Name: l.Type,
 		Description: "The arch enemies of the Gotchi-kin, born from the souls of liquidated traders",
 		Stats: l.Stats.StatMap,
+		Direction: l.Direction,
 	}
 }
 
