@@ -16,17 +16,12 @@ type Action struct {
 }
 
 // default base function always just returns false (i.e SHOULD ALWAYS BE OVERIDDEN)
-func (a *Action) CanBeExecuted() bool { return false }
+// func (a *Action) CanBeExecuted() bool { return false }
 
-func (a *Action) EnsureValidTarget() bool {
-	zone := a.Actor.GetZone()
-
+func (a *Action) TryUseFallbackIfTargetIsNil() bool {
 	// Validate current target
 	if a.Target != nil {
-		if target := zone.GetEntityByUUID(a.Target.GetUUID()); target != nil && a.isValidTarget(target, a.Type) {
-			a.Target = target // Update in case of modification
-			return true
-		}
+		return true
 	}
 
 	// Attempt fallback resolution if no valid target
@@ -35,9 +30,10 @@ func (a *Action) EnsureValidTarget() bool {
 			a.Target = newTarget
 			return true
 		}
-		log.Printf("Fallback target resolution failed for action %s", a.Type)
 	}
-
+	
+	// could not even use a fallback
+	log.Printf("Fallback target resolution failed for action %s", a.Type)
 	return false
 }
 
@@ -59,12 +55,37 @@ func (a *Action) SetFallbackTargetSpec(fallbackTargetSpec *TargetSpec) {
 // return TRUE when the action is COMPLETE
 func (a *Action) Update(dt_s float64) bool { return true }
 
+// func (a *Action) IsValidPotentialTarget(potentialTarget types.IEntity) bool {
+// 	return potentialTarget != nil
+// }
+
 // don't need to be overridden
 func (a *Action) GetType() string {return a.Type}
 func (a *Action) GetWeighting() float64 {return a.Weighting}
 func (a *Action) GetTarget() types.IEntity {return a.Target}
 func (a *Action) GetActor() types.IEntity {return a.Actor}
 // func (a *Action) CanBeExecuted() bool {return true}
+func (a *Action) IsValidActor(potentialActor types.IEntity) bool { 
+	log.Println("WARNING: IsValidActor has not been overridden by an action")
+	return potentialActor != nil 
+}
+func (a *Action) IsValidTarget(potentialTarget types.IEntity) bool { 
+	log.Println("WARNING: IsValidTarget has not been overridden by an action")
+	return potentialTarget != nil 
+}
+func (a *Action) CanBeExecuted() bool {
+	// if target is nil we need to try set a fallback target
+	if !a.TryUseFallbackIfTargetIsNil() {
+		return false
+	}
+
+	if !a.IsValidActor(a.Actor) || !a.IsValidTarget(a.Target) {
+		return false
+	}
+
+	// ok can execute
+	return true
+}
 
 // utility function to move to a target
 func (a *Action) CanMoveToTargetEntity(target types.IEntity) bool {
@@ -136,7 +157,7 @@ func (a *ActionPlan) AddActionToPlan(action types.IAction) {
 
 // SelectNextAction will only select actions that can be executed.
 func (a *ActionPlan) SelectNextAction() {
-	log.Println("Select next action...")
+	// log.Println("Select next action...")
 
 	// If no actions exist, just return.
 	if len(a.Actions) == 0 {
@@ -149,6 +170,10 @@ func (a *ActionPlan) SelectNextAction() {
 
 	// Filter out actions that cannot be executed.
 	for _, action := range a.Actions {
+		// first establish fallbacks if required/possible
+		action.TryUseFallbackIfTargetIsNil()
+
+		// add to possible executable actions (if possible)
 		if action.CanBeExecuted() && action.GetWeighting() > 0 {
 			executableActions = append(executableActions, action)
 			totalWeight += action.GetWeighting()
@@ -157,7 +182,7 @@ func (a *ActionPlan) SelectNextAction() {
 
 	// If no executable actions, return.
 	if len(executableActions) == 0 {
-		log.Println("No executable actions available.")
+		// log.Println("No executable actions available.")
 		return
 	}
 
@@ -186,7 +211,7 @@ func (a *ActionPlan) ProcessActions(dt_s float64) {
 
 		// If the action is complete, clear it and select a new one.
 		if actionComplete {
-			log.Println(a.CurrentAction.GetType(), " complete.")
+			// log.Println(a.CurrentAction.GetType(), " complete.")
 			a.CurrentAction = nil
 		}
 	}

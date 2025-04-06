@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/action"
-	"thereaalm/jobs"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -13,7 +12,7 @@ import (
 
 // "maintain": Restores Pulse to a non-dead building
 // - has a set duration and restores a fixed amount of pulse based on gotchi traits
-// - consumes a 1 kekwood and 1 alphaslate from actor
+// - consumes 1 kekwood and 1 alphaslate from actor
 
 type RebuildAction struct {
 	action.Action
@@ -27,7 +26,9 @@ type RebuildAction struct {
 	TotalPulseRestored int
 }
 
-func NewRebuildAction(actor, target types.IEntity, weighting float64) *RebuildAction {
+func NewRebuildAction(actor, target types.IEntity, weighting float64,
+	fallbackTargetSpec *action.TargetSpec) *RebuildAction {
+	
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
 	if actorStats == nil || actorItemHolder == nil {
@@ -42,15 +43,11 @@ func NewRebuildAction(actor, target types.IEntity, weighting float64) *RebuildAc
 		return nil
 	}
 
-	// find spark delta from farmer peak and clamp it between 0 and 500
-	deltaToPeakPulse := utils.Abs(actorPulse - jobs.Builder.Peak.Pulse)
-	deltaToPeakPulse = utils.Clamp(deltaToPeakPulse, 0, 500)
-
 	// vary pulse restored per sec between 5 and 20
-	alpha := float64(deltaToPeakPulse) / 500.0
+	alpha := actorPulse / 1000
 	pulseRestoredPerSecond := int(5 + 15 * alpha)
 
-	return &RebuildAction{
+	a := &RebuildAction{
 		Action: action.Action{
 			Type: "rebuild",
 			Weighting: weighting,
@@ -65,26 +62,39 @@ func NewRebuildAction(actor, target types.IEntity, weighting float64) *RebuildAc
 	
 		TotalPulseRestored: 0,
 	}
+
+	a.SetFallbackTargetSpec(fallbackTargetSpec)
+
+	return a
 }
 
-func (a *RebuildAction) CanBeExecuted() bool {
-	rebuildable, _ := a.Target.(types.IRebuildable); 
-	itemHolder, _ := a.Actor.(types.IInventory);
-
-	// actor and target of correct types?
-	if itemHolder == nil || rebuildable == nil {
-		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
+func (a *RebuildAction) IsValidTarget(potentialTarget types.IEntity) bool {
+	rebuildable, _ := potentialTarget.(types.IRebuildable); 
+	if rebuildable == nil {
+		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
 	}
 
 	// can move to target?
-	if !a.CanMoveToTargetEntity(a.Target) {
+	if !a.CanMoveToTargetEntity(potentialTarget) {
 		return false
 	}
 
 	// entity is ready to be maintained?
 	if !rebuildable.CanBeRebuilt() {
 		return false
+	}
+
+	return true
+}
+
+func (a *RebuildAction) IsValidActor(potentialActor types.IEntity) bool {
+	itemHolder, _ := potentialActor.(types.IInventory);
+
+	// actor and target of correct types?
+	if itemHolder == nil {
+		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
+		return false	// action is complete we have invalid actor or target
 	}
 
 	// actor has 1 kekwood and 1 alphaslate?

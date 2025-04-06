@@ -1,6 +1,7 @@
 import { EmoticonEmitter } from "../emoticons/EmoticonEmitter";
 import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../FetchGotchis";
-import { ZONE_TILES } from "../GameScene";
+import { TILE_PIXELS, ZONE_TILES } from "../GameScene";
+import { HPBar } from "../HPBar";
 import { NavigationGrid } from "../navigation/NavigationGrid";
 import { EntitySnapshot } from "./BaseEntity";
 import { TweenableEntity } from "./TweenableEntity";
@@ -20,12 +21,14 @@ interface TextureSet {
 export class GotchiEntity extends TweenableEntity {
     gotchiId: string = "";
     textureSet!: TextureSet;
-    emoticonEmitter!: EmoticonEmitter;
     lastEmoticonEmitTime_ms: number = 0;
     emoticonEmitInterval_ms: number = 3000;
     currentActionType: string = "";
     jumpY = 0;
+
+    emoticonEmitter!: EmoticonEmitter;
     shadowSprite!: Phaser.GameObjects.Sprite;
+    hpBar!: HPBar;
 
     static svgMap: Map<string, SVGState> = new Map();
     static activeGotchis: Map<string, GotchiEntity> = new Map(); // Tracks active GotchiEntity instances by gotchiId
@@ -72,6 +75,15 @@ export class GotchiEntity extends TweenableEntity {
         });
 
         this.emoticonEmitter = new EmoticonEmitter(scene, tileX * ZONE_TILES, tileY * ZONE_TILES);
+
+        this.hpBar = new HPBar({
+            scene,
+            x: tileX*TILE_PIXELS,
+            y: tileY*TILE_PIXELS,
+            currentHP: data.stats.pulse,
+            maxHP: data.stats.maxpulse,
+            trackingSprite: this.sprite,
+        });
     }
 
     protected frameUpdate(): void {
@@ -80,6 +92,7 @@ export class GotchiEntity extends TweenableEntity {
         this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y - this.jumpY);
         this.shadowSprite.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 64);
         this.emoticonEmitter.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 16);
+        this.hpBar.setPosition(this.currentPosition.x, this.currentPosition.y);
 
         if (this.tweenWorker.getIsTweening()) {
             this.lastEmoticonEmitTime_ms = 0;
@@ -94,6 +107,8 @@ export class GotchiEntity extends TweenableEntity {
             this.lastEmoticonEmitTime_ms = currTime_ms;
             this.emoticonEmitter.emit(this.currentActionType, 240);
         }
+
+        this.updateDirection();
     }
 
     snapshotUpdate(snapshot: EntitySnapshot) {
@@ -103,6 +118,8 @@ export class GotchiEntity extends TweenableEntity {
         if (currentAction) {
             this.currentActionType = currentAction.type;
         }
+
+        this.hpBar.updateHP(snapshot.data.stats.pulse);
     }
 
     updateSVG() {
@@ -145,10 +162,11 @@ export class GotchiEntity extends TweenableEntity {
     }
 
     destroy(): void {
-        super.destroy();
+        this.hpBar.destroy();
         this.shadowSprite.destroy();
         this.emoticonEmitter.destroy();
         GotchiEntity.activeGotchis.delete(this.gotchiId); // Remove from activeGotchis
+        super.destroy();
     }
 
     static async fetchAndLoadSVGs(scene: Phaser.Scene) {

@@ -8,10 +8,12 @@ import (
 	"runtime"
 	"sync"
 	"thereaalm/action"
+	"thereaalm/action/buildingaction"
 	"thereaalm/action/resourceaction"
 	"thereaalm/config"
 	"thereaalm/entity"
 	"thereaalm/entity/resourceentity"
+	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/web3"
 
@@ -96,8 +98,8 @@ func (wm *WorldManager) loadTestEntities() {
     generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["4285"])
     generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["19005"])
     generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["21550"])
-    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["8281"])
-    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["21550"])
+    generateGenericGotchi(wm, 42, 30+zoneX, 30+zoneY, gotchisMap["8281"])
+    generateGenericGotchi(wm, 42, 30+zoneX, 30+zoneY, gotchisMap["5401"])
 
     // lickquidators
     generateGenericLickquidator(wm, 42, 9+zoneX, 14+zoneY)
@@ -107,6 +109,11 @@ func (wm *WorldManager) loadTestEntities() {
     // altar
     altar := entity.NewAltar(42, 19+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(altar)
+    altar.SetStat(stats.Pulse, 500)
+
+    altarB := entity.NewAltar(42, 12+zoneX, 17+zoneY)
+    wm.Zones[42].AddEntity(altarB)
+    altarB.SetStat(stats.Pulse, 12)
 
     // // TEMPORARY: start only in zone 42 for now
     // zoneIndex := 42
@@ -134,11 +141,11 @@ func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
     lickquidator := entity.NewLickquidator(zoneID, x, y)
     wm.Zones[42].AddEntity(lickquidator)
 
-    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.2,
-        &action.TargetSpec{
-            TargetType: "gotchi",
-            TargetCriterion: "nearest",
-        }))
+    // lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.2,
+    //     &action.TargetSpec{
+    //         TargetType: "gotchi",
+    //         TargetCriterion: "nearest",
+    //     }))
     lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.8,
         &action.TargetSpec{
             TargetType: "altar",
@@ -153,12 +160,12 @@ func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int,
     wm.Zones[42].AddEntity(newGotchi)
 
     // ACTIONS
-    newGotchi.AddActionToPlan(
-        resourceaction.NewForageAction(newGotchi, nil, 0.3, 
-            &action.TargetSpec{
-                TargetType: "fomoberrybush",
-                TargetCriterion: "nearest",
-            }))
+    // newGotchi.AddActionToPlan(
+    //     resourceaction.NewForageAction(newGotchi, nil, 0.3, 
+    //         &action.TargetSpec{
+    //             TargetType: "fomoberrybush",
+    //             TargetCriterion: "nearest",
+    //         }))
     newGotchi.AddActionToPlan(
         resourceaction.NewChopAction(newGotchi, nil, 0.3, 
             &action.TargetSpec{
@@ -172,19 +179,32 @@ func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int,
                 TargetCriterion: "nearest",
             }))
     newGotchi.AddActionToPlan(
-        action.NewSellAction(newGotchi, nil, 0.5, 
+        buildingaction.NewMaintainAction(newGotchi, nil, 0.6,
             &action.TargetSpec{
-                TargetType: "shop",
+                TargetType: "altar",
                 TargetCriterion: "nearest",
             }))
     newGotchi.AddActionToPlan(
-        action.NewAttackAction(newGotchi, nil, 0.3, 
+        buildingaction.NewRebuildAction(newGotchi, nil, 0.6,
             &action.TargetSpec{
-                TargetType: "lickquidator",
+                TargetType: "altar",
                 TargetCriterion: "nearest",
             }))
-    newGotchi.AddActionToPlan(
-        action.NewRoamAction(newGotchi, nil, 0.1, nil))
+    
+    // newGotchi.AddActionToPlan(
+    //     action.NewSellAction(newGotchi, nil, 0.5, 
+    //         &action.TargetSpec{
+    //             TargetType: "shop",
+    //             TargetCriterion: "nearest",
+    //         }))
+    // newGotchi.AddActionToPlan(
+    //     action.NewAttackAction(newGotchi, nil, 0.3, 
+    //         &action.TargetSpec{
+    //             TargetType: "lickquidator",
+    //             TargetCriterion: "nearest",
+    //         }))
+    // newGotchi.AddActionToPlan(
+    //     action.NewRoamAction(newGotchi, nil, 0.1, nil))
 }
 
 // generateBerryBushes generates 100 unique berry bushes in a 100x100 area within the specified zone

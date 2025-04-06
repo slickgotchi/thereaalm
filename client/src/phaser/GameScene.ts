@@ -9,6 +9,8 @@ import { GotchiEntity } from "./entities/GotchiEntity";
 import { NavigationGrid } from "./navigation/NavigationGrid";
 import { SelectionManager } from "./SelectionManager";
 import { EmoticonEmitter } from "./emoticons/EmoticonEmitter";
+import { LickquidatorEntity } from "./entities/LickquidatorEntity";
+import { VFXManager } from "./VFXManager";
 
 
 
@@ -33,6 +35,7 @@ export class GameScene extends Phaser.Scene {
 
     // private selectedEntity: BaseEntity | null = null;
     selectionManager!: SelectionManager;
+    vfxManager!: VFXManager;
 
     constructor() {
         super("GameScene");
@@ -58,6 +61,7 @@ export class GameScene extends Phaser.Scene {
         );
 
         EmoticonEmitter.preload(this);
+        VFXManager.preload(this);
 
         this.load.spritesheet(
             "static_entities",
@@ -78,6 +82,10 @@ export class GameScene extends Phaser.Scene {
         this.load.image("alphaslate_boulders", "assets/images/alphaslate_boulders.png");
     }
 
+    public getVFXManager(): VFXManager {
+        return this.vfxManager;
+    }
+
     async create() {
         // create tilemap
         this.tileMap.create();
@@ -94,6 +102,8 @@ export class GameScene extends Phaser.Scene {
         // Create and draw the world map
         this.worldMap = new WorldMap(this);
         const numZones = await this.worldMap.draw();
+
+        this.vfxManager = new VFXManager(this);
 
         // create loading gtochi animation
         this.anims.create({
@@ -161,18 +171,24 @@ export class GameScene extends Phaser.Scene {
     }
 
     private addOrUpdateEntities(zoneId: number, entitySnapshots: EntitySnapshot[]) {
-        // get all entities in current zone from entityMap to start
-        // the list of entities to delete
-        const deleteEntityIds = new Set(
-            Array.from(this.entityMap.entries())
-                .filter(([_, entity]) => entity.zoneId === zoneId)
-                .map(([id, _]) => id)
-        );
+        // Get all entities in the current zone from entityMap to start
+        // The list of entities to delete
+        const deleteEntityIds = new Set<string>();
+
+        // Iterate over entityMap entries to find entities in the given zone
+        for (const [id, entity] of this.entityMap.entries()) {
+            // Check if the entity's zoneId matches the given zoneId
+            if (Number(entity.zoneId) === zoneId) {
+                deleteEntityIds.add(id);
+            } else {
+                console.log(`Entity ID ${id} does NOT match zoneId ${zoneId} (entity.zoneId: ${entity.zoneId})`);
+            }
+        }
 
         // if entity is in entitySnapshots, remove it from deletion list
         entitySnapshots.forEach((entity) => deleteEntityIds.delete(entity.id));
 
-        // delete remaining ids as they are no longer in the zone
+        // DESTROY ENTITIES remaining ids as they are no longer in the zone
         deleteEntityIds.forEach((id) => {
             const baseEntity = this.entityMap.get(id);
             baseEntity?.destroy();

@@ -2,6 +2,7 @@ package entity
 
 import (
 	// "log"
+	"log"
 	"thereaalm/action"
 	"thereaalm/stats"
 	"thereaalm/types"
@@ -26,6 +27,7 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 	newStats.SetStat(stats.Ecto, 50)
 	newStats.SetStat(stats.Spark, 50)
 	newStats.SetStat(stats.Pulse, 50)
+	newStats.SetStat(stats.MaxPulse, 50)
 
     return &Lickquidator{
         Entity: Entity{
@@ -59,4 +61,18 @@ func (l *Lickquidator) GetSnapshotData() interface{} {
 func (l *Lickquidator) Update(dt_s float64) {
 	// process actions
 	l.ProcessActions(dt_s)
+
+	// Check if the Lickquidator's Pulse is zero or less
+    if l.Stats.GetStat(stats.Pulse) <= 0 {
+        log.Printf("Lickquidator %s has died (Pulse <= 0), removing from zone", l.GetUUID().String())
+        // Remove the Lickquidator from its zone
+        zone := l.GetZone()
+        if zone != nil {
+            zone.RemoveEntity(l)
+        }
+        // Clean up the ActionPlan to prevent memory leaks
+        l.ActionPlan.Actions = nil
+        l.ActionPlan.CurrentAction = nil
+        return
+    }
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/action"
-	"thereaalm/jobs"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -27,7 +26,9 @@ type MaintainAction struct {
 	TotalPulseRestored int
 }
 
-func NewMaintainAction(actor, target types.IEntity, weighting float64) *MaintainAction {
+func NewMaintainAction(actor, target types.IEntity, weighting float64,
+	fallbackTargetSpec *action.TargetSpec) *MaintainAction {
+
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
 	if actorStats == nil || actorItemHolder == nil {
@@ -42,15 +43,11 @@ func NewMaintainAction(actor, target types.IEntity, weighting float64) *Maintain
 		return nil
 	}
 
-	// find spark delta from farmer peak and clamp it between 0 and 500
-	deltaToPeakEcto := utils.Abs(actorEcto - jobs.Engineer.Peak.Ecto)
-	deltaToPeakEcto = utils.Clamp(deltaToPeakEcto, 0, 500)
-
 	// vary pulse restored per sec between 5 and 20
-	alpha := float64(deltaToPeakEcto) / 500.0
+	alpha := actorEcto / 1000
 	pulseRestoredPerSecond := int(5 + 15 * alpha)
 
-	return &MaintainAction{
+	a := &MaintainAction{
 		Action: action.Action{
 			Type: "maintain",
 			Weighting: weighting,
@@ -65,21 +62,17 @@ func NewMaintainAction(actor, target types.IEntity, weighting float64) *Maintain
 	
 		TotalPulseRestored: 0,
 	}
+
+	a.SetFallbackTargetSpec(fallbackTargetSpec)
+
+	return a
 }
 
-func (a *MaintainAction) CanBeExecuted() bool {
-	maintainable, _ := a.Target.(types.IMaintainable); 
-	itemHolder, _ := a.Actor.(types.IInventory);
-
-	// actor and target of correct types?
-	if itemHolder == nil || maintainable == nil {
-		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
+func (a *MaintainAction) IsValidTarget(potentialTarget types.IEntity) bool {
+	maintainable, _ := potentialTarget.(types.IMaintainable)
+	if maintainable == nil {
+		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
-	}
-
-	// can move to target?
-	if !a.CanMoveToTargetEntity(a.Target) {
-		return false
 	}
 
 	// entity is ready to be maintained?
@@ -87,13 +80,28 @@ func (a *MaintainAction) CanBeExecuted() bool {
 		return false
 	}
 
-	// actor has 1 kekwood and 1 alphaslate?
-	if itemHolder.GetItemQuantity("kekwood") <= 0 || 
-	itemHolder.GetItemQuantity("alphaslate") <= 0 {
+	// can move to target?
+	if !a.CanMoveToTargetEntity(potentialTarget) {
 		return false
 	}
 
-	// ok can execute
+	return true
+}
+
+func (a *MaintainAction) IsValidActor(potentialActor types.IEntity) bool {
+	itemHolder, _ := potentialActor.(types.IInventory)
+	if itemHolder == nil {
+		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
+		return false	// action is complete we have invalid actor or target
+	}
+
+	// actor has 1 kekwood and 1 alphaslate?
+	if itemHolder.GetItemQuantity("kekwood") <= 0 || 
+		itemHolder.GetItemQuantity("alphaslate") <= 0 {
+
+		return false
+	}
+
 	return true
 }
 

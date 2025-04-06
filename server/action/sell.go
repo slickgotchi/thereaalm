@@ -5,6 +5,7 @@ import (
 	"log"
 	"thereaalm/stats"
 	"thereaalm/types"
+	"thereaalm/utils"
 	"time"
 )
 
@@ -47,28 +48,32 @@ func NewSellAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *SellAction) CanBeExecuted() bool {
-	// check current target validity and/or set a fallback if neccessary
-	if !a.EnsureValidTarget() {
-		return false
-	}
-	
-	// check actor and target are correct type
-	respondingItemHolder, _ := a.Target.(types.IInventory) 
-	initiatingItemHolder, _ := a.Actor.(types.IInventory)
-
-	// correct types?
-	if respondingItemHolder == nil || initiatingItemHolder == nil {
-		log.Printf("Invalid item holders passed to SellAction Update()")
-		return false
+func (a *SellAction) IsValidTarget(potentialTarget types.IEntity) bool {
+	respondingItemHolder, _ := potentialTarget.(types.IInventory) 
+	if respondingItemHolder == nil {
+		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
+		return false	// action is complete we have invalid actor or target
 	}
 
 	// can move to target?
-	if !a.CanMoveToTargetEntity(a.Target) {
+	if !a.CanMoveToTargetEntity(potentialTarget) {
 		return false
 	}
 
-	// has items?
+	return true
+}
+
+func (a *SellAction) IsValidActor(potentialActor types.IEntity) bool {
+	// check actor and target are correct type
+	initiatingItemHolder, _ := potentialActor.(types.IInventory)
+
+	// correct types?
+	if initiatingItemHolder == nil {
+		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
+		return false	// action is complete we have invalid actor or target
+	}
+
+	// has the initiator got any items?
 	if len(initiatingItemHolder.GetItemsExceptGold()) <= 0 {
 		return false
 	}

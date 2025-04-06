@@ -7,78 +7,78 @@ interface Props {
     trackingSprite: Phaser.GameObjects.Sprite;
 }
 
-
+// HP bars are scaled on an assumed max 1000 pulse
 export class HPBar {
     private scene: Phaser.Scene;
     private maxHP: number;
     private currentHP: number;
-    private width: number = 42;  // Total width of the background
-    private height: number = 6;  // Total height of the background
-    private fillWidth: number = 40;  // Width of the fill bar when full
-    private fillHeight: number = 4;  // Height of the fill bar
+    private maxFillWidth: number = 32;
+    private fillHeight: number = 4;
+    private padding: number = 1;
     private background: Phaser.GameObjects.Rectangle;
     private fill: Phaser.GameObjects.Rectangle;
     private trackingSprite: Phaser.GameObjects.Sprite;
+    private isDestroyed: boolean = false;
 
     constructor(props: Props) {
-        const {scene, x, y, currentHP, maxHP, trackingSprite} = props;
+        const { scene, x, y, currentHP, maxHP, trackingSprite } = props;
 
-        this.trackingSprite = trackingSprite;
         this.scene = scene;
+        this.trackingSprite = trackingSprite;
         this.maxHP = maxHP;
         this.currentHP = currentHP;
 
-        // Create the black background rectangle (42x8)
+        // Create the background
         this.background = this.scene.add.rectangle(
             x,
             y,
-            this.width,  // 42 pixels wide
-            this.height, // 8 pixels high
-            0x000000     // Black color
-        );
-        this.background.setOrigin(0, 0);
+            this.maxFillWidth + 2 * this.padding,
+            this.fillHeight + 2 * this.padding,
+            0x000000
+        ).setOrigin(0, 0).setAlpha(0.3).setDepth(5000);
 
-        // Create the green fill bar (40x6 when full, scaled by HP ratio)
+        // Create the fill bar
         this.fill = this.scene.add.rectangle(
-            x,
-            y,
-            this.fillWidth * (this.currentHP / this.maxHP), // Scale width based on HP ratio
-            this.fillHeight,                         // 6 pixels high
-            0x00ff00                                 // Green color
-        );
-        this.fill.setOrigin(0, 0);
+            x + this.padding,
+            y + this.padding,
+            this.maxFillWidth,
+            this.fillHeight,
+            0xf5555d
+        ).setOrigin(0, 0).setDepth(5001);
 
-        // Ensure the fill bar is on top of the background
-        this.background.setDepth(5000);
-        this.fill.setDepth(5001);
-
-        this.setPosition(x,y);
+        this.setPosition(x, y);
+        this.updateHP(currentHP);
     }
 
-    // Update the HP bar when HP changes
     public updateHP(currentHP: number): void {
-        if (!this.trackingSprite) {
+        if (this.isDestroyed || !this.trackingSprite) {
             this.destroy();
             return;
         }
 
-        this.currentHP = Math.max(0, Math.min(currentHP, this.maxHP)); // Clamp between 0 and maxHP
-        this.fill.setScale(this.currentHP / this.maxHP, 1); // Adjust width of the fill bar
-
-        this.setPosition(this.trackingSprite.x, this.trackingSprite.y);
+        this.currentHP = Phaser.Math.Clamp(currentHP, 0, this.maxHP);
+        this.fill.setScale(this.currentHP / this.maxHP, 1);
     }
 
-    // Move the HP bar to a new position (e.g., follow the character)
     public setPosition(x: number, y: number): void {
-        const offsetX = (64-this.width) / 2;
+        if (this.isDestroyed) return;
 
-        this.background.setPosition(x + offsetX, y+1);
-        this.fill.setPosition(x + offsetX + 1, y+1+1);
+        const offsetX = 32 - (this.maxFillWidth / 2 + this.padding);
+        this.background.setPosition(x + offsetX, y);
+        this.fill.setPosition(x + offsetX + this.padding, y + this.padding);
     }
 
-    // Destroy the HP bar when no longer needed
     public destroy(): void {
-        this.background.destroy();
-        this.fill.destroy();
+        if (this.isDestroyed) return;
+
+        this.isDestroyed = true;
+
+        this.background?.destroy();
+        this.fill?.destroy();
+
+        this.background = null!;
+        this.fill = null!;
+        this.trackingSprite = null!;
+        this.scene = null!;
     }
 }

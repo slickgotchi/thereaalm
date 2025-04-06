@@ -19,6 +19,7 @@ type Altar struct {
 func NewAltar(zoneId, x, y int) *Altar {
 	newStats := stats.NewStats()
 	newStats.SetStat(stats.Pulse, 1000)
+	newStats.SetStat(stats.MaxPulse, 1000)
 
 	return &Altar{
         Entity: Entity{
@@ -38,10 +39,12 @@ func (e *Altar) GetSnapshotData() interface{} {
 		Name string `json:"name"`
 		Description string `json:"description"`
 		Stats interface{} `json:"stats"`
+		State entitystate.EntityState `json:"state"`
 	}{
 		Name: "Gotchi Altar",
 		Description: "While active, imbues nearby gotchis with action duration bonuses",
 		Stats: e.StatMap,
+		State: e.State,
 	}
 }
 

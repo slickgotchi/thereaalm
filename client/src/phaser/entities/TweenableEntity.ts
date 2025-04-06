@@ -58,7 +58,7 @@ export class TweenableEntity extends BaseEntity {
         } else {
             this.direction = this.targetDirection;
         }
-        this.updateDirection();
+        // this.updateDirection();
     }
 
     snapshotUpdate(snapshot: EntitySnapshot) {
@@ -80,10 +80,10 @@ export class TweenableEntity extends BaseEntity {
         }
     }
 
-    protected updateDirection() {
-        // Default does nothing; subclasses can override
-        // NOTE: GotchiEntity overrides this
-    }
+    // protected updateDirection() {
+    //     // Default does nothing; subclasses can override
+    //     // NOTE: GotchiEntity overrides this
+    // }
 
     // Add destroy method to clean up
     destroy(): void {

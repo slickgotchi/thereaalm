@@ -2,6 +2,7 @@
 package types
 
 import (
+	"log"
 	"math/rand"
 	"thereaalm/utils"
 	"time"
@@ -44,6 +45,7 @@ func (z *Zone) RemoveEntity(e IEntity) {
             // Remove from entity slice
             z.Entities = append(z.Entities[:i], z.Entities[i+1:]...)
             z.SpatialMap.Remove(e) // Remove from spatial hash
+            log.Println("Removed entity from zone")
             return
         }
     }

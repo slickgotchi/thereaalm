@@ -3,6 +3,9 @@ export class EmoticonEmitter {
     private x: number;
     private y: number;
     private isEmitting: boolean = false;
+    private isDestroyed: boolean = false;
+    private activeSprites: Phaser.GameObjects.Sprite[] = [];
+    private activeTimers: Phaser.Time.TimerEvent[] = [];
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         this.scene = scene;
@@ -14,12 +17,12 @@ export class EmoticonEmitter {
         scene.load.spritesheet(
             "emoticons",
             "assets/emoticons/emoticons_48px.png",
-            {frameWidth: 48, frameHeight: 48, margin: 2, spacing: 4}
+            { frameWidth: 48, frameHeight: 48, margin: 2, spacing: 4 }
         );
         scene.load.spritesheet(
             "actionicons",
             "assets/spritesheets/actionicons_spritesheet.png",
-            {frameWidth: 48, frameHeight: 48}
+            { frameWidth: 48, frameHeight: 48 }
         );
     }
 
@@ -40,18 +43,20 @@ export class EmoticonEmitter {
             default: {
                 console.log(`No emoticon for '${emoticonStr}'`);
                 return { texture: 'icons', frame: 'default' };
-            } 
+            }
         }
     }
 
     public emit(emoticon: string, duration_ms: number): void {
-        if (this.isEmitting) return;
+        if (this.isEmitting || this.isDestroyed) return;
         this.isEmitting = true;
 
         const { texture, frame } = this.getTextureAndFrame(emoticon);
         const startTime = this.scene.time.now;
 
         const emitAction = () => {
+            if (this.isDestroyed) return;
+
             if (duration_ms >= 0 && this.scene.time.now - startTime > duration_ms) {
                 this.isEmitting = false;
                 return;
@@ -62,13 +67,17 @@ export class EmoticonEmitter {
 
             const sprite = this.scene.add.sprite(this.x + offsetX * 0.5, this.y, texture, frame);
             sprite.setAlpha(1).setDepth(10000).setOrigin(0.5, 0.5).setScale(0.5);
+            this.activeSprites.push(sprite);
 
             this.scene.tweens.add({
                 targets: sprite,
                 y: sprite.y + offsetY,
                 duration: 1000,
                 ease: 'Back.easeOut',
-                onComplete: () => sprite.destroy()
+                onComplete: () => {
+                    sprite.destroy();
+                    this.activeSprites = this.activeSprites.filter(s => s !== sprite);
+                }
             });
 
             this.scene.tweens.add({
@@ -85,7 +94,8 @@ export class EmoticonEmitter {
             });
 
             if (duration_ms < 0 || this.scene.time.now - startTime <= duration_ms) {
-                this.scene.time.delayedCall(300, emitAction);
+                const timer = this.scene.time.delayedCall(300, emitAction);
+                this.activeTimers.push(timer);
             } else {
                 this.isEmitting = false;
             }
@@ -94,12 +104,26 @@ export class EmoticonEmitter {
         emitAction();
     }
 
-    public setPosition(x: number, y: number) {
+    public setPosition(x: number, y: number): void {
         this.x = x;
         this.y = y;
     }
 
-    public destroy() {
-        
+    public destroy(): void {
+        if (this.isDestroyed) return;
+
+        this.isDestroyed = true;
+        this.isEmitting = false;
+
+        // Destroy all active sprites
+        this.activeSprites.forEach(sprite => sprite.destroy());
+        this.activeSprites = [];
+
+        // Remove all active timers
+        this.activeTimers.forEach(timer => timer.remove(false));
+        this.activeTimers = [];
+
+        // Optional: remove scene reference to aid GC
+        this.scene = null!;
     }
 }

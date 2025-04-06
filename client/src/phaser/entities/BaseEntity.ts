@@ -25,23 +25,25 @@ interface Props {
 export class BaseEntity {
     id: string;
     zoneId: number;
-    sprite: Phaser.GameObjects.Sprite;
     scene: Phaser.Scene;
     tileX: number;
     tileY: number;
     x: number;
     y: number;
     type: string;
-    outlineEffect: OutlineEffect;
     data: any;
     private isSelected: boolean = false;
+
+    // must be destroyed on death
+    sprite: Phaser.GameObjects.Sprite;
+    outlineEffect: OutlineEffect;
 
     constructor(props: Props) {
         const {scene, id, zoneId, tileX, tileY, type, texture, data} = props;
         
         this.scene = scene;
         this.id = id;
-        this.zoneId = zoneId;
+        this.zoneId = Number(zoneId);
         this.tileX = tileX;
         this.tileY = tileY;
         this.x = tileX * TILE_PIXELS;
@@ -75,12 +77,11 @@ export class BaseEntity {
     }
 
     destroy() {
-        this.sprite.destroy();
-        // console.log(`[${this.id}] Entity destroyed`);
+        this.sprite?.destroy();
+        this.outlineEffect?.destroy();
     }
 
     setSelected(selected: boolean) {
-        // console.log(`[${this.id}] Setting selected to ${selected}`);
         this.isSelected = selected;
         if (this.isSelected) {
             this.outlineEffect.showOutline();

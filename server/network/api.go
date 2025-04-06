@@ -20,6 +20,7 @@ type ZoneSnapshot struct {
 // GotchiSnapshot captures the position and ID of a Gotchi in a zone.
 type EntitySnapshot struct {
 	ID     uuid.UUID `json:"id"`
+	ZoneID int `json:"zoneId"`
 	Type 	 string `json:"type"`
 	X        int    `json:"tileX"`
 	Y        int    `json:"tileY"`
@@ -123,6 +124,7 @@ func handleZoneSnapshot(worldManager *world.WorldManager) http.HandlerFunc {
 			x, y := entity.GetPosition()
 			snapshot.EntitySnapshots = append(snapshot.EntitySnapshots, EntitySnapshot{
 				ID:     entity.GetUUID(),
+				ZoneID: zoneID,
 				Type: 	  entity.GetType(),
 				X:        x,
 				Y:        y,

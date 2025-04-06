@@ -3,10 +3,8 @@ package action
 import (
 	"log"
 	"math/rand"
-	"thereaalm/jobs"
 	"thereaalm/stats"
 	"thereaalm/types"
-	"thereaalm/utils"
 	"time"
 )
 
@@ -63,8 +61,8 @@ func (r *RoamAction) Start() {
 
 	// find delta from peak explorer ecto
 	actorEcto := actorStats.GetStat(stats.Ecto)
-	deltaToPeakEcto := utils.Abs(actorEcto - jobs.Explorer.Peak.Ecto)
-	alpha := 1.0 - float64(deltaToPeakEcto)/500.0
+
+	alpha := 1.0 - actorEcto / 1000
 	explorationRadius := 2 + int(alpha * 8.0)
 
 	// Use the zone's FindNearbyEmptyCell with radius 3

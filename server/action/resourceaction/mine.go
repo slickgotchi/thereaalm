@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/action"
-	"thereaalm/jobs"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -35,12 +34,8 @@ func NewMineAction(actor, target types.IEntity, weighting float64,
 		return nil
 	}
 
-	// find spark delta from farmer peak and clamp it between 0 and 500
-	deltaToPeakSpark := utils.Abs(actorSpark - jobs.Farmer.Peak.Spark)
-	deltaToPeakSpark = utils.Clamp(deltaToPeakSpark, 0, 500)
-
 	// vary duration between 5 - 30 seconds
-	alpha := float64(deltaToPeakSpark) / 500.0
+	alpha := actorSpark / 1000
 	actionDuration_s := int(5 + 25 * alpha)
 
 	a := &MineAction{
@@ -58,29 +53,34 @@ func NewMineAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *MineAction) CanBeExecuted() bool {
-	// check current target validity and/or set a fallback if neccessary
-	if !a.EnsureValidTarget() {
-		return false
-	}
+func (a *MineAction) IsValidTarget(potentialTarget types.IEntity) bool {
+	mineable, _ := potentialTarget.(types.IMineable)
 
-	mineable, _ := a.Target.(types.IMineable); 
-	itemHolder, _ := a.Actor.(types.IInventory);
-
-	// actor and target of correct types?
-	if itemHolder == nil || mineable == nil {
-		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
+	if mineable == nil {
+		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
 	}
 
 	// can move to target?
-	if !a.CanMoveToTargetEntity(a.Target) {
+	if !a.CanMoveToTargetEntity(potentialTarget) {
 		return false
 	}
 
 	// resource entity is ready for collecting?
 	if !mineable.CanBeMined() {
 		return false
+	}
+
+	return true
+}
+
+func (a *MineAction) IsValidActor(potentialActor types.IEntity) bool {
+	itemHolder, _ := potentialActor.(types.IInventory);
+
+	// actor and target of correct types?
+	if itemHolder == nil {
+		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
+		return false	// action is complete we have invalid actor or target
 	}
 
 	// ok can execute

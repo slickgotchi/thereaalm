@@ -3,7 +3,6 @@ package action
 import (
 	"fmt"
 	"log"
-	"thereaalm/jobs"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -32,29 +31,34 @@ func NewAttackAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *AttackAction) CanBeExecuted() bool {
-	// check current target validity and/or set a fallback if neccessary
-	if !a.EnsureValidTarget() {
-		return false
-	}
+func (a *AttackAction) IsValidTarget(potentialTarget types.IEntity) bool {
+	targetStats, _ := potentialTarget.(stats.IStats)
 
-	targetStats, _ := a.Target.(stats.IStats)
-	attackerStats, _ := a.Actor.(stats.IStats)
-
-	// do both the target and attacker have stats?
-	if targetStats == nil || attackerStats == nil {
-		log.Printf("Invalid IStats for actor or target in AttackAction CanBeExecuted()")
-		return false // can not execute, invalid actor or target
+	if targetStats == nil {
+		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
+		return false	// action is complete we have invalid actor or target
 	}
 
 	// can we move to the target?
-	if !a.CanMoveToTargetEntity(a.Target) {
+	if !a.CanMoveToTargetEntity(potentialTarget) {
 		return false
 	}
 
 	// is target still alive?
 	if targetStats.GetStat(stats.Pulse) <= 0 {
 		return false
+	}
+
+	return true
+}
+
+func (a *AttackAction) IsValidActor(potentialActor types.IEntity) bool {
+	attackerStats, _ := potentialActor.(stats.IStats)
+
+	// do both the target and attacker have stats?
+	if attackerStats == nil {
+		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
+		return false	// action is complete we have invalid actor or target
 	}
 	
 	// ok we can execute
@@ -107,17 +111,12 @@ func (a *AttackAction) Update(dt_s float64) bool {
 
 		defenderPulse := defenderStats.GetStat(stats.Pulse)
 		if defenderPulse <= 0 {
-			log.Printf("Defender has no pulse to defend with")
+			// log.Printf("Defender has no pulse to defend with")
 			return true
 		}
 
-		// use mercenary peak spark to determine attack power
-		// clamp between 0 and 500
-		deltaSpark := utils.Abs(attackerSpark - jobs.Mercenary.Peak.Spark)
-		deltaSpark = utils.Clamp(deltaSpark, 0, 500)
-
 		// attacks should be between 1 and 10 attack power for simplicity
-		alpha := float64(500 - deltaSpark) / 500
+		alpha := attackerSpark / 1000
 		finalPulseReduction := int(alpha * 10.0)
 		finalPulseReduction = utils.Clamp(finalPulseReduction, 1, 10)
 

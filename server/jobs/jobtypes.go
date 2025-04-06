@@ -1,9 +1,9 @@
 package jobs
 
 type ESPJobPeaks struct {
-	Ecto  int
-	Spark int
-	Pulse int
+	Ecto  float64
+	Spark float64
+	Pulse float64
 }
 
 type Job struct {
@@ -11,6 +11,130 @@ type Job struct {
 	Peak ESPJobPeaks
 }
 
+var (
+	Mercenary = Job{
+		Type: "mercenary",
+		Peak: ESPJobPeaks{
+			Ecto:  0.00, // Moderate luck for survival
+			Spark: 1.00, // High strength for combat
+			Pulse: 0.50, // Moderate endurance for battles
+		},
+	}
+	Warden = Job{
+		Type: "warden",
+		Peak: ESPJobPeaks{
+			Ecto:  0.00, // Moderate focus for vigilance
+			Spark: 1.00, // High strength to defend
+			Pulse: 0.75, // High endurance for long watches
+		},
+	}
+	Thief = Job{
+		Type: "thief",
+		Peak: ESPJobPeaks{
+			Ecto:  0.75, // High luck to avoid capture
+			Spark: 1.00, // Moderate strength for stealth
+			Pulse: 0.00, // Low endurance for quick getaways
+		},
+	}
+	Beastmaster = Job{
+		Type: "beastmaster",
+		Peak: ESPJobPeaks{
+			Ecto:  0, // Moderate connection with animals
+			Spark: 1, // High strength to handle beasts
+			Pulse: 0.25, // Moderate endurance for trekking
+		},
+	}
+	Medic = Job{
+		Type: "medic",
+		Peak: ESPJobPeaks{
+			Ecto:  1, // High focus for healing
+			Spark: 0, // Moderate strength for supplies
+			Pulse: 0.5, // Moderate endurance for shifts
+		},
+	}
+	Merchant = Job{
+		Type: "merchant",
+		Peak: ESPJobPeaks{
+			Ecto:  1, // High connection for trade
+			Spark: 0.75, // Moderate drive for negotiation
+			Pulse: 0, // Low endurance for travel
+		},
+	}
+	Crafter = Job{
+		Type: "crafter",
+		Peak: ESPJobPeaks{
+			Ecto:  0.5, // High focus for crafting
+			Spark: 0, // High strength for crafting
+			Pulse: 1, // Moderate endurance
+		},
+	}
+	Farmer = Job{
+		Type: "farmer",
+		Peak: ESPJobPeaks{
+			Ecto:  0, // Low luck for harvests
+			Spark: 0.5, // Moderate strength for labor
+			Pulse: 1, // High endurance for farming
+		},
+	}
+	MinerJack = Job{
+		Type: "minerjack",
+		Peak: ESPJobPeaks{
+			Ecto:  0, // Low luck for ore
+			Spark: 0.75, // High strength for mining
+			Pulse: 1, // High endurance for slow mining
+		},
+	}
+	Builder = Job{
+		Type: "builder",
+		Peak: ESPJobPeaks{
+			Ecto:  0.5, // Low focus for building
+			Spark: 1, // High strength for construction
+			Pulse: 0, // High endurance for projects
+		},
+	}
+	Alchemist = Job{
+		Type: "alchemist",
+		Peak: ESPJobPeaks{
+			Ecto:  1, // High focus for experiments
+			Spark: 0.5, // Moderate strength for gathering
+			Pulse: 0, // Moderate endurance
+		},
+	}
+	Explorer = Job{
+		Type: "explorer",
+		Peak: ESPJobPeaks{
+			Ecto:  0.75, // High luck for discoveries
+			Spark: 0, // Moderate strength for travel
+			Pulse: 1, // High endurance for exploration
+		},
+	}
+	Scholar = Job{
+		Type: "scholar",
+		Peak: ESPJobPeaks{
+			Ecto:  1, // High focus for study
+			Spark: 0.25, // Low strength
+			Pulse: 0, // Moderate endurance for study
+		},
+	}
+	Engineer = Job{
+		Type: "engineer",
+		Peak: ESPJobPeaks{
+			Ecto:  0, // High focus for engineering
+			Spark: 0.25, // Moderate strength for building machines
+			Pulse: 1, // Moderate endurance
+		},
+	}
+	Diplomat = Job{
+		Type: "diplomat",
+		Peak: ESPJobPeaks{
+			Ecto:  1, // High connection for diplomacy
+			Spark: 0, // Low drive for negotiation
+			Pulse: 0.25, // Moderate endurance
+		},
+	}
+)
+
+/*
 var (
 	Mercenary = Job{
 		Type: "mercenary",
@@ -133,3 +257,4 @@ var (
 		},
 	}
 )
+	*/

@@ -9,6 +9,7 @@ const (
     Ecto = "ecto"
     Spark = "spark"
     Pulse = "pulse"
+    MaxPulse = "maxpulse"
 	// HpCurrent = "hp_current"
 	// HpMax     = "hp_max"
 	// Attack    = "attack"

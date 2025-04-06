@@ -51,6 +51,7 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 	newStats.SetStat(stats.Ecto, 500)
 	newStats.SetStat(stats.Spark, 500)
 	newStats.SetStat(stats.Pulse, 500)
+	newStats.SetStat(stats.MaxPulse, 1000)
 
 	// make new gotchi
 	return &Gotchi{
