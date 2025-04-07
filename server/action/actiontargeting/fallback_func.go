@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 	"thereaalm/types"
 	"thereaalm/utils"
 )
@@ -69,8 +69,8 @@ func fallbackLowestPulse(a interfaces.IAction) interfaces.IEntity {
 	minPulse := math.Inf(1)
 
 	for _, candidate := range valid {
-		if statsEntity, ok := candidate.(stats.IStats); ok {
-			pulse := float64(statsEntity.GetStat(stats.Pulse))
+		if statsEntity, ok := candidate.(interfaces.IStats); ok {
+			pulse := float64(statsEntity.GetStat(stattypes.Pulse))
 			if pulse < minPulse {
 				minPulse = pulse
 				lowest = candidate

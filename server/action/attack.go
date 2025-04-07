@@ -5,7 +5,7 @@ import (
 	"log"
 	"thereaalm/entity/entitystate"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 	"thereaalm/types"
 	"thereaalm/utils"
 	"time"
@@ -38,7 +38,7 @@ func (a *AttackAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 		return false
 	}
 
-	targetStats, _ := potentialTarget.(stats.IStats)
+	targetStats, _ := potentialTarget.(interfaces.IStats)
 	if targetStats == nil {
 		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
@@ -50,7 +50,7 @@ func (a *AttackAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 	}
 
 	// is target still alive?
-	if targetStats.GetStat(stats.Pulse) <= 0 {
+	if targetStats.GetStat(stattypes.Pulse) <= 0 {
 		return false
 	}
 
@@ -69,7 +69,7 @@ func (a *AttackAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 }
 
 func (a *AttackAction) IsValidActor(potentialActor interfaces.IEntity) bool {
-	attackerStats, _ := potentialActor.(stats.IStats)
+	attackerStats, _ := potentialActor.(interfaces.IStats)
 
 	// do both the target and attacker have stats?
 	if attackerStats == nil {
@@ -84,8 +84,8 @@ func (a *AttackAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 
 func (a *AttackAction) Start() {
 	// check actor and target are of correct type
-	defenderStats, _ := a.Target.(stats.IStats)
-	attackerStats, _ := a.Actor.(stats.IStats)
+	defenderStats, _ := a.Target.(interfaces.IStats)
+	attackerStats, _ := a.Actor.(interfaces.IStats)
 	if defenderStats == nil || attackerStats == nil {
 		log.Printf("Invalid IStats for actor or target in AttackAction Update()")
 		return 	
@@ -98,8 +98,8 @@ func (a *AttackAction) Start() {
 
 func (a *AttackAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
-	defenderStats, _ := a.Target.(stats.IStats)
-	attackerStats, _ := a.Actor.(stats.IStats)
+	defenderStats, _ := a.Target.(interfaces.IStats)
+	attackerStats, _ := a.Actor.(interfaces.IStats)
 	if defenderStats == nil || attackerStats == nil {
 		log.Printf("Invalid IStats for actor or target in AttackAction Update()")
 		return true	// action is complete we have invalid actor or target
@@ -119,13 +119,13 @@ func (a *AttackAction) Update(dt_s float64) bool {
 		// - spark = attacker power
 		// - pulse = defender "HP"
 
-		attackerSpark := attackerStats.GetStat(stats.Spark)
+		attackerSpark := attackerStats.GetStat(stattypes.Spark)
 		if attackerSpark <= 0 {
 			log.Printf("Attacker has no spark to attack with")
 			return true
 		}
 
-		defenderPulse := defenderStats.GetStat(stats.Pulse)
+		defenderPulse := defenderStats.GetStat(stattypes.Pulse)
 		if defenderPulse <= 0 {
 			// log.Printf("Defender has no pulse to defend with")
 			return true
@@ -137,12 +137,12 @@ func (a *AttackAction) Update(dt_s float64) bool {
 		finalPulseReduction = utils.Clamp(finalPulseReduction, 1, 10)
 
 		// deal damage to defenders pulse
-		defenderStats.DeltaStat(stats.Pulse, -finalPulseReduction)
-		newDefenderPulse := defenderStats.GetStat(stats.Pulse)
+		defenderStats.DeltaStat(stattypes.Pulse, -finalPulseReduction)
+		newDefenderPulse := defenderStats.GetStat(stattypes.Pulse)
 
 		// if defender pulse goes to 0, finish the attack
 		if newDefenderPulse <= 0 {
-			defenderStats.SetStat(stats.Pulse, 0)
+			defenderStats.SetStat(stattypes.Pulse, 0)
 
 			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
 				entry := types.ActivityLogEntry{
@@ -156,8 +156,8 @@ func (a *AttackAction) Update(dt_s float64) bool {
 		}
 
 		// lets make each attack also reduce the attackers ecto by 1 each attack
-		attackerStats.DeltaStat(stats.Ecto, -1)
-		newAttackerEcto := attackerStats.GetStat(stats.Ecto)
+		attackerStats.DeltaStat(stattypes.Ecto, -1)
+		newAttackerEcto := attackerStats.GetStat(stattypes.Ecto)
 
 		if newAttackerEcto < 100 {
 			return true

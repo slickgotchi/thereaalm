@@ -14,7 +14,7 @@ import (
 	"thereaalm/entity"
 	"thereaalm/entity/resourceentity"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 	"thereaalm/types"
 	"thereaalm/web3"
 
@@ -109,11 +109,11 @@ func (wm *WorldManager) loadTestEntities() {
     // altar
     altar := entity.NewAltar(42, 19+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(altar)
-    altar.SetStat(stats.Pulse, 500)
+    altar.SetStat(stattypes.Pulse, 20)
 
     altarB := entity.NewAltar(42, 12+zoneX, 17+zoneY)
     wm.Zones[42].AddEntity(altarB)
-    altarB.SetStat(stats.Pulse, 500)
+    altarB.SetStat(stattypes.Pulse, 20)
 
     // // TEMPORARY: start only in zone 42 for now
     // zoneIndex := 42
@@ -141,16 +141,16 @@ func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
     lickquidator := entity.NewLickquidator(zoneID, x, y)
     wm.Zones[42].AddEntity(lickquidator)
 
-    // lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.2,
-    //     &action.TargetSpec{
-    //         TargetType: "gotchi",
-    //         TargetCriterion: "nearest",
-    //     }))
-    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.8,
+    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.2,
         &types.TargetSpec{
-            TargetType: "altar",
+            TargetType: "gotchi",
             TargetCriterion: "nearest",
         }))
+    // lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.8,
+    //     &types.TargetSpec{
+    //         TargetType: "altar",
+    //         TargetCriterion: "nearest",
+    //     }))
 }
 
 func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int, 
@@ -158,6 +158,7 @@ func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int,
 
     newGotchi := entity.NewGotchi(zoneID, x, y, subgraphData)
     wm.Zones[42].AddEntity(newGotchi)
+    newGotchi.SetStat(stattypes.Pulse, 20)
 
     // ACTIONS
     // newGotchi.AddActionToPlan(
@@ -178,12 +179,12 @@ func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int,
                 TargetType: "alphaslateboulders",
                 TargetCriterion: "nearest",
             }))
-    newGotchi.AddActionToPlan(
-        buildingaction.NewMaintainAction(newGotchi, nil, 0.6,
-            &types.TargetSpec{
-                TargetType: "altar",
-                TargetCriterion: "nearest",
-            }))
+    // newGotchi.AddActionToPlan(
+    //     buildingaction.NewMaintainAction(newGotchi, nil, 0.6,
+    //         &types.TargetSpec{
+    //             TargetType: "altar",
+    //             TargetCriterion: "nearest",
+    //         }))
     newGotchi.AddActionToPlan(
         buildingaction.NewRebuildAction(newGotchi, nil, 0.6,
             &types.TargetSpec{

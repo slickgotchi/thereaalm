@@ -5,8 +5,9 @@ import (
 	"log"
 	"strconv"
 	"thereaalm/action"
+	"thereaalm/entity/entitystate"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 	"thereaalm/types"
 	"thereaalm/web3"
 
@@ -17,19 +18,13 @@ type Gotchi struct {
     Entity
 	action.ActionPlan
 	types.Inventory
-	stats.Stats
+	Stats stattypes.Stats
 	GotchiId string
 	Name string
 	SubgraphData web3.SubgraphGotchiData
 	Personality []string
 	types.ActivityLog
-	ESP
-}
-
-type ESP struct {
-	Ecto int
-	Spark int
-	Pulse int
+	entitystate.State
 }
 
 func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
@@ -48,11 +43,11 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 	log.Print(brsMultiplier, int(400*brsMultiplier))
 
 	// add some stats
-	newStats := stats.NewStats()
-	newStats.SetStat(stats.Ecto, 500)
-	newStats.SetStat(stats.Spark, 500)
-	newStats.SetStat(stats.Pulse, 500)
-	newStats.SetStat(stats.MaxPulse, 1000)
+	newStats := stattypes.NewStats()
+	newStats.SetStat(stattypes.Ecto, 500)
+	newStats.SetStat(stattypes.Spark, 500)
+	newStats.SetStat(stattypes.Pulse, 500)
+	newStats.SetStat(stattypes.MaxPulse, 1000)
 
 	// make new gotchi
 	return &Gotchi{
@@ -71,7 +66,7 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 		Name: subgraphGotchiData.Name,
 		GotchiId: subgraphGotchiData.ID,
 		Personality: CreatePersonalityFromSubgraphData(subgraphGotchiData),
-		ESP: ESP{Ecto: 500, Spark: 500, Pulse: 500},
+		State: entitystate.Active,
     }
 }
 
@@ -86,6 +81,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		Direction string `json:"direction"`
 		ActivityLog interface{} `json:"activityLog"`
 		ActionPlan interface{} `json:"actionPlan"`
+		State entitystate.State `json:"state"`
 	}{
 		Name: g.Name,
 		GotchiID:  g.GotchiId,
@@ -96,12 +92,52 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		Direction: g.Direction,
 		ActivityLog: g.ActivityLog.Entries,
 		ActionPlan: g.ActionPlan.ToReporting(),
+		State: g.State,
 	}
 }
 
 func (g *Gotchi) Update(dt_s float64) {
+	// skip if we're dead
+	if g.State == entitystate.Dead {
+		return
+	}
+
 	// process our actions
 	g.ProcessActions(dt_s);
+}
+
+// custom gotchi stat functions
+func (g *Gotchi) SetStat(name string, value int) {
+	g.Stats.SetStat(name, value)
+}
+
+func (g *Gotchi) GetStat(name string) int {
+	return g.Stats.GetStat(name)
+}
+
+func (g *Gotchi) DeltaStat(name string, value int) {
+	prev := g.Stats.GetStat(name)
+	g.Stats.DeltaStat(name, value)
+	newVal := g.Stats.GetStat(name)
+
+	// CUSTOM HOOK: handle ESP stats going below 0 (death)
+	if (name == stattypes.Pulse || name == stattypes.Ecto || name == stattypes.Spark) && 
+		newVal <= 0 && prev > 0 {
+
+		// set gotchi state to dead
+		g.State = entitystate.Dead
+
+		// move gotchi to new location out of the way of entities
+		currX, currY := g.GetPosition()
+		newX, newY, found := g.GetZone().FindNearbyEmptyTile(currX, currY, 7, 1)
+		if found {
+			// set direction to new position
+			g.SetDirection("down")
+	
+			// Move the actor to the new position
+			g.SetPosition(newX, newY)
+		}
+	}
 }
 
 func CreatePersonalityFromSubgraphData(subgraphData web3.SubgraphGotchiData) []string {

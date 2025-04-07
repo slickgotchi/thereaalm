@@ -15,6 +15,24 @@ func (a *ActionPlan) AddActionToPlan(action interfaces.IAction) {
     a.Actions = append(a.Actions, action)
 }
 
+func (a *ActionPlan) ProcessActions(dt_s float64) {
+	// If there's no current action, select one based on weightings.
+	if a.CurrentAction == nil {
+		a.SelectNextAction()
+	}
+
+	if a.CurrentAction != nil {
+		// Call Update() on the current action to progress it.
+		actionComplete := a.CurrentAction.Update(dt_s)
+
+		// If the action is complete, clear it and select a new one.
+		if actionComplete {
+			// log.Println(a.CurrentAction.GetType(), " complete.")
+			a.CurrentAction = nil
+		}
+	}
+}
+
 // SelectNextAction will only select actions that can be executed.
 func (a *ActionPlan) SelectNextAction() {
 	// log.Println("Select next action...")
@@ -73,23 +91,7 @@ func (a *ActionPlan) SelectNextAction() {
 	}
 }
 
-func (a *ActionPlan) ProcessActions(dt_s float64) {
-	// If there's no current action, select one based on weightings.
-	if a.CurrentAction == nil {
-		a.SelectNextAction()
-	}
 
-	if a.CurrentAction != nil {
-		// Call Update() on the current action to progress it.
-		actionComplete := a.CurrentAction.Update(dt_s)
-
-		// If the action is complete, clear it and select a new one.
-		if actionComplete {
-			// log.Println(a.CurrentAction.GetType(), " complete.")
-			a.CurrentAction = nil
-		}
-	}
-}
 
 // New reporting struct
 type ActionPlanReporting struct {

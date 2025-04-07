@@ -102,7 +102,7 @@ export class LickquidatorEntity extends TweenableEntity {
             .playLickExplosion(this.currentPosition.x, this.currentPosition.y);
 
         this.emoticonEmitter.destroy();
-        this.shadowSprite.destroy();
+        this.shadowSprite.destroy(); 
         this.hpBar.destroy();
 
         super.destroy();

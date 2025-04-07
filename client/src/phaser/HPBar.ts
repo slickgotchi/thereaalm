@@ -68,6 +68,11 @@ export class HPBar {
         this.fill.setPosition(x + offsetX + this.padding, y + this.padding);
     }
 
+    public setVisible(visible: boolean) {
+        this.background.setVisible(visible);
+        this.fill.setVisible(visible);
+    }
+
     public destroy(): void {
         if (this.isDestroyed) return;
 

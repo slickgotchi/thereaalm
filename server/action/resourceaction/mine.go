@@ -5,7 +5,7 @@ import (
 	"log"
 	"thereaalm/action"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 	"thereaalm/types"
 	"thereaalm/utils"
 	"time"
@@ -22,14 +22,14 @@ func NewMineAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *MineAction {
 
 	actorItemHolder, _ := actor.(types.IInventory)
-	actorStats, _ := actor.(stats.IStats)
+	actorStats, _ := actor.(interfaces.IStats)
 	if actorStats == nil || actorItemHolder == nil {
 		log.Printf("ERROR [%s]: Actor does not have IStats or IInventory, returning...", utils.GetFuncName())
 		return nil
 	}
 
 	// Spark determines gather duration
-	actorSpark := actorStats.GetStat(stats.Spark)
+	actorSpark := actorStats.GetStat(stattypes.Spark)
 	if actorSpark < 0 {
 		log.Printf("ERROR [%s]: Actor does not have ESP stats, returning...", utils.GetFuncName())
 		return nil
@@ -116,9 +116,9 @@ func (a *MineAction) Update(dt_s float64) bool {
 			itemHolder.AddItem(typeRemoved, amountRemoved)
 	
 			// remove some spark and pulse
-			if actorStats, ok := a.Actor.(stats.IStats); ok {
-				actorStats.DeltaStat(stats.Spark, -1)
-				actorStats.DeltaStat(stats.Pulse, -1)
+			if actorStats, ok := a.Actor.(interfaces.IStats); ok {
+				actorStats.DeltaStat(stattypes.Spark, -1)
+				actorStats.DeltaStat(stattypes.Pulse, -1)
 			}
 	
 			// see if actor has an activity log

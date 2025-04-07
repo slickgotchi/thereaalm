@@ -6,6 +6,7 @@ export class EmoticonEmitter {
     private isDestroyed: boolean = false;
     private activeSprites: Phaser.GameObjects.Sprite[] = [];
     private activeTimers: Phaser.Time.TimerEvent[] = [];
+    private alpha = 1;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         this.scene = scene;
@@ -40,6 +41,7 @@ export class EmoticonEmitter {
             case "rest": return { texture: 'actionicons', frame: 11 };
             case "maintain": return { texture: 'actionicons', frame: 7 };
             case "rebuild": return { texture: 'actionicons', frame: 6 };
+            case "dead": return { texture: 'emoticons', frame: 18 };
             default: {
                 console.log(`No emoticon for '${emoticonStr}'`);
                 return { texture: 'icons', frame: 'default' };
@@ -66,7 +68,7 @@ export class EmoticonEmitter {
             const offsetY: number = -Phaser.Math.Between(24, 32);
 
             const sprite = this.scene.add.sprite(this.x + offsetX * 0.5, this.y, texture, frame);
-            sprite.setAlpha(1).setDepth(10000).setOrigin(0.5, 0.5).setScale(0.5);
+            sprite.setAlpha(this.alpha).setDepth(10000).setOrigin(0.5, 0.5).setScale(0.5);
             this.activeSprites.push(sprite);
 
             this.scene.tweens.add({
@@ -107,6 +109,10 @@ export class EmoticonEmitter {
     public setPosition(x: number, y: number): void {
         this.x = x;
         this.y = y;
+    }
+
+    public setAlpha(alpha: number) {
+        this.alpha = alpha;
     }
 
     public destroy(): void {

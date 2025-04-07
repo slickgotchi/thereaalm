@@ -30,6 +30,13 @@ export class GotchiEntity extends TweenableEntity {
     shadowSprite!: Phaser.GameObjects.Sprite;
     hpBar!: HPBar;
 
+    entityState!: string;
+
+    jumpTween!: Phaser.Tweens.Tween;
+
+    isDeathTriggered = false;
+
+
     static svgMap: Map<string, SVGState> = new Map();
     static activeGotchis: Map<string, GotchiEntity> = new Map(); // Tracks active GotchiEntity instances by gotchiId
 
@@ -45,6 +52,8 @@ export class GotchiEntity extends TweenableEntity {
         this.shadowSprite.setScale(0.8);
 
         this.gotchiId = data.gotchiId;
+
+        this.isDeathTriggered = false;
 
         // Add to activeGotchis
         GotchiEntity.activeGotchis.set(this.gotchiId, this);
@@ -63,16 +72,7 @@ export class GotchiEntity extends TweenableEntity {
             };
         }
 
-        const delay_ms = Math.random() * 500;
-        scene.tweens.add({
-            targets: this,
-            jumpY: -8,
-            duration: 150,
-            yoyo: true,
-            repeat: -1,
-            ease: "Quad.easeOut",
-            delay: delay_ms,
-        });
+        this.jumpTween = this.createJumpTween(150);
 
         this.emoticonEmitter = new EmoticonEmitter(scene, tileX * ZONE_TILES, tileY * ZONE_TILES);
 
@@ -83,6 +83,19 @@ export class GotchiEntity extends TweenableEntity {
             currentHP: data.stats.pulse,
             maxHP: data.stats.maxpulse,
             trackingSprite: this.sprite,
+        });
+    }
+
+    createJumpTween(duration_ms: number) {
+        const delay_ms = Math.random() * 500;
+        return this.scene.tweens.add({
+            targets: this,
+            jumpY: -8,
+            duration: duration_ms,
+            yoyo: true,
+            repeat: -1,
+            ease: "Quad.easeOut",
+            delay: delay_ms,
         });
     }
 
@@ -104,12 +117,17 @@ export class GotchiEntity extends TweenableEntity {
             !this.tweenWorker.getIsTweening() &&
             this.currentActionType !== ""
         ) {
+            if (this.entityState === "dead") {
+                this.currentActionType = "dead";
+            }
+
             this.lastEmoticonEmitTime_ms = currTime_ms;
             this.emoticonEmitter.emit(this.currentActionType, 240);
         }
 
         this.updateDirection();
     }
+
 
     snapshotUpdate(snapshot: EntitySnapshot) {
         super.snapshotUpdate(snapshot);
@@ -120,6 +138,15 @@ export class GotchiEntity extends TweenableEntity {
         }
 
         this.hpBar.updateHP(snapshot.data.stats.pulse);
+
+        this.entityState = snapshot.data.state;
+
+        // check for dead state
+        if (snapshot.data.state === "dead" && !this.isDeathTriggered) {
+            this.isDeathTriggered = true;
+
+            this.renderDeathEffects();
+        }
     }
 
     updateSVG() {
@@ -159,6 +186,13 @@ export class GotchiEntity extends TweenableEntity {
                 this.sprite.setTexture(this.textureSet.svg);
                 break;
         }
+    }
+
+    renderDeathEffects() {
+        this.jumpTween.stop();        
+        this.hpBar.setVisible(false);
+        this.sprite.setAlpha(0.5);
+        this.emoticonEmitter.setAlpha(0.5);
     }
 
     destroy(): void {

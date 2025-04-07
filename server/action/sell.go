@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
 	"time"
@@ -20,7 +19,7 @@ type SellAction struct {
 func NewSellAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *SellAction {
 
-	seller, _ := actor.(stats.IStats)
+	seller, _ := actor.(interfaces.IStats)
 	if seller == nil {
 		log.Println("ERROR: Selling actor does not have IStats, returning...")
 		return nil

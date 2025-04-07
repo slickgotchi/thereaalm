@@ -1,4 +1,4 @@
-package stats
+package stattypes
 
 import (
 	"log"
@@ -17,11 +17,7 @@ const (
     // TradeDuration_s = "trade_duration_s"
 )
 
-type IStats interface {
-    SetStat(name string, value int)
-    GetStat(name string) int
-    DeltaStat(name string, value int)
-}
+
 
 // STATS
 type Stats struct {

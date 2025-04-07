@@ -5,7 +5,7 @@ import (
 	"log"
 	"thereaalm/action"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 	"thereaalm/types"
 
 	"github.com/google/uuid"
@@ -15,7 +15,7 @@ type Lickquidator struct {
     Entity
 	action.ActionPlan
 	types.Inventory
-	stats.Stats
+	stattypes.Stats
 }
 
 func NewLickquidator(zoneId, x, y int) *Lickquidator {
@@ -24,11 +24,11 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 	newInventory.Items["tongue"] = 1
 
 	// give a base hp stat
-	newStats := stats.NewStats()
-	newStats.SetStat(stats.Ecto, 50)
-	newStats.SetStat(stats.Spark, 50)
-	newStats.SetStat(stats.Pulse, 50)
-	newStats.SetStat(stats.MaxPulse, 50)
+	newStats := stattypes.NewStats()
+	newStats.SetStat(stattypes.Ecto, 50)
+	newStats.SetStat(stattypes.Spark, 50)
+	newStats.SetStat(stattypes.Pulse, 50)
+	newStats.SetStat(stattypes.MaxPulse, 50)
 
     return &Lickquidator{
         Entity: Entity{
@@ -64,7 +64,7 @@ func (l *Lickquidator) Update(dt_s float64) {
 	l.ProcessActions(dt_s)
 
 	// Check if the Lickquidator's Pulse is zero or less
-    if l.Stats.GetStat(stats.Pulse) <= 0 {
+    if l.Stats.GetStat(stattypes.Pulse) <= 0 {
         log.Printf("Lickquidator %s has died (Pulse <= 0), removing from zone", l.GetUUID().String())
         // Remove the Lickquidator from its zone
         zone := l.GetZone()

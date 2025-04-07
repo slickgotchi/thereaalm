@@ -2,7 +2,7 @@ package entity
 
 import (
 	"thereaalm/entity/entitystate"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 
 	"github.com/google/uuid"
 )
@@ -11,15 +11,14 @@ import (
 
 type Altar struct {
 	Entity
-	stats.Stats
+	stattypes.Stats
 	entitystate.State
-	MaxPulse int
 }
 
 func NewAltar(zoneId, x, y int) *Altar {
-	newStats := stats.NewStats()
-	newStats.SetStat(stats.Pulse, 1000)
-	newStats.SetStat(stats.MaxPulse, 1000)
+	newStats := stattypes.NewStats()
+	newStats.SetStat(stattypes.Pulse, 1000)
+	newStats.SetStat(stattypes.MaxPulse, 1000)
 
 	return &Altar{
         Entity: Entity{
@@ -30,7 +29,6 @@ func NewAltar(zoneId, x, y int) *Altar {
         },
 		Stats: *newStats,
 		State: entitystate.Active,
-		MaxPulse: 1000,
     }
 }
 
@@ -49,27 +47,18 @@ func (e *Altar) GetSnapshotData() interface{} {
 }
 
 func (e *Altar) Update(dt_s float64) {
-	pulse := e.GetStat(stats.Pulse)
+	pulse := e.GetStat(stattypes.Pulse)
 
 	if pulse <= 0 {
 		e.State = entitystate.Dead
-	} 
-	
-	if e.State == entitystate.Dead {
-		// check if it can be made active again
-		if pulse >= e.MaxPulse {
-			e.State = entitystate.Active
-		}
-	} else if e.State == entitystate.Active {
-		// do active altar stuff
 	} 
 }
 
 // IMaintainable functions
 func (e *Altar) Maintain(pulseRestored int) {
-	e.Stats.DeltaStat(stats.Pulse, pulseRestored)
-	if e.Stats.GetStat(stats.Pulse) > e.MaxPulse {
-		e.Stats.SetStat(stats.Pulse, e.MaxPulse)
+	e.Stats.DeltaStat(stattypes.Pulse, pulseRestored)
+	if e.Stats.GetStat(stattypes.Pulse) > e.GetStat(stattypes.MaxPulse) {
+		e.Stats.SetStat(stattypes.Pulse, e.GetStat(stattypes.MaxPulse))
 	}
 }
 
@@ -80,8 +69,8 @@ func (e *Altar) CanBeMaintained() bool {
 	}
 
 	// don't allow maintenance on structures above 80% pulse
-	currPulse := e.Stats.GetStat(stats.Pulse)
-	maxPulse := e.MaxPulse
+	currPulse := e.Stats.GetStat(stattypes.Pulse)
+	maxPulse := e.GetStat(stattypes.MaxPulse)
 	if float64(currPulse) >= float64(maxPulse)*0.8 {
 		return false
 	}
@@ -90,15 +79,14 @@ func (e *Altar) CanBeMaintained() bool {
 	return true
 }
 
-func (e *Altar) GetMaxPulse() int {
-	return e.MaxPulse
-}
-
 // IRebuildable functions
 func (e *Altar) Rebuild(pulseRestored int) {
-	e.Stats.DeltaStat(stats.Pulse, pulseRestored)
-	if e.Stats.GetStat(stats.Pulse) > e.MaxPulse {
-		e.Stats.SetStat(stats.Pulse, e.MaxPulse)
+	e.Stats.DeltaStat(stattypes.Pulse, pulseRestored)
+
+	// if pulse >= max pulse set our state back to active
+	if e.Stats.GetStat(stattypes.Pulse) >= e.Stats.GetStat(stattypes.MaxPulse) {
+		e.State = entitystate.Active
+		e.Stats.SetStat(stattypes.Pulse, e.GetStat(stattypes.MaxPulse))
 	}
 }
 

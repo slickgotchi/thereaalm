@@ -4,7 +4,7 @@ import (
 	"log"
 	"math/rand"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 	"thereaalm/types"
 	"time"
 )
@@ -51,20 +51,20 @@ func (r *RoamAction) Start() {
 	actorX, actorY := r.Actor.GetPosition()
 
 	// use ecto to govern roam radius (between 2 - 10)
-	actorStats, _ := r.Actor.(stats.IStats)
+	actorStats, _ := r.Actor.(interfaces.IStats)
 	if actorStats == nil {
 		log.Printf("Roam assigned to actor with no stats!")
 		return
 	}
 
 	// find delta from peak explorer ecto
-	actorEcto := actorStats.GetStat(stats.Ecto)
+	actorEcto := actorStats.GetStat(stattypes.Ecto)
 
 	alpha := 1.0 - actorEcto / 1000
 	explorationRadius := 2 + int(alpha * 8.0)
 
 	// Use the zone's FindNearbyEmptyCell with radius 3
-	newX, newY, found := zone.FindNearbyEmptyTile(actorX, actorY, explorationRadius)
+	newX, newY, found := zone.FindNearbyEmptyTile(actorX, actorY, explorationRadius, 1)
 	if found {
 		// set direction to new position
 		r.Actor.SetDirectionToTargetPosition(newX, newY)
@@ -73,9 +73,7 @@ func (r *RoamAction) Start() {
 		r.Actor.SetPosition(newX, newY)
 
 		// reduce pulse (our "stability")
-		actorStats.DeltaStat(stats.Pulse, -5)
-
-		
+		actorStats.DeltaStat(stattypes.Pulse, -5)
 	}
 }
 

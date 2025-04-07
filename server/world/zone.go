@@ -89,53 +89,67 @@ func (z *Zone) FindNearbyEntities(x, y, radius int) []interfaces.IEntity {
     return entities
 }
 
-// FindNearbyEmptyCell finds a random empty cell within a given radius.
-func (z *Zone) FindNearbyEmptyTile(x, y, radius int) (int, int, bool) {
-	// Create a random seed based on the current time (optional, for better randomness)
-	// rand.Seed(time.Now().UnixNano())
+// FindNearbyEmptyTile finds a random empty cell within a given radius,
+// ensuring a minimum gap between the returned cell and any entities.
+func (z *Zone) FindNearbyEmptyTile(x, y, radius, minGap int) (int, int, bool) {
+    var candidates []struct{ dx, dy int }
 
-	// Create a slice of coordinates to scan, including all positions within the radius.
-	var candidates []struct{ dx, dy int }
+    // Populate candidate positions
+    for r := 1; r <= radius; r++ {
+        for dx := -r; dx <= r; dx++ {
+            for dy := -r; dy <= r; dy++ {
+                nx, ny := x+dx, y+dy
 
-	// Populate the candidates list with all offsets within the radius.
-	for r := 1; r <= radius; r++ {
-		for dx := -r; dx <= r; dx++ {
-			for dy := -r; dy <= r; dy++ {
-				nx, ny := x+dx, y+dy
+                // Bounds check
+                if nx < z.X || ny < z.Y || nx >= z.X+z.Width || ny >= z.Y+z.Height {
+                    continue
+                }
 
-				// Ensure the position is within the bounds of the zone
-				if nx < z.X || ny < z.Y || nx >= z.X + z.Width || ny >= z.Y + z.Height {
-					continue
-				}
+                candidates = append(candidates, struct{ dx, dy int }{nx, ny})
+            }
+        }
+    }
 
-				// Add the position to the list of candidate positions.
-				candidates = append(candidates, struct{ dx, dy int }{nx, ny})
-			}
-		}
-	}
+    if len(candidates) == 0 {
+        return 0, 0, false
+    }
 
-	// If no candidates were found, return false
-	if len(candidates) == 0 {
-		return 0, 0, false
-	}
+    rand.Shuffle(len(candidates), func(i, j int) {
+        candidates[i], candidates[j] = candidates[j], candidates[i]
+    })
 
-	// Randomly shuffle the candidates
-	rand.Shuffle(len(candidates), func(i, j int) {
-		candidates[i], candidates[j] = candidates[j], candidates[i]
-	})
+    for _, candidate := range candidates {
+        nx, ny := candidate.dx, candidate.dy
 
-	// Now, check the shuffled list for the first unoccupied cell
-	for _, candidate := range candidates {
-		nx, ny := candidate.dx, candidate.dy
+        // Check the gap area around the candidate position
+        isValid := true
+        for gx := -minGap; gx <= minGap; gx++ {
+            for gy := -minGap; gy <= minGap; gy++ {
+                tx, ty := nx+gx, ny+gy
 
-		// Check if the cell is empty
-		if !z.IsTileOccupied(nx, ny) {
-			return nx, ny, true
-		}
-	}
+                // Skip out-of-bounds tiles in the gap check
+                if tx < z.X || ty < z.Y || tx >= z.X+z.Width || ty >= z.Y+z.Height {
+                    continue
+                }
 
-	return 0, 0, false // No empty cell found
+                if z.IsTileOccupied(tx, ty) {
+                    isValid = false
+                    break
+                }
+            }
+            if !isValid {
+                break
+            }
+        }
+
+        if isValid {
+            return nx, ny, true
+        }
+    }
+
+    return 0, 0, false
 }
+
 
 // TryGetEmptyCellAdjacentToEntity attempts to find an empty adjacent cell to the given entity
 // Returns (x, y, true) if an empty cell is found, (0, 0, false) if no empty cell is available

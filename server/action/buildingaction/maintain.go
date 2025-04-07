@@ -5,7 +5,7 @@ import (
 	"log"
 	"thereaalm/action"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
+	"thereaalm/stattypes"
 	"thereaalm/types"
 	"thereaalm/utils"
 	"time"
@@ -31,14 +31,14 @@ func NewMaintainAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *MaintainAction {
 
 	actorItemHolder, _ := actor.(types.IInventory)
-	actorStats, _ := actor.(stats.IStats)
+	actorStats, _ := actor.(interfaces.IStats)
 	if actorStats == nil || actorItemHolder == nil {
 		log.Printf("ERROR [%s]: Actor does not have IStats or IInventory, returning...", utils.GetFuncName())
 		return nil
 	}
 
 	// Ecto determines maintenance duration
-	actorEcto := actorStats.GetStat(stats.Ecto)
+	actorEcto := actorStats.GetStat(stattypes.Ecto)
 	if actorEcto < 0 {
 		log.Printf("ERROR [%s]: Actor does not have ESP stats, returning...", utils.GetFuncName())
 		return nil
@@ -74,7 +74,7 @@ func (a *MaintainAction) IsValidTarget(potentialTarget interfaces.IEntity) bool 
 		return false
 	}
 
-	maintainable, _ := potentialTarget.(types.IMaintainable)
+	maintainable, _ := potentialTarget.(interfaces.IMaintainable)
 	if maintainable == nil {
 		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
@@ -118,8 +118,8 @@ func (a *MaintainAction) Start() {
 
 func (a *MaintainAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
-	maintainable, _ := a.Target.(types.IMaintainable)
-	maintainableStats, _ := a.Target.(stats.IStats)
+	maintainable, _ := a.Target.(interfaces.IMaintainable)
+	maintainableStats, _ := a.Target.(interfaces.IStats)
 	itemHolder, _ := a.Actor.(types.IInventory);
 	if itemHolder == nil || maintainableStats == nil || maintainable == nil {
 		log.Printf("ERROR [%s]: Invalid maintainable, returning...", utils.GetFuncName())
@@ -135,11 +135,11 @@ func (a *MaintainAction) Update(dt_s float64) bool {
 		a.TotalPulseRestored += a.PulseRestoredPerSecond
 
 		// check if maintenance is complete due to going over max pulse
-		if maintainableStats.GetStat(stats.Pulse) >= maintainable.GetMaxPulse() {
+		if maintainableStats.GetStat(stattypes.Pulse) >= maintainable.GetMaxPulse() {
 			itemHolder.RemoveItem("kekwood", 1)
 			itemHolder.RemoveItem("alphaslate", 1)
 
-			maintainableStats.SetStat(stats.Pulse, maintainable.GetMaxPulse())
+			maintainableStats.SetStat(stattypes.Pulse, maintainable.GetMaxPulse())
 
 			// see if actor has an activity log
 			if activityLog, ok := a.Actor.(types.IActivityLog); ok {

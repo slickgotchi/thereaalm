@@ -12,7 +12,7 @@ type IZone interface {
 	
 	IsTileOccupied(x, y int) bool
 	FindNearbyEntities(x, y, radius int) []IEntity
-	FindNearbyEmptyTile(x, y, radius int) (int, int, bool) 
+	FindNearbyEmptyTile(x, y, radius, minGap int) (int, int, bool) 
 	TryGetEmptyTileNextToTargetEntity(target IEntity) (int, int, bool)
 
 	GetEntityByUUID(uuid uuid.UUID) IEntity 

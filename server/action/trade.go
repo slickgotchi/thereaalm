@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/interfaces"
-	"thereaalm/stats"
 	"thereaalm/types"
 	"time"
 )
@@ -17,7 +16,7 @@ type TradeAction struct {
 }
 
 func NewTradeAction(actor, target interfaces.IEntity, weighting float64, tradeType string) *TradeAction {
-	trader, _ := actor.(stats.IStats)
+	trader, _ := actor.(interfaces.IStats)
 	if trader == nil {
 		log.Println("ERROR: Trading actor does not have IStats, returning...")
 		return nil
