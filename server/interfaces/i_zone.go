@@ -6,6 +6,7 @@ type IZone interface {
 	AddEntity(e IEntity)
 	RemoveEntity(e IEntity)
 
+	GetID() int
 	GetPosition() (int, int)
 	
 	Update(dt_s float64)

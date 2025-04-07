@@ -106,7 +106,7 @@ func (g *Gotchi) Update(dt_s float64) {
 	g.ProcessActions(dt_s);
 }
 
-// custom gotchi stat functions
+// custom stat modification wrappers
 func (g *Gotchi) SetStat(name string, value int) {
 	g.Stats.SetStat(name, value)
 }

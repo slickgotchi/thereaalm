@@ -7,6 +7,7 @@ import { ShopEntity } from "./ShopEntity";
 import { KekWoodTreeEntity } from "./resources/KekWoodTreeEntity";
 import { AlphaSlateBouldersEntity } from "./resources/AlphaSlateBouldersEntity";
 import { FomoBerryBushEntity } from "./resources/FomoBerryBushEntity";
+import { LickVoidEntity } from "./LickVoidEntity";
 
 
 export class EntityFactory {
@@ -28,6 +29,8 @@ export class EntityFactory {
                 return new ShopEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             case "altar":
                 return new AltarEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
+            case "lickvoid":
+                return new LickVoidEntity(scene, id, zoneId, tileX, tileY, data, navigationGrid);
             default:
                 return new BaseEntity({scene, id, zoneId, tileX, tileY, type, texture: "", data});
         }

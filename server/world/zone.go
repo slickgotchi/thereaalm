@@ -33,6 +33,10 @@ func NewZone(id, width, height, x, y, cellSize int) *Zone {
     }
 }
 
+func (z *Zone) GetID() int {
+    return z.ID
+}
+
 func (z *Zone) GetPosition() (int, int) {
     return z.X, z.Y
 }

@@ -115,6 +115,11 @@ func (wm *WorldManager) loadTestEntities() {
     wm.Zones[42].AddEntity(altarB)
     altarB.SetStat(stattypes.Pulse, 20)
 
+    // lickvoid
+    lickvoid := entity.NewLickVoid(42, 25+zoneX, 14+zoneY)
+    wm.Zones[42].AddEntity(lickvoid)
+    lickvoid.SpawnInterval_s = 5
+
     // // TEMPORARY: start only in zone 42 for now
     // zoneIndex := 42
 
@@ -139,7 +144,7 @@ func (wm *WorldManager) loadTestEntities() {
 
 func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
     lickquidator := entity.NewLickquidator(zoneID, x, y)
-    wm.Zones[42].AddEntity(lickquidator)
+    wm.Zones[zoneID].AddEntity(lickquidator)
 
     lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.2,
         &types.TargetSpec{
