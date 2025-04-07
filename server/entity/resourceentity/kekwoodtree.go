@@ -16,7 +16,7 @@ type KekWoodTree struct {
 	MaxWood int
 	RegrowDuration_s time.Duration
 	TimeOfDepletion time.Time
-	State entitystate.EntityState
+	State entitystate.State
 }
 
 func NewKekWoodTree(zoneId, x, y int) *KekWoodTree {

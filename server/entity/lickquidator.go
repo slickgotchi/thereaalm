@@ -4,6 +4,7 @@ import (
 	// "log"
 	"log"
 	"thereaalm/action"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 
@@ -37,7 +38,7 @@ func NewLickquidator(zoneId, x, y int) *Lickquidator {
 			Y: y,
         },
         ActionPlan: action.ActionPlan{
-			Actions: make([]types.IAction, 0),
+			Actions: make([]interfaces.IAction, 0),
 		},
 		Inventory: *newInventory,
 		Stats: *newStats,

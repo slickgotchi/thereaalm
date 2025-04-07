@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/action"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -26,8 +27,8 @@ type RebuildAction struct {
 	TotalPulseRestored int
 }
 
-func NewRebuildAction(actor, target types.IEntity, weighting float64,
-	fallbackTargetSpec *action.TargetSpec) *RebuildAction {
+func NewRebuildAction(actor, target interfaces.IEntity, weighting float64,
+	fallbackTargetSpec *types.TargetSpec) *RebuildAction {
 	
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
@@ -68,7 +69,11 @@ func NewRebuildAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *RebuildAction) IsValidTarget(potentialTarget types.IEntity) bool {
+func (a *RebuildAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	if potentialTarget == nil {
+		return false
+	}
+
 	rebuildable, _ := potentialTarget.(types.IRebuildable); 
 	if rebuildable == nil {
 		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
@@ -88,7 +93,7 @@ func (a *RebuildAction) IsValidTarget(potentialTarget types.IEntity) bool {
 	return true
 }
 
-func (a *RebuildAction) IsValidActor(potentialActor types.IEntity) bool {
+func (a *RebuildAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	itemHolder, _ := potentialActor.(types.IInventory);
 
 	// actor and target of correct types?

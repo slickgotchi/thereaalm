@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 	"thereaalm/action"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/web3"
@@ -62,7 +63,7 @@ func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Go
 			Y: y,
         },
         ActionPlan: action.ActionPlan{
-			Actions: make([]types.IAction, 0),
+			Actions: make([]interfaces.IAction, 0),
 		},
 		Inventory: *newItemHolder,
 		Stats: *newStats,

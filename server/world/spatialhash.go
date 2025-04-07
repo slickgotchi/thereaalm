@@ -1,13 +1,14 @@
-package types
+package world
 
 import (
 	"fmt"
+	"thereaalm/interfaces"
 )
 
 // SpatialHash represents the spatial partitioning system
 type SpatialHash struct {
     CellSize     int
-    HashTable    map[string][]IEntity
+    HashTable    map[string][]interfaces.IEntity
     entityToCell map[string]string // Maps entity UUID to its last known cell
 }
 
@@ -15,7 +16,7 @@ type SpatialHash struct {
 func NewSpatialHash(cellSize int) *SpatialHash {
     return &SpatialHash{
         CellSize:     cellSize,
-        HashTable:    make(map[string][]IEntity),
+        HashTable:    make(map[string][]interfaces.IEntity),
         entityToCell: make(map[string]string),
     }
 }
@@ -28,7 +29,7 @@ func (sh *SpatialHash) hashCoordinates(x, y int) string {
 }
 
 // Insert adds an entity to the correct cell and tracks its location
-func (sh *SpatialHash) Insert(entity IEntity) {
+func (sh *SpatialHash) Insert(entity interfaces.IEntity) {
     x, y := entity.GetPosition()
     cellKey := sh.hashCoordinates(x, y)
 
@@ -37,7 +38,7 @@ func (sh *SpatialHash) Insert(entity IEntity) {
 }
 
 // Remove deletes an entity from its cell and tracking map
-func (sh *SpatialHash) Remove(entity IEntity) {
+func (sh *SpatialHash) Remove(entity interfaces.IEntity) {
     uuid := entity.GetUUID().String()
     cellKey, exists := sh.entityToCell[uuid]
     if !exists {
@@ -57,7 +58,7 @@ func (sh *SpatialHash) Remove(entity IEntity) {
 }
 
 // Update moves an entity if its cell changes
-func (sh *SpatialHash) Update(entity IEntity) {
+func (sh *SpatialHash) Update(entity interfaces.IEntity) {
     x, y := entity.GetPosition()
     newCell := sh.hashCoordinates(x, y)
 
@@ -72,7 +73,7 @@ func (sh *SpatialHash) Update(entity IEntity) {
 }
 
 // GetEntitiesInCell retrieves all entities in the given cell
-func (sh *SpatialHash) GetEntitiesInCell(x, y int) []IEntity {
+func (sh *SpatialHash) GetEntitiesInCell(x, y int) []interfaces.IEntity {
     cellKey := sh.hashCoordinates(x, y)
     return sh.HashTable[cellKey]
 }

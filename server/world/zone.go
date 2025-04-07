@@ -1,9 +1,10 @@
 // thereaalm/world/zone.go
-package types
+package world
 
 import (
 	"log"
 	"math/rand"
+	"thereaalm/interfaces"
 	"thereaalm/utils"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 
 type Zone struct {
     ID       int
-    Entities []IEntity
+    Entities []interfaces.IEntity
     Width    int
     Height   int
     X        int
@@ -23,7 +24,7 @@ type Zone struct {
 func NewZone(id, width, height, x, y, cellSize int) *Zone {
     return &Zone{
         ID:       id,
-        Entities: []IEntity{},
+        Entities: []interfaces.IEntity{},
         Width:    width,
         Height:   height,
         X:        x,
@@ -32,14 +33,18 @@ func NewZone(id, width, height, x, y, cellSize int) *Zone {
     }
 }
 
-func (z *Zone) AddEntity(e IEntity) {
+func (z *Zone) GetPosition() (int, int) {
+    return z.X, z.Y
+}
+
+func (z *Zone) AddEntity(e interfaces.IEntity) {
     z.Entities = append(z.Entities, e)
     z.SpatialMap.Insert(e)
     e.SetZone(z)
 }
 
 // RemoveEntity removes an entity from the zone and updates the spatial hash
-func (z *Zone) RemoveEntity(e IEntity) {
+func (z *Zone) RemoveEntity(e interfaces.IEntity) {
     for i, entity := range z.Entities {
         if entity.GetUUID() == e.GetUUID() {
             // Remove from entity slice
@@ -71,8 +76,8 @@ func (z *Zone) IsTileOccupied(x, y int) bool {
 }
 
 // FindNearbyEntities finds entities within a specified radius
-func (z *Zone) FindNearbyEntities(x, y, radius int) []IEntity {
-    entities := []IEntity{}
+func (z *Zone) FindNearbyEntities(x, y, radius int) []interfaces.IEntity {
+    entities := []interfaces.IEntity{}
 
     // Iterate over neighboring cells in the spatial hash
     for dx := -radius; dx <= radius; dx++ {
@@ -134,7 +139,7 @@ func (z *Zone) FindNearbyEmptyTile(x, y, radius int) (int, int, bool) {
 
 // TryGetEmptyCellAdjacentToEntity attempts to find an empty adjacent cell to the given entity
 // Returns (x, y, true) if an empty cell is found, (0, 0, false) if no empty cell is available
-func (z *Zone) TryGetEmptyTileNextToTargetEntity(target IEntity) (int, int, bool) {
+func (z *Zone) TryGetEmptyTileNextToTargetEntity(target interfaces.IEntity) (int, int, bool) {
     // Get entity's current position
     x, y := target.GetPosition()
     
@@ -163,7 +168,7 @@ func (z *Zone) TryGetEmptyTileNextToTargetEntity(target IEntity) (int, int, bool
 }
 
 // GetEntityByUUID retrieves an entity by its UUID
-func (z *Zone) GetEntityByUUID(uuid uuid.UUID) IEntity {
+func (z *Zone) GetEntityByUUID(uuid uuid.UUID) interfaces.IEntity {
     for _, entity := range z.Entities {
         if entity.GetUUID() == uuid {
             return entity
@@ -173,14 +178,18 @@ func (z *Zone) GetEntityByUUID(uuid uuid.UUID) IEntity {
 }
 
 // GetEntitiesByType retrieves all entities of a specific type
-func (z *Zone) GetEntitiesByType(entityType string) []IEntity {
-    var entities []IEntity
+func (z *Zone) GetEntitiesByType(entityType string) []interfaces.IEntity {
+    var entities []interfaces.IEntity
     for _, entity := range z.Entities {
         if entity.GetType() == entityType {
             entities = append(entities, entity)
         }
     }
     return entities
+}
+
+func (z *Zone) GetEntities() []interfaces.IEntity {
+    return z.Entities;
 }
 
 // GetDistance calculates the simple distance between two points (x1, y1) and (x2, y2)

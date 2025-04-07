@@ -3,6 +3,7 @@ package action
 import (
 	"fmt"
 	"log"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -16,8 +17,8 @@ type SellAction struct {
 	TradeType string
 }
 
-func NewSellAction(actor, target types.IEntity, weighting float64,
-	fallbackTargetSpec *TargetSpec) *SellAction {
+func NewSellAction(actor, target interfaces.IEntity, weighting float64,
+	fallbackTargetSpec *types.TargetSpec) *SellAction {
 
 	seller, _ := actor.(stats.IStats)
 	if seller == nil {
@@ -48,7 +49,11 @@ func NewSellAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *SellAction) IsValidTarget(potentialTarget types.IEntity) bool {
+func (a *SellAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	if potentialTarget == nil {
+		return false
+	}
+
 	respondingItemHolder, _ := potentialTarget.(types.IInventory) 
 	if respondingItemHolder == nil {
 		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
@@ -63,7 +68,7 @@ func (a *SellAction) IsValidTarget(potentialTarget types.IEntity) bool {
 	return true
 }
 
-func (a *SellAction) IsValidActor(potentialActor types.IEntity) bool {
+func (a *SellAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	// check actor and target are correct type
 	initiatingItemHolder, _ := potentialActor.(types.IInventory)
 

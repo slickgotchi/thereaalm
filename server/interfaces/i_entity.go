@@ -1,4 +1,4 @@
-package types
+package interfaces
 
 import (
 	"github.com/google/uuid"
@@ -12,8 +12,8 @@ type IEntity interface {
     GetPosition() (int, int)
     SetPosition(x, y int)
     GetSnapshotData() interface{}
-    GetZone() *Zone
-    SetZone(zone *Zone)
+    GetZone() IZone
+    SetZone(zone IZone)
     IsNextToTargetEntity(target IEntity) bool
     SetDirection(direction string)
     GetDirection() string

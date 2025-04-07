@@ -12,7 +12,7 @@ import (
 type Altar struct {
 	Entity
 	stats.Stats
-	State entitystate.EntityState
+	entitystate.State
 	MaxPulse int
 }
 
@@ -39,7 +39,7 @@ func (e *Altar) GetSnapshotData() interface{} {
 		Name string `json:"name"`
 		Description string `json:"description"`
 		Stats interface{} `json:"stats"`
-		State entitystate.EntityState `json:"state"`
+		State entitystate.State `json:"state"`
 	}{
 		Name: "Gotchi Altar",
 		Description: "While active, imbues nearby gotchis with action duration bonuses",

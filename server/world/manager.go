@@ -13,6 +13,7 @@ import (
 	"thereaalm/config"
 	"thereaalm/entity"
 	"thereaalm/entity/resourceentity"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/web3"
@@ -27,7 +28,7 @@ const (
 )
 
 type WorldManager struct {
-    Zones       []*types.Zone
+    Zones       []interfaces.IZone
     WorkerCount int
 }
 
@@ -47,7 +48,7 @@ func NewWorldManager(workerCount int) *WorldManager {
             if zoneType == "" {
                 continue
             }
-            zone := types.NewZone(zoneID, ZoneTiles, ZoneTiles, x*ZoneTiles, y*ZoneTiles, 64)
+            zone := NewZone(zoneID, ZoneTiles, ZoneTiles, x*ZoneTiles, y*ZoneTiles, 64)
             manager.Zones = append(manager.Zones, zone)
             zoneID++
         }
@@ -74,8 +75,7 @@ func (wm *WorldManager) loadTestEntities() {
         return
     }
 
-    zoneX := wm.Zones[42].X
-    zoneY := wm.Zones[42].Y
+    zoneX, zoneY := wm.Zones[42].GetPosition()
 
     // ENTITIES
     // resources
@@ -113,7 +113,7 @@ func (wm *WorldManager) loadTestEntities() {
 
     altarB := entity.NewAltar(42, 12+zoneX, 17+zoneY)
     wm.Zones[42].AddEntity(altarB)
-    altarB.SetStat(stats.Pulse, 12)
+    altarB.SetStat(stats.Pulse, 500)
 
     // // TEMPORARY: start only in zone 42 for now
     // zoneIndex := 42
@@ -147,7 +147,7 @@ func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
     //         TargetCriterion: "nearest",
     //     }))
     lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.8,
-        &action.TargetSpec{
+        &types.TargetSpec{
             TargetType: "altar",
             TargetCriterion: "nearest",
         }))
@@ -162,44 +162,44 @@ func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int,
     // ACTIONS
     // newGotchi.AddActionToPlan(
     //     resourceaction.NewForageAction(newGotchi, nil, 0.3, 
-    //         &action.TargetSpec{
+    //         &types.TargetSpec{
     //             TargetType: "fomoberrybush",
     //             TargetCriterion: "nearest",
     //         }))
     newGotchi.AddActionToPlan(
         resourceaction.NewChopAction(newGotchi, nil, 0.3, 
-            &action.TargetSpec{
+            &types.TargetSpec{
                 TargetType: "kekwoodtree",
                 TargetCriterion: "nearest",
             }))
     newGotchi.AddActionToPlan(
         resourceaction.NewMineAction(newGotchi, nil, 0.3, 
-            &action.TargetSpec{
+            &types.TargetSpec{
                 TargetType: "alphaslateboulders",
                 TargetCriterion: "nearest",
             }))
     newGotchi.AddActionToPlan(
         buildingaction.NewMaintainAction(newGotchi, nil, 0.6,
-            &action.TargetSpec{
+            &types.TargetSpec{
                 TargetType: "altar",
                 TargetCriterion: "nearest",
             }))
     newGotchi.AddActionToPlan(
         buildingaction.NewRebuildAction(newGotchi, nil, 0.6,
-            &action.TargetSpec{
+            &types.TargetSpec{
                 TargetType: "altar",
                 TargetCriterion: "nearest",
             }))
     
     // newGotchi.AddActionToPlan(
     //     action.NewSellAction(newGotchi, nil, 0.5, 
-    //         &action.TargetSpec{
+    //         &types.TargetSpec{
     //             TargetType: "shop",
     //             TargetCriterion: "nearest",
     //         }))
     // newGotchi.AddActionToPlan(
     //     action.NewAttackAction(newGotchi, nil, 0.3, 
-    //         &action.TargetSpec{
+    //         &types.TargetSpec{
     //             TargetType: "lickquidator",
     //             TargetCriterion: "nearest",
     //         }))
@@ -251,7 +251,7 @@ func (wm *WorldManager) updateLoop() {
 
 func (wm *WorldManager) updateZonesParallel(dt_s float64) {
     var wg sync.WaitGroup
-    jobs := make(chan *types.Zone, len(wm.Zones))
+    jobs := make(chan interfaces.IZone, len(wm.Zones))
 
     for i := 0; i < wm.WorkerCount; i++ {
         wg.Add(1)
@@ -266,7 +266,7 @@ func (wm *WorldManager) updateZonesParallel(dt_s float64) {
     wg.Wait()
 }
 
-func (wm *WorldManager) zoneWorker(jobs <-chan *types.Zone, dt_s float64, wg *sync.WaitGroup) {
+func (wm *WorldManager) zoneWorker(jobs <-chan interfaces.IZone, dt_s float64, wg *sync.WaitGroup) {
     defer wg.Done()
 
     for zone := range jobs {

@@ -3,6 +3,7 @@ package action
 import (
 	"log"
 	"math/rand"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"time"
@@ -14,8 +15,8 @@ type RoamAction struct {
 	Duration    time.Duration
 }
 
-func NewRoamAction(actor types.IEntity, target types.IEntity, weighting float64,
-	fallbackTargetSpec *TargetSpec) *RoamAction {
+func NewRoamAction(actor interfaces.IEntity, target interfaces.IEntity, weighting float64,
+	fallbackTargetSpec *types.TargetSpec) *RoamAction {
 
 	a := &RoamAction{
 		Action: Action{
@@ -33,14 +34,11 @@ func NewRoamAction(actor types.IEntity, target types.IEntity, weighting float64,
 	return a
 }
 
-// CanBeExecuted always returns true for RoamAction
-func (r *RoamAction) CanBeExecuted() bool {
-	actorStats, _ := r.Actor.(stats.IStats)
-	if actorStats == nil {
-		log.Printf("Roam assigned to actor with no stats!")
-		return false
-	}
+func (r *RoamAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	return true
+}
 
+func (r *RoamAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	return true
 }
 

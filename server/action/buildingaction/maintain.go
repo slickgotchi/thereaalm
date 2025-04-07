@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/action"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -26,8 +27,8 @@ type MaintainAction struct {
 	TotalPulseRestored int
 }
 
-func NewMaintainAction(actor, target types.IEntity, weighting float64,
-	fallbackTargetSpec *action.TargetSpec) *MaintainAction {
+func NewMaintainAction(actor, target interfaces.IEntity, weighting float64,
+	fallbackTargetSpec *types.TargetSpec) *MaintainAction {
 
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
@@ -68,7 +69,11 @@ func NewMaintainAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *MaintainAction) IsValidTarget(potentialTarget types.IEntity) bool {
+func (a *MaintainAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	if potentialTarget == nil {
+		return false
+	}
+
 	maintainable, _ := potentialTarget.(types.IMaintainable)
 	if maintainable == nil {
 		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
@@ -88,7 +93,7 @@ func (a *MaintainAction) IsValidTarget(potentialTarget types.IEntity) bool {
 	return true
 }
 
-func (a *MaintainAction) IsValidActor(potentialActor types.IEntity) bool {
+func (a *MaintainAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	itemHolder, _ := potentialActor.(types.IInventory)
 	if itemHolder == nil {
 		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())

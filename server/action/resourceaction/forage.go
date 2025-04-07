@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/action"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -17,8 +18,8 @@ type ForageAction struct {
 	StartTime time.Time
 }
 
-func NewForageAction(actor, target types.IEntity, weighting float64,
-		fallbackTargetSpec *action.TargetSpec) *ForageAction {
+func NewForageAction(actor, target interfaces.IEntity, weighting float64,
+		fallbackTargetSpec *types.TargetSpec) *ForageAction {
 
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
@@ -53,9 +54,12 @@ func NewForageAction(actor, target types.IEntity, weighting float64,
     return a
 }
 
-func (a *ForageAction) IsValidTarget(potentialTarget types.IEntity) bool {
-	forageable, _ := potentialTarget.(types.IForageable); 
+func (a *ForageAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	if potentialTarget == nil {
+		return false
+	}
 
+	forageable, _ := potentialTarget.(types.IForageable); 
 	if forageable == nil {
 		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
@@ -74,7 +78,7 @@ func (a *ForageAction) IsValidTarget(potentialTarget types.IEntity) bool {
 	return true
 }
 
-func (a *ForageAction) IsValidActor(potentialActor types.IEntity) bool {
+func (a *ForageAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	itemHolder, _ := potentialActor.(types.IInventory);
 
 	// actor and target of correct types?

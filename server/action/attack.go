@@ -3,6 +3,8 @@ package action
 import (
 	"fmt"
 	"log"
+	"thereaalm/entity/entitystate"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -14,8 +16,8 @@ type AttackAction struct {
 	Timer_s float64
 }
 
-func NewAttackAction(actor, target types.IEntity, weighting float64,
-	fallbackTargetSpec *TargetSpec) *AttackAction {
+func NewAttackAction(actor, target interfaces.IEntity, weighting float64,
+	fallbackTargetSpec *types.TargetSpec) *AttackAction {
 
 	a := &AttackAction{
 		Action: Action{
@@ -31,9 +33,12 @@ func NewAttackAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *AttackAction) IsValidTarget(potentialTarget types.IEntity) bool {
-	targetStats, _ := potentialTarget.(stats.IStats)
+func (a *AttackAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	if potentialTarget == nil {
+		return false
+	}
 
+	targetStats, _ := potentialTarget.(stats.IStats)
 	if targetStats == nil {
 		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
@@ -49,10 +54,21 @@ func (a *AttackAction) IsValidTarget(potentialTarget types.IEntity) bool {
 		return false
 	}
 
+	// does target have state and is alive
+	targetEntityState, _ := potentialTarget.(entitystate.IEntityState)
+	if targetEntityState == nil {
+		log.Println("ERROR: An entity without any state was targeted by an attack")
+		return false
+	}
+
+	if targetEntityState == entitystate.Dead {
+		return false
+	}
+
 	return true
 }
 
-func (a *AttackAction) IsValidActor(potentialActor types.IEntity) bool {
+func (a *AttackAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	attackerStats, _ := potentialActor.(stats.IStats)
 
 	// do both the target and attacker have stats?

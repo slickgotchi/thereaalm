@@ -1,4 +1,4 @@
-package action
+package types
 
 type TargetSpec struct {
     TargetType string

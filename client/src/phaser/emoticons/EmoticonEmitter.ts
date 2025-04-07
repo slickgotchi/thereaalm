@@ -38,8 +38,8 @@ export class EmoticonEmitter {
             case "sell": return { texture: 'actionicons', frame: 8 };
             case "buy": return { texture: 'actionicons', frame: 9 };
             case "rest": return { texture: 'actionicons', frame: 11 };
-            case "repair": return { texture: 'actionicons', frame: 7 };
-            case "build": return { texture: 'actionicons', frame: 6 };
+            case "maintain": return { texture: 'actionicons', frame: 7 };
+            case "rebuild": return { texture: 'actionicons', frame: 6 };
             default: {
                 console.log(`No emoticon for '${emoticonStr}'`);
                 return { texture: 'icons', frame: 'default' };

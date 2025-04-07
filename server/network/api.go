@@ -97,7 +97,7 @@ func handleZoneSnapshot(worldManager *world.WorldManager) http.HandlerFunc {
 
 		// Extract zone ID from URL path (e.g., /zones/0/snapshot)
 		parts := strings.Split(r.URL.Path, "/")
-		log.Printf("URL parts: %v", parts)
+		// log.Printf("URL parts: %v", parts)
 
 		// Expected path: /zones/0/snapshot
 		if len(parts) != 4 || parts[1] != "zones" || parts[3] != "snapshot" {
@@ -120,7 +120,7 @@ func handleZoneSnapshot(worldManager *world.WorldManager) http.HandlerFunc {
 
 		// Collect entities
 		var snapshot ZoneSnapshot
-		for _, entity := range zone.Entities {
+		for _, entity := range zone.GetEntities() {
 			x, y := entity.GetPosition()
 			snapshot.EntitySnapshots = append(snapshot.EntitySnapshots, EntitySnapshot{
 				ID:     entity.GetUUID(),

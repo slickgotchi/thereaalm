@@ -3,6 +3,7 @@ package action
 import (
 	"fmt"
 	"log"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"time"
@@ -15,7 +16,7 @@ type TradeAction struct {
 	TradeType string
 }
 
-func NewTradeAction(actor, target types.IEntity, weighting float64, tradeType string) *TradeAction {
+func NewTradeAction(actor, target interfaces.IEntity, weighting float64, tradeType string) *TradeAction {
 	trader, _ := actor.(stats.IStats)
 	if trader == nil {
 		log.Println("ERROR: Trading actor does not have IStats, returning...")
@@ -41,19 +42,32 @@ func NewTradeAction(actor, target types.IEntity, weighting float64, tradeType st
 	}
 }
 
-func (a *TradeAction) CanBeExecuted() bool {
-	// check actor and target are correct type
-	respondingItemHolder, _ := a.Target.(types.IInventory) 
-	initiatingItemHolder, _ := a.Actor.(types.IInventory)
+func (a *TradeAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	if potentialTarget == nil {
+		return false
+	}
 
-	// correct types?
-	if respondingItemHolder == nil || initiatingItemHolder == nil {
+	respondingItemHolder, _ := potentialTarget.(types.IInventory) 
+	if respondingItemHolder == nil {
 		log.Printf("Invalid item holders passed to SellAction Update()")
 		return false
 	}
 
 	// can move to target?
-	if !a.CanMoveToTargetEntity(a.Target) {
+	if !a.CanMoveToTargetEntity(potentialTarget) {
+		return false
+	}
+
+	return true
+}
+
+func (a *TradeAction) IsValidActor(potentialActor interfaces.IEntity) bool {
+	// check actor and target are correct type
+	initiatingItemHolder, _ := potentialActor.(types.IInventory)
+
+	// correct types?
+	if initiatingItemHolder == nil {
+		log.Printf("Invalid item holders passed to SellAction Update()")
 		return false
 	}
 

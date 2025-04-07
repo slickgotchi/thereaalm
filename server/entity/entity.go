@@ -3,7 +3,7 @@ package entity
 import (
 	"log"
 	"math"
-	"thereaalm/types"
+	"thereaalm/interfaces"
 
 	"github.com/google/uuid"
 )
@@ -14,7 +14,7 @@ type Entity struct {
 	Type string
     X int
     Y int
-	CurrentZone *types.Zone
+	CurrentZone interfaces.IZone
 	Direction string
 }
 
@@ -32,11 +32,11 @@ func (e *Entity) GetCustomData() interface{} {
     return nil
 }
 
-func (e *Entity) SetZone(zone *types.Zone) {
+func (e *Entity) SetZone(zone interfaces.IZone) {
     e.CurrentZone = zone
 }
 
-func (e *Entity) GetZone() *types.Zone {
+func (e *Entity) GetZone() interfaces.IZone {
     return e.CurrentZone
 }
 
@@ -44,7 +44,7 @@ func (e *Entity) GetSnapshotData() interface {} {
 	return nil
 }
 
-func (e *Entity) IsNextToTargetEntity(target types.IEntity) bool {
+func (e *Entity) IsNextToTargetEntity(target interfaces.IEntity) bool {
     ax, ay := e.GetPosition()
     bx, by := target.GetPosition()
 
@@ -53,11 +53,11 @@ func (e *Entity) IsNextToTargetEntity(target types.IEntity) bool {
            (ay == by && (ax == bx+1 || ax == bx-1))   // Horizontal check (left, right)
 }
 
-func (e *Entity) SetDirectionToTargetEntity(target types.IEntity) {
+func (e *Entity) SetDirectionToTargetEntity(target interfaces.IEntity) {
 	e.SetDirection(e.GetDirectionToTargetEntity(target))
 }
 
-func (e *Entity) GetDirectionToTargetEntity(target types.IEntity) string {
+func (e *Entity) GetDirectionToTargetEntity(target interfaces.IEntity) string {
 	ax, ay := e.GetPosition()
 	bx, by := target.GetPosition()
 

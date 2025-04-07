@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/action"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -17,8 +18,8 @@ type MineAction struct {
 	StartTime time.Time
 }
 
-func NewMineAction(actor, target types.IEntity, weighting float64,
-	fallbackTargetSpec *action.TargetSpec) *MineAction {
+func NewMineAction(actor, target interfaces.IEntity, weighting float64,
+	fallbackTargetSpec *types.TargetSpec) *MineAction {
 
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
@@ -53,9 +54,12 @@ func NewMineAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *MineAction) IsValidTarget(potentialTarget types.IEntity) bool {
-	mineable, _ := potentialTarget.(types.IMineable)
+func (a *MineAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	if potentialTarget == nil {
+		return false
+	}
 
+	mineable, _ := potentialTarget.(types.IMineable)
 	if mineable == nil {
 		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
@@ -74,7 +78,7 @@ func (a *MineAction) IsValidTarget(potentialTarget types.IEntity) bool {
 	return true
 }
 
-func (a *MineAction) IsValidActor(potentialActor types.IEntity) bool {
+func (a *MineAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	itemHolder, _ := potentialActor.(types.IInventory);
 
 	// actor and target of correct types?

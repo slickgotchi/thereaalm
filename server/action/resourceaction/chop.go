@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"thereaalm/action"
+	"thereaalm/interfaces"
 	"thereaalm/stats"
 	"thereaalm/types"
 	"thereaalm/utils"
@@ -17,8 +18,8 @@ type ChopAction struct {
 	StartTime time.Time
 }
 
-func NewChopAction(actor, target types.IEntity, weighting float64,
-		fallbackTargetSpec *action.TargetSpec) *ChopAction {
+func NewChopAction(actor, target interfaces.IEntity, weighting float64,
+		fallbackTargetSpec *types.TargetSpec) *ChopAction {
 	actorItemHolder, _ := actor.(types.IInventory)
 	actorStats, _ := actor.(stats.IStats)
 	if actorStats == nil || actorItemHolder == nil {
@@ -52,9 +53,12 @@ func NewChopAction(actor, target types.IEntity, weighting float64,
 	return a
 }
 
-func (a *ChopAction) IsValidTarget(potentialTarget types.IEntity) bool {
-	choppable, _ := potentialTarget.(types.IChoppable); 
+func (a *ChopAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
+	if potentialTarget == nil {
+		return false
+	}
 
+	choppable, _ := potentialTarget.(types.IChoppable); 
 	if choppable == nil {
 		log.Printf("ERROR [%s]: Invalid target, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
@@ -73,7 +77,7 @@ func (a *ChopAction) IsValidTarget(potentialTarget types.IEntity) bool {
 	return true
 }
 
-func (a *ChopAction) IsValidActor(potentialActor types.IEntity) bool {
+func (a *ChopAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	itemHolder, _ := potentialActor.(types.IInventory);
 
 	// actor and target of correct types?
