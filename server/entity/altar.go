@@ -11,8 +11,9 @@ import (
 
 type Altar struct {
 	Entity
-	stattypes.Stats
+	Stats stattypes.Stats
 	entitystate.State
+	BuffRange int // Add range field
 }
 
 func NewAltar(x, y int) *Altar {
@@ -29,6 +30,7 @@ func NewAltar(x, y int) *Altar {
         },
 		Stats: *newStats,
 		State: entitystate.Active,
+		BuffRange: 10,
     }
 }
 
@@ -41,17 +43,13 @@ func (e *Altar) GetSnapshotData() interface{} {
 	}{
 		Name: "Gotchi Altar",
 		Description: "While active, imbues nearby gotchis with action duration bonuses",
-		Stats: e.StatMap,
+		Stats: e.Stats.StatMap,
 		State: e.State,
 	}
 }
 
 func (e *Altar) Update(dt_s float64) {
-	pulse := e.GetStat(stattypes.Pulse)
 
-	if pulse <= 0 {
-		e.State = entitystate.Dead
-	} 
 }
 
 // IMaintainable functions
@@ -100,4 +98,37 @@ func (e *Altar) CanBeRebuilt() bool {
 	return true
 }
 
-// GetMaxPulse() already part of IMaintainable
+func (e *Altar) GetBuffRange() int {
+    return e.BuffRange
+}
+
+func (e *Altar) GetSpeedBuffMultiplier() float64 {
+    return 1.2 // 20% speed increase when in range
+}
+
+func (e *Altar) IsBuffActive() bool {
+    return e.State == entitystate.Active && e.GetStat(stattypes.Pulse) > 0
+}
+
+// custom stat modification wrappers
+func (e *Altar) SetStat(name string, value int) {
+	e.Stats.SetStat(name, value)
+}
+
+func (e *Altar) GetStat(name string) int {
+	return e.Stats.GetStat(name)
+}
+
+func (e *Altar) DeltaStat(name string, value int) {
+	prev := e.Stats.GetStat(name)
+	e.Stats.DeltaStat(name, value)
+	newVal := e.Stats.GetStat(name)
+
+	// CUSTOM HOOK: handle ESP stats going below 0 (death)
+	if (name == stattypes.Pulse) && 
+		newVal <= 0 && prev > 0 {
+
+		// set gotchi state to dead
+		e.State = entitystate.Dead
+	}
+}

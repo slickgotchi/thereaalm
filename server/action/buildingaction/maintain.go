@@ -140,11 +140,11 @@ func (a *MaintainAction) Update(dt_s float64) bool {
 		a.TotalPulseRestored += a.PulseRestoredPerSecond
 
 		// check if maintenance is complete due to going over max pulse
-		if maintainableStats.GetStat(stattypes.Pulse) >= maintainable.GetMaxPulse() {
+		if maintainableStats.GetStat(stattypes.Pulse) >= maintainableStats.GetStat(stattypes.MaxPulse) {
 			itemHolder.RemoveItem("kekwood", 1)
 			itemHolder.RemoveItem("alphaslate", 1)
 
-			maintainableStats.SetStat(stattypes.Pulse, maintainable.GetMaxPulse())
+			maintainableStats.SetStat(stattypes.Pulse, maintainableStats.GetStat(stattypes.MaxPulse))
 
 			// see if actor has an activity log
 			if activityLog, ok := a.Actor.(types.IActivityLog); ok {

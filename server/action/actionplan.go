@@ -16,6 +16,20 @@ func (a *ActionPlan) AddActionToPlan(action interfaces.IAction) {
 }
 
 func (a *ActionPlan) ProcessActions(dt_s float64) {
+	if a.CurrentAction == nil {
+        a.SelectNextAction()
+        return // Early return if no action to process
+    }
+    actor := a.CurrentAction.GetActor()
+    scaledDt := dt_s
+    if consumer, ok := actor.(interfaces.IBuffConsumer); ok {
+        scaledDt = dt_s * consumer.GetEffectiveSpeedMultiplier()
+    }
+    actionComplete := a.CurrentAction.Update(scaledDt)
+    if actionComplete {
+        a.CurrentAction = nil
+    }
+	/*
 	// If there's no current action, select one based on weightings.
 	if a.CurrentAction == nil {
 		a.SelectNextAction()
@@ -31,6 +45,7 @@ func (a *ActionPlan) ProcessActions(dt_s float64) {
 			a.CurrentAction = nil
 		}
 	}
+		*/
 }
 
 // SelectNextAction will only select actions that can be executed.

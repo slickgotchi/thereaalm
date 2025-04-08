@@ -9,7 +9,9 @@ import (
 	"thereaalm/interfaces"
 	"thereaalm/stattypes"
 	"thereaalm/types"
+	"thereaalm/utils"
 	"thereaalm/web3"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -25,6 +27,8 @@ type Gotchi struct {
 	Personality []string
 	types.ActivityLog
 	entitystate.State
+	BuffMultiplier float64       // Buff-specific multiplier
+    LastBuffCheck  time.Duration // Last buff check time
 }
 
 func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
@@ -67,6 +71,8 @@ func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 		GotchiId: subgraphGotchiData.ID,
 		Personality: CreatePersonalityFromSubgraphData(subgraphGotchiData),
 		State: entitystate.Active,
+		BuffMultiplier: 1.0,
+        LastBuffCheck:  0,
     }
 }
 
@@ -82,6 +88,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		ActivityLog interface{} `json:"activityLog"`
 		ActionPlan interface{} `json:"actionPlan"`
 		State entitystate.State `json:"state"`
+		BuffMultiplier float64 `json:"buffmultiplier"`
 	}{
 		Name: g.Name,
 		GotchiID:  g.GotchiId,
@@ -93,51 +100,71 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		ActivityLog: g.ActivityLog.Entries,
 		ActionPlan: g.ActionPlan.ToReporting(),
 		State: g.State,
+		BuffMultiplier: g.BuffMultiplier,
 	}
 }
 
 func (g *Gotchi) Update(dt_s float64) {
-	// skip if we're dead
 	if g.State == entitystate.Dead {
-		return
-	}
-
-	// process our actions
-	g.ProcessActions(dt_s);
+        return
+    }
+    // Check buffs periodically (e.g., every second)
+    if g.WorldManager.Since(g.LastBuffCheck) >= time.Second {
+        utils.UpdateBuffMultiplier(g, 16)
+        g.LastBuffCheck = g.WorldManager.Now()
+    }
+    g.ProcessActions(dt_s)
 }
 
 // custom stat modification wrappers
-func (g *Gotchi) SetStat(name string, value int) {
-	g.Stats.SetStat(name, value)
+func (e *Gotchi) SetStat(name string, value int) {
+	e.Stats.SetStat(name, value)
 }
 
-func (g *Gotchi) GetStat(name string) int {
-	return g.Stats.GetStat(name)
+func (e *Gotchi) GetStat(name string) int {
+	return e.Stats.GetStat(name)
 }
 
-func (g *Gotchi) DeltaStat(name string, value int) {
-	prev := g.Stats.GetStat(name)
-	g.Stats.DeltaStat(name, value)
-	newVal := g.Stats.GetStat(name)
+func (e *Gotchi) DeltaStat(name string, value int) {
+	prev := e.Stats.GetStat(name)
+	e.Stats.DeltaStat(name, value)
+	newVal := e.Stats.GetStat(name)
 
 	// CUSTOM HOOK: handle ESP stats going below 0 (death)
 	if (name == stattypes.Pulse || name == stattypes.Ecto || name == stattypes.Spark) && 
 		newVal <= 0 && prev > 0 {
 
 		// set gotchi state to dead
-		g.State = entitystate.Dead
+		e.State = entitystate.Dead
 
 		// move gotchi to new location out of the way of entities
-		currX, currY := g.GetPosition()
-		newX, newY, found := g.GetZone().FindNearbyEmptyTile(currX, currY, 7, 1)
+		currX, currY := e.GetPosition()
+		newX, newY, found := e.GetZone().FindNearbyEmptyTile(currX, currY, 7, 1)
 		if found {
 			// set direction to new position
-			g.SetDirection("down")
+			e.SetDirection("down")
 	
 			// Move the actor to the new position
-			g.SetPosition(newX, newY)
+			e.SetPosition(newX, newY)
 		}
 	}
+}
+
+// IBuffConsumer methods
+func (g *Gotchi) GetEffectiveSpeedMultiplier() float64 {
+    return g.BuffMultiplier
+}
+
+func (g *Gotchi) SetBuffMultiplier(multiplier float64) {
+    g.BuffMultiplier = multiplier
+}
+
+func (g *Gotchi) GetLastBuffCheck() time.Duration {
+    return g.LastBuffCheck
+}
+
+func (g *Gotchi) SetLastBuffCheck(t time.Duration) {
+    g.LastBuffCheck = t
 }
 
 func CreatePersonalityFromSubgraphData(subgraphData web3.SubgraphGotchiData) []string {

@@ -88,7 +88,7 @@ func (a *RebuildAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 		return false
 	}
 
-	// entity is ready to be maintained?
+	// entity is ready to be rebuilt?
 	if !rebuildable.CanBeRebuilt() {
 		return false
 	}
@@ -142,11 +142,11 @@ func (a *RebuildAction) Update(dt_s float64) bool {
 		a.TotalPulseRestored += a.PulseRestoredPerSecond
 
 		// check if rebuild is complete due to going over max pulse
-		if rebuildableStats.GetStat(stattypes.Pulse) >= rebuildable.GetMaxPulse() {
+		if rebuildableStats.GetStat(stattypes.Pulse) >= rebuildableStats.GetStat(stattypes.MaxPulse) {
 			itemHolder.RemoveItem("kekwood", 1)
 			itemHolder.RemoveItem("alphaslate", 1)
 
-			rebuildableStats.SetStat(stattypes.Pulse, rebuildable.GetMaxPulse())
+			rebuildableStats.SetStat(stattypes.Pulse, rebuildableStats.GetStat(stattypes.MaxPulse))
 
 			// see if actor has an activity log
 			if activityLog, ok := a.Actor.(types.IActivityLog); ok {

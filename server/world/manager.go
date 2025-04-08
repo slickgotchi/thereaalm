@@ -171,7 +171,7 @@ func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int,
 
     newGotchi := entity.NewGotchi(x, y, subgraphData)
     wm.Zones[42].AddEntity(newGotchi)
-    newGotchi.SetStat(stattypes.Pulse, 20)
+    newGotchi.SetStat(stattypes.Pulse, 300)
 
     // ACTIONS
     // newGotchi.AddActionToPlan(
