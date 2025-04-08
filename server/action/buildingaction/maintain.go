@@ -19,10 +19,10 @@ type MaintainAction struct {
 	action.Action
 
 	PulseRestoredPerSecond int
-	LastRestoreTime time.Time
+	LastRestoreTime time.Duration
 
 	MaintenanceDuration_s time.Duration
-	MaintenanceStartTime time.Time
+	MaintenanceStartTime time.Duration
 
 	TotalPulseRestored int
 }
@@ -48,18 +48,21 @@ func NewMaintainAction(actor, target interfaces.IEntity, weighting float64,
 	alpha := actorEcto / 1000
 	pulseRestoredPerSecond := int(5 + 15 * alpha)
 
+	wm := actor.GetZone().GetWorldManager()
+
 	a := &MaintainAction{
 		Action: action.Action{
 			Type: "maintain",
 			Weighting: weighting,
 			Actor: actor,
 			Target: target,
+			WorldManager: wm,
 		},
 		PulseRestoredPerSecond: pulseRestoredPerSecond,
-		LastRestoreTime: time.Now(),
+		LastRestoreTime: 0,
 
 		MaintenanceDuration_s: time.Duration(30) * time.Second,
-		MaintenanceStartTime: time.Now(),
+		MaintenanceStartTime: 0,
 	
 		TotalPulseRestored: 0,
 	}
@@ -113,7 +116,7 @@ func (a *MaintainAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 func (a *MaintainAction) Start() {
 	// move to target
 	a.TryMoveToTargetEntity(a.Target)
-	a.MaintenanceStartTime = time.Now()
+	a.MaintenanceStartTime = a.WorldManager.Now()
 }
 
 func (a *MaintainAction) Update(dt_s float64) bool {
@@ -127,8 +130,10 @@ func (a *MaintainAction) Update(dt_s float64) bool {
 	}
 
 	// check duration expired
-	if time.Since(a.LastRestoreTime) > time.Duration(1) * time.Second {
-		a.LastRestoreTime = time.Now()
+	if a.WorldManager.Since(a.LastRestoreTime) > 
+		time.Duration(1) * time.Second {
+
+		a.LastRestoreTime = a.WorldManager.Now()
 
 		// do maintenance by adding pulse
 		maintainable.Maintain(a.PulseRestoredPerSecond)
@@ -156,7 +161,9 @@ func (a *MaintainAction) Update(dt_s float64) bool {
 	}
 
 	// check maintenance duration expired?
-	if time.Since(a.MaintenanceStartTime) > a.MaintenanceDuration_s {
+	if a.WorldManager.Since(a.MaintenanceStartTime) > 
+		a.MaintenanceDuration_s {
+
 		itemHolder.RemoveItem("kekwood", 1)
 		itemHolder.RemoveItem("alphaslate", 1)
 

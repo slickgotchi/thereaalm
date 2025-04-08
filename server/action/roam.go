@@ -11,12 +11,15 @@ import (
 
 type RoamAction struct {
 	Action
-	StartTime   time.Time
+	StartTime   time.Duration
 	Duration    time.Duration
+	WorldManager interfaces.IWorldManager
 }
 
 func NewRoamAction(actor interfaces.IEntity, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *RoamAction {
+
+	wm := actor.GetZone().GetWorldManager()
 
 	a := &RoamAction{
 		Action: Action{
@@ -24,9 +27,11 @@ func NewRoamAction(actor interfaces.IEntity, target interfaces.IEntity, weightin
 			Weighting: weighting,
 			Actor:     actor,
 			Target: nil,
+			WorldManager: wm,
 		},
 		Duration:  5 * time.Second, // Set the duration to 5 seconds
-		StartTime: time.Now(),
+		StartTime: 0,
+		WorldManager: wm,
 	}
 
 	a.SetFallbackTargetSpec(fallbackTargetSpec)
@@ -43,7 +48,7 @@ func (r *RoamAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 }
 
 func (r *RoamAction) Start() {
-    r.StartTime = time.Now()
+    r.StartTime = r.WorldManager.Now()
     r.Duration = time.Duration(5+rand.Float64()*(15-5)) * time.Second
 
 	// attempt to find a new empty cell using the zone's FindNearbyEmptyCell method
@@ -82,7 +87,7 @@ func (r *RoamAction) Start() {
 // Update moves the actor to the new location and completes the action after 5 seconds
 func (r *RoamAction) Update(dt_s float64) bool {
 	// Check if 5 seconds have passed
-	if time.Since(r.StartTime) >= r.Duration {
+	if r.WorldManager.Since(r.StartTime) >= r.Duration {
 		// log.Printf("Actor %s completed roaming action.\n", r.Actor.GetUUID())
 		return true
 	}

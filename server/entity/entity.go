@@ -16,6 +16,7 @@ type Entity struct {
     Y int
 	CurrentZone interfaces.IZone
 	Direction string
+	WorldManager interfaces.IWorldManager
 }
 
 func (e *Entity) GetUUID() uuid.UUID { return e.ID }
@@ -38,6 +39,14 @@ func (e *Entity) SetZone(zone interfaces.IZone) {
 
 func (e *Entity) GetZone() interfaces.IZone {
     return e.CurrentZone
+}
+
+func (e *Entity) SetWorldManager(wm interfaces.IWorldManager) {
+    e.WorldManager = wm
+}
+
+func (e *Entity) GetWorldManager() interfaces.IWorldManager {
+    return e.WorldManager
 }
 
 func (e *Entity) GetSnapshotData() interface {} {

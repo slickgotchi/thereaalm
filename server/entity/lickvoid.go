@@ -19,12 +19,12 @@ type LickVoid struct {
 	Stats stattypes.Stats
 	entitystate.State
 	SpawnInterval_s float64
-	LastSpawnTime time.Time
+	LastSpawnTime time.Duration
 	MaxAliveSpawns  int
 	SpawnedLicks    []interfaces.IEntity
 }
 
-func NewLickVoid(zoneId, x, y int) *LickVoid {
+func NewLickVoid(x, y int) *LickVoid {
 	newStats := stattypes.NewStats()
 	newStats.SetStat(stattypes.Pulse, 1000)
 	newStats.SetStat(stattypes.MaxPulse, 1000)
@@ -38,7 +38,7 @@ func NewLickVoid(zoneId, x, y int) *LickVoid {
         },
 		Stats: *newStats,
 		State: entitystate.Active,
-		LastSpawnTime: time.Now(),
+		LastSpawnTime: 0,
 		SpawnInterval_s: 5,
 		MaxAliveSpawns:  5,
 		SpawnedLicks:    []interfaces.IEntity{},
@@ -79,7 +79,7 @@ func (e *LickVoid) Update(dt_s float64) {
 	}
 
 	// Spawn if interval has passed
-	if time.Since(e.LastSpawnTime) >= time.Duration(e.SpawnInterval_s)*time.Second {
+	if e.WorldManager.Since(e.LastSpawnTime) >= time.Duration(e.SpawnInterval_s)*time.Second {
 		currX, currY := e.GetPosition()
 
 		corners := [][2]int{
@@ -93,14 +93,14 @@ func (e *LickVoid) Update(dt_s float64) {
 		lick := e.generateGenericLickquidator(spawnX, spawnY)
 		e.SpawnedLicks = append(e.SpawnedLicks, lick)
 
-		e.LastSpawnTime = time.Now()
+		e.LastSpawnTime = e.WorldManager.Now()
 	}
 }
 
 
 func (e *LickVoid) generateGenericLickquidator(x, y int) interfaces.IEntity {
 	zone := e.GetZone()
-	lickquidator := NewLickquidator(zone.GetID(), x, y)
+	lickquidator := NewLickquidator(x, y)
 	zone.AddEntity(lickquidator)
 
 	lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.5,

@@ -15,7 +15,7 @@ type ChopAction struct {
 	action.Action
 
 	Duration_s time.Duration
-	StartTime time.Time
+	StartTime time.Duration
 }
 
 func NewChopAction(actor, target interfaces.IEntity, weighting float64,
@@ -38,12 +38,15 @@ func NewChopAction(actor, target interfaces.IEntity, weighting float64,
 	alpha := actorSpark / 1000
 	actionDuration_s := int(5 + 25 * alpha)
 
+	wm := actor.GetZone().GetWorldManager()
+
 	a := &ChopAction{
 		Action: action.Action{
 			Type: "chop",
 			Weighting: weighting,
 			Actor: actor,
 			Target: target,
+			WorldManager: wm,
 		},
 		Duration_s: time.Duration(actionDuration_s) * time.Second,
 	}
@@ -93,7 +96,7 @@ func (a *ChopAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 func (a *ChopAction) Start() {
 	// move to target
 	if a.TryMoveToTargetEntity(a.Target) {
-		a.StartTime = time.Now()
+		a.StartTime = a.WorldManager.Now()
 	 }
 }
 
@@ -107,7 +110,8 @@ func (a *ChopAction) Update(dt_s float64) bool {
 	}
 
 	// check duration expired
-	if time.Since(a.StartTime) > time.Duration(a.Duration_s) {
+	if a.WorldManager.Since(a.StartTime) > a.Duration_s {
+
 		typeRemoved, amountRemoved := choppable.Chop()
 
 		if typeRemoved != "" && amountRemoved > 0 {

@@ -15,10 +15,10 @@ type FomoBerryBush struct {
 	MaxBerries int
 	RegrowInterval_s time.Duration
 	RegrowAmount int
-	TimeOfLastRegrow time.Time
+	TimeOfLastRegrow time.Duration
 }
 
-func NewFomoBerryBush(zoneId, x, y int) *FomoBerryBush {
+func NewFomoBerryBush(x, y int) *FomoBerryBush {
 	newInventory := types.NewInventory()
 	newInventory.Items["fomoberry"] = 50
 
@@ -53,7 +53,7 @@ func (b *FomoBerryBush) GetSnapshotData() interface{} {
 }
 
 func (b *FomoBerryBush) Update(dt_s float64) {
-	if time.Since(b.TimeOfLastRegrow) >= b.RegrowInterval_s {
+	if b.WorldManager.Since(b.TimeOfLastRegrow) >= b.RegrowInterval_s {
 		b.Items["fomoberry"] += b.RegrowAmount
 		if b.Items["fomoberry"] > b.MaxBerries {
 			b.Items["fomoberry"] = b.MaxBerries

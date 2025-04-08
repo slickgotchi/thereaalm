@@ -12,7 +12,7 @@ type Shop struct {
 	types.Inventory
 }
 
-func NewShop(zoneId, x, y int) *Shop {
+func NewShop(x, y int) *Shop {
 	// start show with gold
 	itemHolder := types.NewInventory()
 	itemHolder.Items["gold"] = 10000

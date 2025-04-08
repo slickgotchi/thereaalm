@@ -19,9 +19,10 @@ type Zone struct {
     X        int
     Y        int
     SpatialMap *SpatialHash
+    WorldManager *WorldManager // Add reference to WorldManager
 }
 
-func NewZone(id, width, height, x, y, cellSize int) *Zone {
+func NewZone(wm *WorldManager, id, width, height, x, y, cellSize int) *Zone {
     return &Zone{
         ID:       id,
         Entities: []interfaces.IEntity{},
@@ -30,6 +31,7 @@ func NewZone(id, width, height, x, y, cellSize int) *Zone {
         X:        x,
         Y:        y,
         SpatialMap: NewSpatialHash(cellSize),
+        WorldManager: wm,
     }
 }
 
@@ -45,6 +47,7 @@ func (z *Zone) AddEntity(e interfaces.IEntity) {
     z.Entities = append(z.Entities, e)
     z.SpatialMap.Insert(e)
     e.SetZone(z)
+    e.SetWorldManager(z.GetWorldManager())
 }
 
 // RemoveEntity removes an entity from the zone and updates the spatial hash
@@ -213,4 +216,8 @@ func (z *Zone) GetEntities() []interfaces.IEntity {
 // GetDistance calculates the simple distance between two points (x1, y1) and (x2, y2)
 func (z *Zone) GetDistance(x1, y1, x2, y2 int) int {
     return utils.Abs(x1 - x2) + utils.Abs(y1 - y2)
+}
+
+func (z *Zone) GetWorldManager() interfaces.IWorldManager {
+    return z.WorldManager
 }

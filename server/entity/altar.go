@@ -15,7 +15,7 @@ type Altar struct {
 	entitystate.State
 }
 
-func NewAltar(zoneId, x, y int) *Altar {
+func NewAltar(x, y int) *Altar {
 	newStats := stattypes.NewStats()
 	newStats.SetStat(stattypes.Pulse, 1000)
 	newStats.SetStat(stattypes.MaxPulse, 1000)

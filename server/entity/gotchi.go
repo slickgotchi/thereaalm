@@ -27,7 +27,7 @@ type Gotchi struct {
 	entitystate.State
 }
 
-func NewGotchi(zoneId, x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
+func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 	// add item holder
 	newItemHolder := types.NewInventory()
 

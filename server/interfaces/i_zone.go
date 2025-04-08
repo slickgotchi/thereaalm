@@ -1,6 +1,8 @@
 package interfaces
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type IZone interface {
 	AddEntity(e IEntity)
@@ -21,4 +23,6 @@ type IZone interface {
 	GetEntities() []IEntity
 
 	GetDistance(x1, y1, x2, y2 int) int
+
+	GetWorldManager() IWorldManager
 }

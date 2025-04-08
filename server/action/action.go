@@ -2,7 +2,6 @@ package action
 
 import (
 	"log"
-	// "thereaalm/action/actiontargeting"
 	"thereaalm/interfaces"
 	"thereaalm/types"
 )
@@ -13,6 +12,7 @@ type Action struct {
 	Actor interfaces.IEntity
 	Target interfaces.IEntity
 	FallbackTargetSpec *types.TargetSpec // Fallback target specification
+	WorldManager interfaces.IWorldManager
 }
 
 func (a *Action) Start() {}

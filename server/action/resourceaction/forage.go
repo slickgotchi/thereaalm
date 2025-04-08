@@ -15,7 +15,7 @@ type ForageAction struct {
 	action.Action
 
 	Duration_s time.Duration
-	StartTime time.Time
+	StartTime time.Duration
 }
 
 func NewForageAction(actor, target interfaces.IEntity, weighting float64,
@@ -39,12 +39,15 @@ func NewForageAction(actor, target interfaces.IEntity, weighting float64,
 	alpha := actorSpark / 1000
 	actionDuration_s := int(5 + 25 * alpha)
 
+	wm := actor.GetZone().GetWorldManager()
+
 	a := &ForageAction{
 		Action: action.Action{
 			Type: "forage",
 			Weighting: weighting,
 			Actor: actor,
 			Target: target,
+			WorldManager: wm,
 		},
 		Duration_s: time.Duration(actionDuration_s) * time.Second,
 	}
@@ -94,7 +97,7 @@ func (a *ForageAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 func (a *ForageAction) Start() {
 	// move to target
 	if a.TryMoveToTargetEntity(a.Target) {
-		a.StartTime = time.Now()
+		a.StartTime = a.WorldManager.Now()
 	 }
 }
 
@@ -112,7 +115,8 @@ func (a *ForageAction) Update(dt_s float64) bool {
 	}
 
 	// check duration expired
-	if time.Since(a.StartTime) > time.Duration(a.Duration_s) {
+	if a.WorldManager.Since(a.StartTime) > a.Duration_s {
+
 		typeRemoved, amountRemoved := forageable.Forage()
 
 		if typeRemoved != "" && amountRemoved > 0 {

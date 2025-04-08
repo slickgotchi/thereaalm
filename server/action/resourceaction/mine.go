@@ -15,7 +15,7 @@ type MineAction struct {
 	action.Action
 
 	Duration_s time.Duration
-	StartTime time.Time
+	StartTime time.Duration
 }
 
 func NewMineAction(actor, target interfaces.IEntity, weighting float64,
@@ -39,12 +39,15 @@ func NewMineAction(actor, target interfaces.IEntity, weighting float64,
 	alpha := actorSpark / 1000
 	actionDuration_s := int(5 + 25 * alpha)
 
+	wm := actor.GetZone().GetWorldManager()
+
 	a := &MineAction{
 		Action: action.Action{
 			Type: "mine",
 			Weighting: weighting,
 			Actor: actor,
 			Target: target,
+			WorldManager: wm,
 		},
 		Duration_s: time.Duration(actionDuration_s) * time.Second,
 	}
@@ -94,7 +97,7 @@ func (a *MineAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 func (a *MineAction) Start() {
 	// move to target
 	if a.TryMoveToTargetEntity(a.Target) {
-		a.StartTime = time.Now()
+		a.StartTime = a.WorldManager.Now()
 	 }
 }
 
@@ -108,7 +111,7 @@ func (a *MineAction) Update(dt_s float64) bool {
 	}
 
 	// check duration expired
-	if time.Since(a.StartTime) > time.Duration(a.Duration_s) {
+	if a.WorldManager.Since(a.StartTime) > time.Duration(a.Duration_s) {
 		typeRemoved, amountRemoved := mineable.Mine()
 
 		if typeRemoved != "" && amountRemoved > 0 {

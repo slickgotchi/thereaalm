@@ -15,11 +15,11 @@ type KekWoodTree struct {
 	types.Inventory
 	MaxWood int
 	RegrowDuration_s time.Duration
-	TimeOfDepletion time.Time
+	TimeOfDepletion time.Duration
 	State entitystate.State
 }
 
-func NewKekWoodTree(zoneId, x, y int) *KekWoodTree {
+func NewKekWoodTree(x, y int) *KekWoodTree {
 	newInventory := types.NewInventory()
 	newInventory.Items["kekwood"] = 100
 
@@ -58,12 +58,12 @@ func (b *KekWoodTree) Update(dt_s float64) {
 	if b.State == entitystate.Active {
 		if b.Items["kekwood"] <= 0 {
 			b.State = entitystate.Regrowing
-			b.TimeOfDepletion = time.Now()
+			b.TimeOfDepletion = b.WorldManager.Now()
 		}
 	}
 
 	if b.State == entitystate.Regrowing {
-		if time.Since(b.TimeOfDepletion) >= b.RegrowDuration_s {
+		if b.WorldManager.Since(b.TimeOfDepletion) >= b.RegrowDuration_s {
 			b.Items["kekwood"] = b.MaxWood
 			b.State = entitystate.Active
 		}

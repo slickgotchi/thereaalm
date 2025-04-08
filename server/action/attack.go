@@ -19,12 +19,15 @@ type AttackAction struct {
 func NewAttackAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *AttackAction {
 
+	wm := actor.GetZone().GetWorldManager()
+
 	a := &AttackAction{
 		Action: Action{
 			Type: "attack",
 			Weighting: weighting,
 			Actor: actor,
 			Target: target,
+			WorldManager: wm,
 		},
 	}
 

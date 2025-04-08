@@ -18,7 +18,7 @@ type Lickquidator struct {
 	stattypes.Stats
 }
 
-func NewLickquidator(zoneId, x, y int) *Lickquidator {
+func NewLickquidator(x, y int) *Lickquidator {
 	// make them hold the "Tongue" item
 	newInventory := types.NewInventory()
 	newInventory.Items["tongue"] = 1

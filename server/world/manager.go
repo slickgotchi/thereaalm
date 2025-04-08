@@ -30,6 +30,9 @@ const (
 type WorldManager struct {
     Zones       []interfaces.IZone
     WorkerCount int
+    SpeedMultiplier float64       // 1.0 = normal, 2.0 = double speed
+    GameTime        time.Duration // Simulated game time
+    LastUpdate      time.Time     // Real time of last update
 }
 
 func NewWorldManager(workerCount int) *WorldManager {
@@ -39,6 +42,9 @@ func NewWorldManager(workerCount int) *WorldManager {
 
     manager := &WorldManager{
         WorkerCount: workerCount,
+        SpeedMultiplier: 1.0,
+        GameTime:        0,
+        LastUpdate:      time.Now(),
     }
 
     // Initialize zones
@@ -48,7 +54,7 @@ func NewWorldManager(workerCount int) *WorldManager {
             if zoneType == "" {
                 continue
             }
-            zone := NewZone(zoneID, ZoneTiles, ZoneTiles, x*ZoneTiles, y*ZoneTiles, 64)
+            zone := NewZone(manager, zoneID, ZoneTiles, ZoneTiles, x*ZoneTiles, y*ZoneTiles, 64)
             manager.Zones = append(manager.Zones, zone)
             zoneID++
         }
@@ -58,6 +64,8 @@ func NewWorldManager(workerCount int) *WorldManager {
         log.Fatal("Error: No active zones initialized!")
         return manager
     }
+
+    manager.SetSimulationSpeed(3)
 
     // load test entities
     manager.loadTestEntities()
@@ -79,19 +87,19 @@ func (wm *WorldManager) loadTestEntities() {
 
     // ENTITIES
     // resources
-    bush := resourceentity.NewFomoBerryBush(42, 12+zoneX, 10+zoneY)
+    bush := resourceentity.NewFomoBerryBush(12+zoneX, 10+zoneY)
     wm.Zones[42].AddEntity(bush)
 
-    tree := resourceentity.NewKekWoodTree(42, 15+zoneX, 9+zoneY)
+    tree := resourceentity.NewKekWoodTree(15+zoneX, 9+zoneY)
     wm.Zones[42].AddEntity(tree)
 
-    boulders := resourceentity.NewAlphaSlateBoulders(42, 13+zoneX, 12+zoneY)
+    boulders := resourceentity.NewAlphaSlateBoulders(13+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(boulders)
 
     // generateBerryBushes(wm, 42, zoneX, zoneY)
 
     // shop
-    shop := entity.NewShop(42, 6+zoneX, 12+zoneY)
+    shop := entity.NewShop(6+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(shop)
 
     // gotchis
@@ -107,16 +115,16 @@ func (wm *WorldManager) loadTestEntities() {
     generateGenericLickquidator(wm, 42, 15+zoneX, 19+zoneY)
 
     // altar
-    altar := entity.NewAltar(42, 19+zoneX, 12+zoneY)
+    altar := entity.NewAltar(19+zoneX, 12+zoneY)
     wm.Zones[42].AddEntity(altar)
     altar.SetStat(stattypes.Pulse, 20)
 
-    altarB := entity.NewAltar(42, 12+zoneX, 17+zoneY)
+    altarB := entity.NewAltar(12+zoneX, 17+zoneY)
     wm.Zones[42].AddEntity(altarB)
     altarB.SetStat(stattypes.Pulse, 20)
 
     // lickvoid
-    lickvoid := entity.NewLickVoid(42, 25+zoneX, 14+zoneY)
+    lickvoid := entity.NewLickVoid(25+zoneX, 14+zoneY)
     wm.Zones[42].AddEntity(lickvoid)
     lickvoid.SpawnInterval_s = 5
 
@@ -143,7 +151,7 @@ func (wm *WorldManager) loadTestEntities() {
 }
 
 func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
-    lickquidator := entity.NewLickquidator(zoneID, x, y)
+    lickquidator := entity.NewLickquidator(x, y)
     wm.Zones[zoneID].AddEntity(lickquidator)
 
     lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.2,
@@ -161,7 +169,7 @@ func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
 func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int, 
     subgraphData web3.SubgraphGotchiData) {
 
-    newGotchi := entity.NewGotchi(zoneID, x, y, subgraphData)
+    newGotchi := entity.NewGotchi(x, y, subgraphData)
     wm.Zones[42].AddEntity(newGotchi)
     newGotchi.SetStat(stattypes.Pulse, 20)
 
@@ -232,7 +240,7 @@ func generateBerryBushes(wm *WorldManager, zoneID int, zoneX, zoneY int) {
         pos := [2]int{x, y}
         if !occupied[pos] {
             occupied[pos] = true
-            zone.AddEntity(resourceentity.NewFomoBerryBush(zoneID, x, y))
+            zone.AddEntity(resourceentity.NewFomoBerryBush(x, y))
         }
     }
 }
@@ -246,22 +254,24 @@ func (wm *WorldManager) updateLoop() {
     ticker := time.NewTicker(1 * time.Second)
     defer ticker.Stop()
 
-    lastUpdate := time.Now()
     for range ticker.C {
         now := time.Now()
-        dt_s := now.Sub(lastUpdate).Seconds() // Delta time in seconds
-        lastUpdate = now
+        dt_s := now.Sub(wm.LastUpdate).Seconds()
+        wm.LastUpdate = now
         wm.updateZonesParallel(dt_s)
     }
 }
 
 func (wm *WorldManager) updateZonesParallel(dt_s float64) {
+    scaledDt := dt_s * wm.SpeedMultiplier
+    wm.GameTime += time.Duration(scaledDt * float64(time.Second))
+
     var wg sync.WaitGroup
     jobs := make(chan interfaces.IZone, len(wm.Zones))
 
     for i := 0; i < wm.WorkerCount; i++ {
         wg.Add(1)
-        go wm.zoneWorker(jobs, dt_s, &wg)
+        go wm.zoneWorker(jobs, dt_s * scaledDt, &wg)
     }
 
     for _, zone := range wm.Zones {
@@ -278,4 +288,25 @@ func (wm *WorldManager) zoneWorker(jobs <-chan interfaces.IZone, dt_s float64, w
     for zone := range jobs {
         zone.Update(dt_s)
     }
+}
+
+// Time access methods
+func (wm *WorldManager) Now() time.Duration {
+    return wm.GameTime
+}
+
+func (wm *WorldManager) Since(startTime time.Duration) time.Duration {
+    if wm.GameTime < startTime {
+        return 0 // Prevent negative durations
+    }
+    return wm.GameTime - startTime
+}
+
+func (wm *WorldManager) SetSimulationSpeed(multiplier float64) {
+    if multiplier <= 0 {
+        log.Println("WARNING: Speed multiplier must be positive, ignoring:", multiplier)
+        return
+    }
+    wm.SpeedMultiplier = multiplier
+    log.Printf("Simulation speed set to %.2fx", multiplier)
 }

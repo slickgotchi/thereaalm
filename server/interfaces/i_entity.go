@@ -14,6 +14,8 @@ type IEntity interface {
     GetSnapshotData() interface{}
     GetZone() IZone
     SetZone(zone IZone)
+    SetWorldManager(wm IWorldManager)
+    GetWorldManager() IWorldManager
     IsNextToTargetEntity(target IEntity) bool
     SetDirection(direction string)
     GetDirection() string

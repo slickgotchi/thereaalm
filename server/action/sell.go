@@ -30,6 +30,8 @@ func NewSellAction(actor, target interfaces.IEntity, weighting float64,
 		log.Println("ERROR: Trading actor must have 'trade_duration_s' stat, returning...")
 		return nil
 	}
+
+	wm := actor.GetZone().GetWorldManager()
 	
 	a := &SellAction{
 		Action: Action{
@@ -37,6 +39,7 @@ func NewSellAction(actor, target interfaces.IEntity, weighting float64,
 			Weighting: weighting,
 			Actor: actor,
 			Target: target,
+			WorldManager: wm,
 		},
 		Duration_s: float64(sellDuration_s),
 		Timer_s: float64(sellDuration_s),

@@ -9,7 +9,7 @@ type AlphaSlateBoulders struct {
 	entity.Entity
 }
 
-func NewAlphaSlateBoulders(zoneId, x, y int) *AlphaSlateBoulders {
+func NewAlphaSlateBoulders(x, y int) *AlphaSlateBoulders {
 	return &AlphaSlateBoulders{
         Entity: entity.Entity{
             ID:   uuid.New(),

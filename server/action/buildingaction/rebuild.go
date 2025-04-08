@@ -19,10 +19,10 @@ type RebuildAction struct {
 	action.Action
 
 	PulseRestoredPerSecond int
-	LastRestoreTime time.Time
+	LastRestoreTime time.Duration
 
 	RebuildDuration_s time.Duration
-	RebuildStartTime time.Time
+	RebuildStartTime time.Duration
 
 	TotalPulseRestored int
 }
@@ -48,18 +48,21 @@ func NewRebuildAction(actor, target interfaces.IEntity, weighting float64,
 	alpha := actorPulse / 1000
 	pulseRestoredPerSecond := int(5 + 15 * alpha)
 
+	wm := actor.GetZone().GetWorldManager()
+
 	a := &RebuildAction{
 		Action: action.Action{
 			Type: "rebuild",
 			Weighting: weighting,
 			Actor: actor,
 			Target: target,
+			WorldManager: wm,
 		},
 		PulseRestoredPerSecond: pulseRestoredPerSecond,
-		LastRestoreTime: time.Now(),
+		LastRestoreTime: 0,
 
 		RebuildDuration_s: time.Duration(30) * time.Second,
-		RebuildStartTime: time.Now(),
+		RebuildStartTime: 0,
 	
 		TotalPulseRestored: 0,
 	}
@@ -115,7 +118,7 @@ func (a *RebuildAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 func (a *RebuildAction) Start() {
 	// move to target
 	a.TryMoveToTargetEntity(a.Target)
-	a.RebuildStartTime = time.Now()
+	a.RebuildStartTime = a.WorldManager.Now()
 }
 
 func (a *RebuildAction) Update(dt_s float64) bool {
@@ -129,8 +132,10 @@ func (a *RebuildAction) Update(dt_s float64) bool {
 	}
 
 	// check duration expired
-	if time.Since(a.LastRestoreTime) > time.Duration(1) * time.Second {
-		a.LastRestoreTime = time.Now()
+	if a.WorldManager.Since(a.LastRestoreTime) > 
+		time.Duration(1) * time.Second {
+
+		a.LastRestoreTime = a.WorldManager.Now()
 
 		// do rebuild by adding pulse
 		rebuildable.Rebuild(a.PulseRestoredPerSecond) 
@@ -158,7 +163,9 @@ func (a *RebuildAction) Update(dt_s float64) bool {
 	}
 
 	// check maintenance duration expired?
-	if time.Since(a.RebuildStartTime) > a.RebuildDuration_s {
+	if a.WorldManager.Since(a.RebuildStartTime) > 
+		a.RebuildDuration_s {
+
 		itemHolder.RemoveItem("kekwood", 1)
 		itemHolder.RemoveItem("alphaslate", 1)
 
