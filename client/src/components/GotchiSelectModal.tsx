@@ -17,6 +17,7 @@ export const GotchiSelectModal = ({ account, onClose }: GotchiSelectModalProps) 
         const loadGotchis = async () => {
             try {
                 const fetchedGotchis = await fetchAavegotchis(account);
+                console.log({account, fetchedGotchis});
                 const sortedGotchis = fetchedGotchis.sort(
                     (a, b) => b.withSetsRarityScore - a.withSetsRarityScore
                 );

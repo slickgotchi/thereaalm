@@ -1,7 +1,7 @@
 package interfaces
 
 type IStats interface {
-    SetStat(name string, value int)
-    GetStat(name string) int
-    DeltaStat(name string, value int)
+    SetStat(name string, value float64)
+    GetStat(name string) float64
+    DeltaStat(name string, value float64)
 }

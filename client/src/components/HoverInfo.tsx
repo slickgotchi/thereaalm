@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./HoverInfo.css";
 import { GotchiHoverInfo } from "./GotchiHoverInfo";
+import { eventBus } from "../utils/EventBus";
 
 interface HoverData {
   id: string;
@@ -12,17 +13,16 @@ export const HoverInfo = () => {
   const [selectedEntity, setSelectedEntity] = useState<HoverData | null>(null);
 
   useEffect(() => {
-    const handleSelection = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        const newData = customEvent.detail;
-        console.log('received event: ', newData);
-      setSelectedEntity(newData); // Set to null or new data directly
+    const handleSelection = (data: any) => {
+      setSelectedEntity(data.detail); // Set to null or new data directly
     };
 
-    window.addEventListener("entitySelection", handleSelection);
+    // window.addEventListener("entitySelection", handleSelection);
+    eventBus.on("entitySelection", handleSelection);
 
     return () => {
-      window.removeEventListener("entitySelection", handleSelection);
+      // window.removeEventListener("entitySelection", handleSelection);
+      eventBus.off("entitySelection", handleSelection);
     };
   }, []);
 

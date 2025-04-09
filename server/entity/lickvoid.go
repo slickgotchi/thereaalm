@@ -118,15 +118,15 @@ func (e *LickVoid) generateGenericLickquidator(x, y int) interfaces.IEntity {
 }
 
 // custom stat modification wrappers
-func (e *LickVoid) SetStat(name string, value int) {
+func (e *LickVoid) SetStat(name string, value float64) {
 	e.Stats.SetStat(name, value)
 }
 
-func (e *LickVoid) GetStat(name string) int {
+func (e *LickVoid) GetStat(name string) float64 {
 	return e.Stats.GetStat(name)
 }
 
-func (e *LickVoid) DeltaStat(name string, value int) {
+func (e *LickVoid) DeltaStat(name string, value float64) {
 	prev := e.Stats.GetStat(name)
 	e.Stats.DeltaStat(name, value)
 	newVal := e.Stats.GetStat(name)

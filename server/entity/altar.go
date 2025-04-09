@@ -53,10 +53,10 @@ func (e *Altar) Update(dt_s float64) {
 }
 
 // IMaintainable functions
-func (e *Altar) Maintain(pulseRestored int) {
+func (e *Altar) Maintain(pulseRestored float64) {
 	e.Stats.DeltaStat(stattypes.Pulse, pulseRestored)
-	if e.Stats.GetStat(stattypes.Pulse) > e.GetStat(stattypes.MaxPulse) {
-		e.Stats.SetStat(stattypes.Pulse, e.GetStat(stattypes.MaxPulse))
+	if e.Stats.GetStat(stattypes.Pulse) > e.Stats.GetStat(stattypes.MaxPulse) {
+		e.Stats.SetStat(stattypes.Pulse, e.Stats.GetStat(stattypes.MaxPulse))
 	}
 }
 
@@ -78,13 +78,13 @@ func (e *Altar) CanBeMaintained() bool {
 }
 
 // IRebuildable functions
-func (e *Altar) Rebuild(pulseRestored int) {
+func (e *Altar) Rebuild(pulseRestored float64) {
 	e.Stats.DeltaStat(stattypes.Pulse, pulseRestored)
 
 	// if pulse >= max pulse set our state back to active
 	if e.Stats.GetStat(stattypes.Pulse) >= e.Stats.GetStat(stattypes.MaxPulse) {
 		e.State = entitystate.Active
-		e.Stats.SetStat(stattypes.Pulse, e.GetStat(stattypes.MaxPulse))
+		e.Stats.SetStat(stattypes.Pulse, e.Stats.GetStat(stattypes.MaxPulse))
 	}
 }
 
@@ -111,15 +111,15 @@ func (e *Altar) IsBuffActive() bool {
 }
 
 // custom stat modification wrappers
-func (e *Altar) SetStat(name string, value int) {
+func (e *Altar) SetStat(name string, value float64) {
 	e.Stats.SetStat(name, value)
 }
 
-func (e *Altar) GetStat(name string) int {
+func (e *Altar) GetStat(name string) float64 {
 	return e.Stats.GetStat(name)
 }
 
-func (e *Altar) DeltaStat(name string, value int) {
+func (e *Altar) DeltaStat(name string, value float64) {
 	prev := e.Stats.GetStat(name)
 	e.Stats.DeltaStat(name, value)
 	newVal := e.Stats.GetStat(name)

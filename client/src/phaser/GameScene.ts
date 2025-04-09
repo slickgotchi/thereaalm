@@ -68,7 +68,7 @@ export class GameScene extends Phaser.Scene {
             "assets/spritesheets/static_entities_spritesheet.png",
             {frameWidth: 64, frameHeight: 64}
         );
-        this.load.image("berrybush", "assets/images/berrybush.png");
+        // this.load.image("berrybush", "assets/images/berrybush.png");
         this.load.image("shop", "assets/images/shop.png");
         this.load.image("berry_icon", "assets/images/berry_icon.png");
         this.load.image("altar", "assets/images/golden_altar_l1.png");

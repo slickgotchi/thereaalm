@@ -1,15 +1,20 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import { GameScene } from "./phaser/GameScene";
 import "./index.css";
 import "./App.css";
 import { HoverInfo } from "./components/HoverInfo";
 import { ConnectWallet } from "./components/ConnectWallet";
+import TreatModal from "./components/menu/TreatModal";
+import MenuSystem from "./components/menu/MenuSystem";
+import { eventBus } from "./utils/EventBus";
 
 function App() {
     const gameRef = useRef<Phaser.Game | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const renderCount = useRef(0);
+
+    const [selectedEntity, setSelectedEntity] = useState<{ type: string; [key: string]: any } | null>(null);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -41,6 +46,14 @@ function App() {
         // Initialize Phaser game
         gameRef.current = new Phaser.Game(config);
 
+        const handleEntitySelection = (data: { detail: any }) => {
+            console.log("[App] Received entitySelection event:", data);
+            setSelectedEntity(data.detail); // Update selectedEntity with the event data
+        };
+
+        eventBus.on("entitySelection", handleEntitySelection);
+
+
         // Cleanup on unmount
         return () => {
             console.log("Cleaning up Phaser game");
@@ -48,13 +61,20 @@ function App() {
                 gameRef.current.destroy(true);
                 gameRef.current = null;
             }
+
+            eventBus.off("entitySelection", handleEntitySelection);
+
         };
     }, []); // Empty dependency array ensures it only runs once
 
     return (
     <div>
-        <HoverInfo />
+        {/* <HoverInfo /> */}
         <ConnectWallet />
+        <MenuSystem
+            selectedEntity={selectedEntity}
+            onClose={() => setSelectedEntity(null)}
+        />
         <div ref={containerRef} className="game-container" />
     </div>
     );

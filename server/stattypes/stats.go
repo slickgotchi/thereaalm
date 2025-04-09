@@ -10,6 +10,8 @@ const (
     Spark = "spark"
     Pulse = "pulse"
     MaxPulse = "maxpulse"
+    StakedGHST = "stakedGhst"
+    TreatTotal = "treatTotal"
 	// HpCurrent = "hp_current"
 	// HpMax     = "hp_max"
 	// Attack    = "attack"
@@ -21,24 +23,24 @@ const (
 
 // STATS
 type Stats struct {
-	StatMap map[string]int
+	StatMap map[string]float64
 }
 
 func NewStats() *Stats {
 	return &Stats{
-		StatMap: make(map[string]int),
+		StatMap: make(map[string]float64),
 	}
 }
 
 
 // SetStat sets the value of a given stat.
-func (s *Stats) SetStat(name string, value int) {
+func (s *Stats) SetStat(name string, value float64) {
     s.StatMap[name] = value
 }
 
 // GetStat retrieves the value of a given stat.
 // If the stat does not exist, logs a warning and returns 0.
-func (s *Stats) GetStat(name string) int {
+func (s *Stats) GetStat(name string) float64 {
     statValue, ok := s.StatMap[name]
     if !ok {
         log.Printf("WARNING: Stat '%s' not found.", name)
@@ -49,7 +51,7 @@ func (s *Stats) GetStat(name string) int {
 
 // DeltaStat modifies a stat by a given delta value.
 // If the stat does not exist, logs a warning.
-func (s *Stats) DeltaStat(name string, value int) {
+func (s *Stats) DeltaStat(name string, value float64) {
     _, ok := s.StatMap[name]
     if !ok {
         log.Printf("WARNING: Cannot modify unknown stat '%s'.", name)

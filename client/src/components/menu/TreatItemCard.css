@@ -1,0 +1,50 @@
+/* src/components/TreatItemCard.css */
+
+.treat-item-card {
+    width: 64px;
+    height: 64px;
+    position: relative;
+    border: 2px solid #ccc;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: #f8f8f8;
+    display: flex;
+    flex-flow: column wrap;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+  }
+  
+  .treat-item-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .card-cost {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    background: #fff;
+    border-radius: 2px;
+    padding: 0px 2px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #444;
+  }
+  
+  .card-image {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  
+  .card-name {
+    font-size: 12px;
+    margin-top: 6px;
+    text-align: center;
+    color: #333;
+  }
+  

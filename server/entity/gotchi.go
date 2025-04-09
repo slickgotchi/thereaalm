@@ -52,6 +52,8 @@ func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 	newStats.SetStat(stattypes.Spark, 500)
 	newStats.SetStat(stattypes.Pulse, 500)
 	newStats.SetStat(stattypes.MaxPulse, 1000)
+	newStats.SetStat(stattypes.StakedGHST, 0)
+	newStats.SetStat(stattypes.TreatTotal, 0)
 
 	// make new gotchi
 	return &Gotchi{
@@ -79,7 +81,9 @@ func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 func (g *Gotchi) GetSnapshotData() interface{} {
 	return struct {
 		Name string `json:"name"`
+		UUID uuid.UUID `json:"uuid"`
 		GotchiID  string `json:"gotchiId"`
+		ZoneID int `json:"zoneId"`
 		Description string `json:"description"`
 		Stats interface{} `json:"stats"`
 		Inventory interface{} `json:"inventory"`
@@ -89,9 +93,13 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		ActionPlan interface{} `json:"actionPlan"`
 		State entitystate.State `json:"state"`
 		BuffMultiplier float64 `json:"buffmultiplier"`
+		StakedGHST float64 `json:"stakedGhst"`
+		TreatTotal float64 `json:"treatAmount"`
 	}{
 		Name: g.Name,
+		UUID: g.ID,
 		GotchiID:  g.GotchiId,
+		ZoneID: g.GetZone().GetID(),
 		Description: "The ethereal frens and sworn protectors of The Reaalm",
 		Stats: g.Stats.StatMap,
 		Inventory: g.Items,
@@ -105,27 +113,35 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 }
 
 func (g *Gotchi) Update(dt_s float64) {
+	// calculate treat to add due to staking
+	stakedGhst := g.Stats.GetStat(stattypes.StakedGHST)
+	g.Stats.DeltaStat(stattypes.TreatTotal, stakedGhst / 86400 * dt_s)
+
+	// if entity is dead don't do anything else
 	if g.State == entitystate.Dead {
         return
     }
+
     // Check buffs periodically (e.g., every second)
     if g.WorldManager.Since(g.LastBuffCheck) >= time.Second {
         utils.UpdateBuffMultiplier(g, 16)
         g.LastBuffCheck = g.WorldManager.Now()
     }
+
+	// process actions
     g.ProcessActions(dt_s)
 }
 
 // custom stat modification wrappers
-func (e *Gotchi) SetStat(name string, value int) {
+func (e *Gotchi) SetStat(name string, value float64) {
 	e.Stats.SetStat(name, value)
 }
 
-func (e *Gotchi) GetStat(name string) int {
+func (e *Gotchi) GetStat(name string) float64 {
 	return e.Stats.GetStat(name)
 }
 
-func (e *Gotchi) DeltaStat(name string, value int) {
+func (e *Gotchi) DeltaStat(name string, value float64) {
 	prev := e.Stats.GetStat(name)
 	e.Stats.DeltaStat(name, value)
 	newVal := e.Stats.GetStat(name)

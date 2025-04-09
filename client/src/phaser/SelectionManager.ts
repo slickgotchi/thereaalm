@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { BaseEntity } from "./entities/BaseEntity"; // Updated import path
+import { eventBus } from "../utils/EventBus";
 
 export class SelectionManager {
     private scene: Phaser.Scene;
@@ -91,6 +92,8 @@ export class SelectionManager {
         }
 
         const eventData = entity ? { id: entity.id, type: entity.type, data: entity.data } : null;
-        window.dispatchEvent(new CustomEvent("entitySelection", { detail: eventData }));
+        // window.dispatchEvent(new CustomEvent("entitySelection", { detail: eventData }));
+        eventBus.emit("entitySelection", { detail: eventData });
+        console.log("send message");
     }
 }

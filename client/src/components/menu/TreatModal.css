@@ -1,0 +1,139 @@
+/* src/components/TreatModal.css */
+.treat-modal {
+  position: relative; /* Changed from fixed to relative */
+  width: 28rem;
+  padding: 0;
+  background: #f8f8f8;
+  box-shadow: 2px 2px 10px 3px rgba(0, 0, 0, 0.3);
+  z-index: 50;
+  text-align: left;
+  border-radius: 0.25rem;
+}
+
+/* Rest of the styles remain unchanged */
+.header-bar {
+  background-color: #BF6F4A;
+  color: #fff;
+  padding: 0.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.header-content {
+  width: 100%;
+  height: 100%;
+  height: 1.25rem;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sub-header-content {
+  border-bottom: 1px solid #F6CA9F;
+  background-color: #F9E6CF;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  height: 3.5rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.treat-details {
+  flex: 1;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
+
+.treat-details-content {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: top;
+}
+
+.treat-details-content ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ghst-staking {
+  flex: 1;
+  padding: 0;
+  margin: 0;
+}
+
+.ghst-staking-content {
+  width: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.ghst-staking-content ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ghst-staking-content li {
+  text-align: right;
+}
+
+.stake-row {
+  gap: 1rem;
+  margin: 0;
+  padding: 0.05rem;
+}
+
+.stake-row input {
+  width: 6rem;
+  font-family: 'Pixelar';
+}
+
+.stake-row button {
+  width: 3.5rem;
+  font-family: 'Pixelar';
+  margin-left: 0.1rem;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: row;
+  background-color: #F9E6CF;
+  border-radius: 0rem 0rem 0.25rem 0.25rem;
+}
+
+.item-details {
+  width: 10rem;
+  padding: 1rem;
+  border-right: 1px solid #F6CA9F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-details-content {
+  width: 100%;
+  height: 10rem;
+}
+
+.inventory-items {
+  width: 16rem;
+  overflow-y: auto;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.inventory-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}

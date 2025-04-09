@@ -190,7 +190,9 @@ func (z *Zone) TryGetEmptyTileNextToTargetEntity(target interfaces.IEntity) (int
 
 // GetEntityByUUID retrieves an entity by its UUID
 func (z *Zone) GetEntityByUUID(uuid uuid.UUID) interfaces.IEntity {
+    log.Println("Getting entity with UUID: ", uuid)
     for _, entity := range z.Entities {
+        log.Println("Checking against entity with UUID: ", entity.GetUUID())
         if entity.GetUUID() == uuid {
             return entity
         }

@@ -140,7 +140,7 @@ func (a *AttackAction) Update(dt_s float64) bool {
 		finalPulseReduction = utils.Clamp(finalPulseReduction, 1, 10)
 
 		// deal damage to defenders pulse
-		defenderStats.DeltaStat(stattypes.Pulse, -finalPulseReduction)
+		defenderStats.DeltaStat(stattypes.Pulse, float64(-finalPulseReduction))
 		newDefenderPulse := defenderStats.GetStat(stattypes.Pulse)
 
 		// if defender pulse goes to 0, finish the attack
