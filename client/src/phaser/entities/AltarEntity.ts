@@ -34,8 +34,10 @@ export class AltarEntity extends BaseEntity {
 
         if (snapshot.data.state === "active") {
             this.sprite.setFrame(4);
+            this.hpBar.setVisible(true);
         } else {
             this.sprite.setFrame(5);
+            this.hpBar.setVisible(false);
         }
     }
 }

@@ -53,7 +53,7 @@ func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 	newStats.SetStat(stattypes.Pulse, 500)
 	newStats.SetStat(stattypes.MaxPulse, 1000)
 	newStats.SetStat(stattypes.StakedGHST, 0)
-	newStats.SetStat(stattypes.TreatTotal, 0)
+	newStats.SetStat(stattypes.TreatTotal, 5000)
 
 	// make new gotchi
 	return &Gotchi{
@@ -145,6 +145,11 @@ func (e *Gotchi) DeltaStat(name string, value float64) {
 	prev := e.Stats.GetStat(name)
 	e.Stats.DeltaStat(name, value)
 	newVal := e.Stats.GetStat(name)
+
+	// ensure ecto, spark and pulse stay within range
+	e.Stats.SetStat(stattypes.Ecto, utils.Clamp(e.Stats.GetStat(stattypes.Ecto), 0, 1000))
+	e.Stats.SetStat(stattypes.Spark, utils.Clamp(e.Stats.GetStat(stattypes.Spark), 0, 1000))
+	e.Stats.SetStat(stattypes.Pulse, utils.Clamp(e.Stats.GetStat(stattypes.Pulse), 0, 1000))
 
 	// CUSTOM HOOK: handle ESP stats going below 0 (death)
 	if (name == stattypes.Pulse || name == stattypes.Ecto || name == stattypes.Spark) && 

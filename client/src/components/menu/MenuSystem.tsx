@@ -5,6 +5,7 @@ import InformationModal from './InformationModal';
 import ActionPlanModal from './ActionPlanModal';
 import ActivityLogModal from './ActivityLogModal';
 import './MenuSystem.css';
+import ESPModal from './ESPModal';
 
 // Import the icons (adjust paths as needed)
 var informationIconSrc = '/assets/icons/information-icon.png';
@@ -92,6 +93,9 @@ const MenuSystem: React.FC<MenuSystemProps> = ({ selectedEntity, onClose }) => {
           {menuOptions.find((option) => option.id === activeMenu)?.component}
         </div>
       )}
+      {selectedEntity.type === "gotchi" && 
+      <ESPModal entity={selectedEntity}/>
+      } 
     </div>
   );
 };

@@ -42,3 +42,7 @@
     border-radius: 0.25rem;
     margin: 0 2rem;
 }
+
+.eat-button:hover {
+    cursor: pointer;
+}

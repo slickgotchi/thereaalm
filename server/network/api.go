@@ -29,12 +29,6 @@ type EntitySnapshot struct {
 	Data   interface{} `json:"data"`
 }
 
-// GotchiData represents the additional data for a Gotchi entity.
-// type GotchiData struct {
-// 	TreatTotal float64 `json:"treatTotal"`
-// 	StakedGhst float64 `json:"stakedGhst"`
-// }
-
 // ZoneMapResponse represents the structure of the zone map to be sent to the client.
 type ZoneMapResponse struct {
 	ZoneMap [][]string `json:"zoneMap"`
@@ -50,12 +44,17 @@ type StakeRequest struct {
 // EatTreatRequest represents the request body for eating a treat.
 type EatTreatRequest struct {
 	TreatName string `json:"treatName"`
+	ZoneID int `json:"zoneId"`
+	UUID uuid.UUID `json:"uuid"`
 }
 
 // GotchiResponse represents the response for Gotchi-related actions.
 type GotchiResponse struct {
 	TreatTotal float64 `json:"treatTotal"`
 	StakedGhst float64 `json:"stakedGhst"`
+	Ecto int `json:"ecto"`
+	Spark int `json:"spark"`
+	Pulse int `json:"pulse"`
 }
 
 // StartAPIServer initializes the API server with the given world manager and port.
@@ -229,10 +228,13 @@ func handleStakeGotchi(worldManager *world.WorldManager) http.HandlerFunc {
 		gotchiStats, _ := gotchiEntity.(interfaces.IStats)
 		gotchiStats.DeltaStat(stattypes.StakedGHST, float64(req.GHSTAmount))
 
-		// // Respond with updated Gotchi data
+		// Respond with updated Gotchi data
 		response := GotchiResponse{
 			TreatTotal: gotchiStats.GetStat(stattypes.TreatTotal),
 			StakedGhst: gotchiStats.GetStat(stattypes.StakedGHST),
+			Ecto: int(gotchiStats.GetStat(stattypes.Ecto)),
+			Spark: int(gotchiStats.GetStat(stattypes.Spark)),
+			Pulse: int(gotchiStats.GetStat(stattypes.Pulse)),
 		}
 		writeJSON(w, response)
 	}
@@ -258,42 +260,35 @@ func handleUnstakeGotchi(worldManager *world.WorldManager) http.HandlerFunc {
 		}
 
 		// For simplicity, assume the Gotchi is in zone 0 and we find the first Gotchi
-		zone := worldManager.Zones[0]
+		zone := worldManager.Zones[req.ZoneID]
 		if zone == nil {
 			writeError(w, "Zone not found", http.StatusNotFound)
 			return
 		}
 
-		var gotchiEntity interfaces.IEntity
-		for _, entity := range zone.GetEntities() {
-			if entity.GetType() == "gotchi" {
-				gotchiEntity = entity
-				break
-			}
-		}
+		gotchiEntity := zone.GetEntityByUUID(req.UUID)
 
 		if gotchiEntity == nil {
 			writeError(w, "Gotchi not found", http.StatusNotFound)
 			return
 		}
 
-		// // Update staked GHST and TREAT (simplified logic)
-		// data := gotchiEntity.GetSnapshotData().(map[string]interface{})
-		// currentStaked := data["stakedGhst"].(int)
-		// if req.Amount > currentStaked {
-		// 	writeError(w, "Cannot unstake more GHST than staked", http.StatusBadRequest)
-		// 	return
-		// }
+		gotchiStats, _ := gotchiEntity.(interfaces.IStats)
+		gotchiStats.DeltaStat(stattypes.StakedGHST, float64(-req.GHSTAmount))
 
-		// data["stakedGhst"] = currentStaked - req.Amount
-		// data["treatTotal"] = data["treatTotal"].(int) - req.Amount * 5 // Example: Lose 5 TREAT per GHST unstaked
+		if gotchiStats.GetStat(stattypes.StakedGHST) < 0 {
+			gotchiStats.SetStat(stattypes.StakedGHST, 0)
+		}
 
-		// // Respond with updated Gotchi data
-		// response := GotchiResponse{
-		// 	TreatTotal: data["treatTotal"].(int),
-		// 	StakedGhst: data["stakedGhst"].(int),
-		// }
-		writeJSON(w, nil)
+		// Respond with updated Gotchi data
+		response := GotchiResponse{
+			TreatTotal: gotchiStats.GetStat(stattypes.TreatTotal),
+			StakedGhst: gotchiStats.GetStat(stattypes.StakedGHST),
+			Ecto: int(gotchiStats.GetStat(stattypes.Ecto)),
+			Spark: int(gotchiStats.GetStat(stattypes.Spark)),
+			Pulse: int(gotchiStats.GetStat(stattypes.Pulse)),
+		}
+		writeJSON(w, response)
 	}
 }
 
@@ -324,42 +319,41 @@ func handleEatTreat(worldManager *world.WorldManager) http.HandlerFunc {
 		}
 
 		// For simplicity, assume the Gotchi is in zone 0 and we find the first Gotchi
-		zone := worldManager.Zones[0]
+		zone := worldManager.Zones[req.ZoneID]
 		if zone == nil {
 			writeError(w, "Zone not found", http.StatusNotFound)
 			return
 		}
 
-		var gotchiEntity interfaces.IEntity
-		for _, entity := range zone.GetEntities() {
-			if entity.GetType() == "gotchi" {
-				gotchiEntity = entity
-				break
-			}
-		}
+		gotchiEntity := zone.GetEntityByUUID(req.UUID)
 
 		if gotchiEntity == nil {
 			writeError(w, "Gotchi not found", http.StatusNotFound)
 			return
 		}
 
-		// // Check TREAT balance
-		// data := gotchiEntity.GetSnapshotData().(map[string]interface{})
-		// currentTreat := data["treatTotal"].(int)
-		// if currentTreat < cost {
-		// 	writeError(w, "Insufficient TREAT to eat this treat", http.StatusBadRequest)
-		// 	return
-		// }
+		gotchiStats, _ := gotchiEntity.(interfaces.IStats)
 
-		// // Deduct TREAT cost
-		// data["treatTotal"] = currentTreat - cost
+		if req.TreatName == "Sushi Roll" {
+			gotchiStats.DeltaStat(stattypes.Ecto, 100)
+		} else if req.TreatName == "Coconut" {
+			gotchiStats.DeltaStat(stattypes.Spark, 100)
+		} else if req.TreatName == "Candy" {
+			gotchiStats.DeltaStat(stattypes.Pulse, 100)
+		}
+		
+		// remove some treat
+		gotchiStats.DeltaStat(stattypes.TreatTotal, -float64(validTreats[req.TreatName]))
 
-		// // Respond with updated Gotchi data
-		// response := GotchiResponse{
-		// 	TreatTotal: data["treatTotal"].(int),
-		// 	StakedGhst: data["stakedGhst"].(int),
-		// }
-		writeJSON(w, nil)
+		// Respond with updated Gotchi data
+		response := GotchiResponse{
+			TreatTotal: gotchiStats.GetStat(stattypes.TreatTotal),
+			StakedGhst: gotchiStats.GetStat(stattypes.StakedGHST),
+			Ecto: int(gotchiStats.GetStat(stattypes.Ecto)),
+			Spark: int(gotchiStats.GetStat(stattypes.Spark)),
+			Pulse: int(gotchiStats.GetStat(stattypes.Pulse)),
+		}
+		writeJSON(w, response)
 	}
 }
 

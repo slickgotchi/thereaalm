@@ -8,7 +8,7 @@ export class CameraController {
     private worldWidth: number;
     private worldHeight: number;
     private minZoom: number = 0.005;
-    private maxZoom: number = 2.0;
+    private maxZoom: number = 3.0;
     private isDragging: boolean = false;
     private dragStart: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
 

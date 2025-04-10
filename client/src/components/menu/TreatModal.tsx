@@ -4,6 +4,7 @@ import TreatItemCard from './TreatItemCard';
 import TreatDetails from './TreatDetails';
 import './TreatModal.css';
 import { GotchiEntity } from '../../phaser/entities/GotchiEntity';
+import { eventBus } from '../../utils/EventBus';
 
 interface TreatModalProps {
   entity: { type: string; [key: string]: any } | null;
@@ -40,9 +41,7 @@ const TreatModal: React.FC<TreatModalProps> = ({ entity }) => {
   useEffect(() => {
     const fetchGotchiData = async () => {
       const gotchiId = entity?.data?.gotchiId;
-      console.log(entity);
       const gotchiEntity = GotchiEntity.activeGotchis.get(gotchiId);
-      console.log(gotchiEntity);
 
       setTreatTotal(gotchiEntity?.data?.stats?.treatTotal || 0);
       setStakedGhst(gotchiEntity?.data?.stats?.stakedGhst || 0);
@@ -66,7 +65,6 @@ const TreatModal: React.FC<TreatModalProps> = ({ entity }) => {
   };
 
   const handleStake = async () => {
-    console.log(entity?.data);
     const amount = parseFloat(stakeAmount);
     if (isNaN(amount) || amount <= 0) {
       alert('Please enter a valid positive number for staking.');
@@ -87,6 +85,7 @@ const TreatModal: React.FC<TreatModalProps> = ({ entity }) => {
       const data = await response.json();
       setTreatTotal(data.treatTotal);
       setStakedGhst(data.stakedGhst);
+      eventBus.emit("treatEaten", {detail: {ecto:data.ecto, spark:data.spark, pulse:data.pulse}});
       setStakeAmount(''); // Clear input
     } catch (error) {
       console.error('[TreatModal] Failed to stake GHST:', error);
@@ -105,12 +104,17 @@ const TreatModal: React.FC<TreatModalProps> = ({ entity }) => {
       const response = await fetch(`${API_BASE_URL}/gotchi/unstake`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({ 
+          amount: amount,
+          uuid: entity?.data.uuid, 
+          zoneId: entity?.data.zoneId
+         }),
       });
       if (!response.ok) throw new Error('Failed to unstake GHST');
       const data = await response.json();
       setTreatTotal(data.treatTotal);
       setStakedGhst(data.stakedGhst);
+      eventBus.emit("treatEaten", {detail: {ecto:data.ecto, spark:data.spark, pulse:data.pulse}});
       setUnstakeAmount(''); // Clear input
     } catch (error) {
       console.error('[TreatModal] Failed to unstake GHST:', error);
@@ -128,12 +132,17 @@ const TreatModal: React.FC<TreatModalProps> = ({ entity }) => {
       const response = await fetch(`${API_BASE_URL}/gotchi/eat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ treatName: item.name }),
+        body: JSON.stringify({ 
+          treatName: item.name,
+          uuid: entity?.data.uuid, 
+          zoneId: entity?.data.zoneId
+        }),
       });
       if (!response.ok) throw new Error('Failed to eat treat');
       const data = await response.json();
       setTreatTotal(data.treatTotal);
       setStakedGhst(data.stakedGhst);
+      eventBus.emit("treatEaten", {detail: {ecto:data.ecto, spark:data.spark, pulse:data.pulse}});
     } catch (error) {
       console.error('[TreatModal] Failed to eat treat:', error);
       alert('Failed to eat treat. Please try again.');
@@ -152,7 +161,7 @@ const TreatModal: React.FC<TreatModalProps> = ({ entity }) => {
             <ul>
               <li>TREAT Rank: Aadept</li>
               <li>TREAT per Day: {stakedGhst}</li>
-              <li>TREAT Total: {treatTotal}</li>
+              <li>TREAT Total: {treatTotal.toFixed(2)}</li>
             </ul>
           </div>
         </div>
@@ -198,7 +207,7 @@ const TreatModal: React.FC<TreatModalProps> = ({ entity }) => {
           )}
         </div>
 
-        <div className="inventory-items">
+        <div className="inventory-items"> 
           <div className="inventory-grid">
             {items.map((item) => (
               <TreatItemCard
@@ -217,91 +226,3 @@ const TreatModal: React.FC<TreatModalProps> = ({ entity }) => {
 };
 
 export default TreatModal;
-
-/*
-// src/components/TreatModal.tsx
-import React, { useState } from 'react';
-import TreatItemCard from './TreatItemCard';
-import './TreatModal.css';
-import TreatDetails from './TreatDetails';
-
-const TreatModal: React.FC = () => {
-  const items = [
-    { name: 'Sushi Roll', description: "Restores a little Ecto", cost: 500, imageSrc: '/assets/images/82_SushiRoll.png' },
-    { name: 'Coconut', description: "Restores a little Spark",cost: 500, imageSrc: '/assets/images/116_Coconut.png' },
-    { name: 'Candy', description: "Restores a little Pulse",cost: 500, imageSrc: '/assets/images/251_CoinGeckoCandies.png' },
-  ];
-
-  const [selectedItem, setSelectedItem] = useState<any | null>(items[0]);
-
-  const handleItemClick = (item: typeof items[0]) => {
-    setSelectedItem(item);
-  };
-
-  return (
-    <div className="treat-modal">
-      <div className="header-bar">
-        <div className="header-content">Treats</div>
-      </div>
-
-      <div className="sub-header-content">
-        <div className="treat-details">
-          <div className="treat-details-content">
-            <ul>
-              <li>TREAT Rank: Aadept</li>
-              <li>TREAT per Day: 350</li>
-              <li>TREAT Total: 1,250</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="ghst-staking">
-          <div className="ghst-staking-content">
-            <ul>
-              <li className="stake-row">
-                <input type="number" placeholder="Enter GHST Amount" />
-                <button>Stake</button>
-              </li>
-              <li className="stake-row">
-                <input type="number" placeholder="Enter GHST Amount" />
-                <button>Unstake</button>
-              </li>
-              <li style={{marginTop: "0.1rem"}}>Staked GHST: 350</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="main-content">
-        <div className='item-details'>
-          {selectedItem && (
-              <TreatDetails
-                name={selectedItem.name}
-                cost={selectedItem.cost}
-                imageSrc={selectedItem.imageSrc}
-                description={selectedItem.description}
-                onEat={() => console.log(`Eating ${selectedItem.name}`)} // Add your logic for eating
-              />
-            )}
-        </div>
-
-        <div className="inventory-items">
-            <div className="inventory-grid">
-              {items.map((item) => (
-                <TreatItemCard
-                  key={item.name}
-                  name={item.name}
-                  cost={item.cost}
-                  imageSrc={item.imageSrc}
-                  onClick={() => handleItemClick(item)}
-                />
-              ))}
-            </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default TreatModal;
-*/

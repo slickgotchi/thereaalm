@@ -1,4 +1,5 @@
 import { EmoticonEmitter } from "../emoticons/EmoticonEmitter";
+import { ESPBar } from "../ESPBar";
 import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../FetchGotchis";
 import { TILE_PIXELS, ZONE_TILES } from "../GameScene";
 import { HPBar } from "../HPBar";
@@ -28,7 +29,8 @@ export class GotchiEntity extends TweenableEntity {
 
     emoticonEmitter!: EmoticonEmitter;
     shadowSprite!: Phaser.GameObjects.Sprite;
-    hpBar!: HPBar;
+    // hpBar!: HPBar;
+    espBar!: ESPBar;
 
     entityState!: string;
 
@@ -55,6 +57,8 @@ export class GotchiEntity extends TweenableEntity {
 
         this.isDeathTriggered = false;
 
+        // this.sprite.setScale(0.5);
+
         // Add to activeGotchis
         GotchiEntity.activeGotchis.set(this.gotchiId, this);
 
@@ -76,12 +80,23 @@ export class GotchiEntity extends TweenableEntity {
 
         this.emoticonEmitter = new EmoticonEmitter(scene, tileX * ZONE_TILES, tileY * ZONE_TILES);
 
-        this.hpBar = new HPBar({
+        // this.hpBar = new HPBar({
+        //     scene,
+        //     x: tileX*TILE_PIXELS,
+        //     y: tileY*TILE_PIXELS,
+        //     currentHP: data.stats.pulse,
+        //     maxHP: data.stats.maxpulse,
+        //     trackingSprite: this.sprite,
+        // });
+
+        this.espBar = new ESPBar({
             scene,
             x: tileX*TILE_PIXELS,
             y: tileY*TILE_PIXELS,
-            currentHP: data.stats.pulse,
-            maxHP: data.stats.maxpulse,
+            ecto: data.stats.ecto,
+            spark: data.stats.spark,
+            pulse: data.stats.pulse,
+            maxESP: 1000,
             trackingSprite: this.sprite,
         });
     }
@@ -105,7 +120,8 @@ export class GotchiEntity extends TweenableEntity {
         this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y - this.jumpY);
         this.shadowSprite.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 64);
         this.emoticonEmitter.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 16);
-        this.hpBar.setPosition(this.currentPosition.x, this.currentPosition.y);
+        // this.hpBar.setPosition(this.currentPosition.x, this.currentPosition.y);
+        this.espBar.setPosition(this.currentPosition.x, this.currentPosition.y);
 
         if (this.tweenWorker.getIsTweening()) {
             this.lastEmoticonEmitTime_ms = 0;
@@ -137,7 +153,9 @@ export class GotchiEntity extends TweenableEntity {
             this.currentActionType = currentAction.type;
         }
 
-        this.hpBar.updateHP(snapshot.data.stats.pulse);
+        // this.hpBar.updateHP(snapshot.data.stats.pulse);
+        const {ecto, spark, pulse} = snapshot.data.stats;
+        this.espBar.updateESP(ecto, spark, pulse);
 
         this.entityState = snapshot.data.state;
 
@@ -190,13 +208,15 @@ export class GotchiEntity extends TweenableEntity {
 
     renderDeathEffects() {
         this.jumpTween.stop();        
-        this.hpBar.setVisible(false);
+        // this.hpBar.setVisible(false);
+        this.espBar.setVisible(false);
         this.sprite.setAlpha(0.5);
         this.emoticonEmitter.setAlpha(0.5);
     }
 
     destroy(): void {
-        this.hpBar.destroy();
+        // this.hpBar.destroy();
+        this.espBar.destroy();
         this.shadowSprite.destroy();
         this.emoticonEmitter.destroy();
         GotchiEntity.activeGotchis.delete(this.gotchiId); // Remove from activeGotchis

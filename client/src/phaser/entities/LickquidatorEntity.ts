@@ -33,6 +33,8 @@ export class LickquidatorEntity extends TweenableEntity {
         this.shadowSprite.setAlpha(0.3);
         this.shadowSprite.setScale(0.8);
 
+        // this.sprite.setScale(0.5);
+
         // float anim
         const delay_ms = Math.random() * 500;
         scene.tweens.add({

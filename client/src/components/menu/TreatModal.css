@@ -125,7 +125,7 @@
 
 .inventory-items {
   width: 16rem;
-  overflow-y: auto;
+  /* overflow-y: auto; */
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -133,7 +133,7 @@
 
 .inventory-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: row wrap;
   gap: 0.5rem;
   padding: 0.5rem;
 }

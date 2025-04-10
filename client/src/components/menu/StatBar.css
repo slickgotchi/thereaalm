@@ -1,0 +1,47 @@
+/* src/components/StatBar.css */
+
+@keyframes flashBorder {
+    0%, 100% {
+      border-color: transparent;
+    }
+    50% {
+      border-color: #F5555D;
+    }
+  }
+
+.stat-bar {
+    position: relative;
+    width: 100%;
+    height: 1.25rem;
+    background-color: #777;
+    margin: 0;
+    border: 2px solid transparent;
+    box-sizing: border-box;
+    border-radius: .25rem;
+  }
+
+  .stat-bar.flash {
+    animation: flashBorder 0.5s infinite;
+  }
+  
+  .stat-bar-fill {
+    height: 100%;
+    transition: width 0.4s ease;
+
+    border-radius: 0.15rem;
+  }
+  
+  .stat-bar-label {
+    position: absolute;
+    /* right: 0.5rem; */
+    top: 50%;
+    transform: translateY(-50%); 
+    color: white;
+    font-family: "Pixelar";
+    font-size: 1rem;
+
+    /* border: solid red 1px; */
+    width: 100%;
+    text-align: center;
+  }
+  

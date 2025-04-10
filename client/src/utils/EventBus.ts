@@ -1,6 +1,7 @@
 type EventMap = {
     panToGotchi: { gotchiId: string };
     entitySelection: { detail: any };
+    treatEaten: { detail: any }
   };
   
   type Listener<T> = (data: T) => void;
@@ -11,6 +12,7 @@ type EventMap = {
     } = {
       panToGotchi: new Set(),
       entitySelection: new Set(),
+      treatEaten: new Set(),
     };
   
     on<K extends keyof EventMap>(event: K, listener: Listener<EventMap[K]>) {

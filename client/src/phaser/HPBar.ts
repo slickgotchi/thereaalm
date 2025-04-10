@@ -13,7 +13,7 @@ export class HPBar {
     private maxHP: number;
     private currentHP: number;
     private maxFillWidth: number = 32;
-    private fillHeight: number = 4;
+    private fillHeight: number = 2;
     private padding: number = 1;
     private background: Phaser.GameObjects.Rectangle;
     private fill: Phaser.GameObjects.Rectangle;
