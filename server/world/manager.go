@@ -154,23 +154,28 @@ func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
     lickquidator := entity.NewLickquidator(x, y)
     wm.Zones[zoneID].AddEntity(lickquidator)
 
-    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.2,
+    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.3,
         &types.TargetSpec{
             TargetType: "gotchi",
             TargetCriterion: "nearest",
         }))
-    // lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.8,
-    //     &types.TargetSpec{
-    //         TargetType: "altar",
-    //         TargetCriterion: "nearest",
-    //     }))
+    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.3,
+        &types.TargetSpec{
+            TargetType: "altar",
+            TargetCriterion: "nearest",
+        }))
+    lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.3,
+        &types.TargetSpec{
+            TargetType: "shop",
+            TargetCriterion: "nearest",
+        }))
 }
 
 func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int, 
     subgraphData web3.SubgraphGotchiData) {
 
     newGotchi := entity.NewGotchi(x, y, subgraphData)
-    wm.Zones[42].AddEntity(newGotchi)
+    wm.Zones[zoneID].AddEntity(newGotchi)
     newGotchi.SetStat(stattypes.Pulse, 300)
 
     // ACTIONS
