@@ -29,23 +29,6 @@ func (a *ActionPlan) ProcessActions(dt_s float64) {
     if actionComplete {
         a.CurrentAction = nil
     }
-	/*
-	// If there's no current action, select one based on weightings.
-	if a.CurrentAction == nil {
-		a.SelectNextAction()
-	}
-
-	if a.CurrentAction != nil {
-		// Call Update() on the current action to progress it.
-		actionComplete := a.CurrentAction.Update(dt_s)
-
-		// If the action is complete, clear it and select a new one.
-		if actionComplete {
-			// log.Println(a.CurrentAction.GetType(), " complete.")
-			a.CurrentAction = nil
-		}
-	}
-		*/
 }
 
 // SelectNextAction will only select actions that can be executed.
@@ -69,7 +52,7 @@ func (a *ActionPlan) SelectNextAction() {
 		if 	actionCurrentTarget == nil || 
 			!action.IsValidTarget(actionCurrentTarget) {
 			
-				newTarget := actiontargeting.ResolveFallbackTarget(action)
+			newTarget := actiontargeting.ResolveFallbackTarget(action)
 			action.SetTarget(newTarget)
 		}
 

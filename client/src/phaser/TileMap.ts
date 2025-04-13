@@ -44,7 +44,7 @@ export class TileMap {
                 4 * ZONE_TILES * TILE_PIXELS,
                 5 * ZONE_TILES * TILE_PIXELS
             );
-            layer.setScale(1);
+            layer.setScale(2);
             layer.setDepth(Depth.TILES);
             if (layer) {
                 console.log(`Created layer: ${layerData.name}`);

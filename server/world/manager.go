@@ -8,8 +8,6 @@ import (
 	"runtime"
 	"sync"
 	"thereaalm/action"
-	"thereaalm/action/buildingaction"
-	"thereaalm/action/resourceaction"
 	"thereaalm/config"
 	"thereaalm/entity"
 	"thereaalm/entity/resourceentity"
@@ -83,71 +81,79 @@ func (wm *WorldManager) loadTestEntities() {
         return
     }
 
+    // entity generation
     zoneX, zoneY := wm.Zones[42].GetPosition()
+
+    // gotchis
+    for i := 0; i < 400; i++ {
+        // use one of our gotchisMap
+        idSlice := []string{"4285", "19005", "21550", "8281", "5401"}
+        index := rand.Intn(5)
+
+        gotchiId := idSlice[index]
+
+        posX := rand.Intn(ZoneTiles) + zoneX
+        posY := rand.Intn(ZoneTiles) + zoneY
+
+        jobSlice := []string{"mercenary", "farmer",
+            "minerjack", "builder", "explorer"}
+
+        generateGenericGotchi(wm, 42, posX, posY, 
+            gotchisMap[gotchiId], jobSlice[index])
+    }
+
+    // lickvoids
+    for i := 0; i < 100; i++ {
+        posX := rand.Intn(ZoneTiles) + zoneX
+        posY := rand.Intn(ZoneTiles) + zoneY
+
+        if wm.Zones[42].IsTileOccupied(posX, posY) {
+            continue
+        }
+
+        lickvoid := entity.NewLickVoid(posX, posY)
+        wm.Zones[42].AddEntity(lickvoid)
+        lickvoid.SpawnInterval_s = 5
+    }
 
     // ENTITIES
     // resources
-    bush := resourceentity.NewFomoBerryBush(12+zoneX, 10+zoneY)
-    wm.Zones[42].AddEntity(bush)
+    // bush := resourceentity.NewFomoBerryBush(12+zoneX, 10+zoneY)
+    // wm.Zones[42].AddEntity(bush)
 
-    tree := resourceentity.NewKekWoodTree(15+zoneX, 9+zoneY)
-    wm.Zones[42].AddEntity(tree)
+    // tree := resourceentity.NewKekWoodTree(15+zoneX, 9+zoneY)
+    // wm.Zones[42].AddEntity(tree)
 
-    boulders := resourceentity.NewAlphaSlateBoulders(13+zoneX, 12+zoneY)
-    wm.Zones[42].AddEntity(boulders)
+    // boulders := resourceentity.NewAlphaSlateBoulders(13+zoneX, 12+zoneY)
+    // wm.Zones[42].AddEntity(boulders)
 
     // generateBerryBushes(wm, 42, zoneX, zoneY)
 
-    // shop
-    shop := entity.NewShop(6+zoneX, 12+zoneY)
-    wm.Zones[42].AddEntity(shop)
+    // // shop
+    // shop := entity.NewShop(6+zoneX, 12+zoneY)
+    // wm.Zones[42].AddEntity(shop)
 
-    // gotchis
-    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["4285"])
-    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["19005"])
-    generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["21550"])
-    generateGenericGotchi(wm, 42, 30+zoneX, 30+zoneY, gotchisMap["8281"])
-    generateGenericGotchi(wm, 42, 30+zoneX, 30+zoneY, gotchisMap["5401"])
+    // // gotchis
+    // generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["4285"])
+    // generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["19005"])
+    // generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["21550"])
+    // generateGenericGotchi(wm, 42, 30+zoneX, 30+zoneY, gotchisMap["8281"])
+    // generateGenericGotchi(wm, 42, 30+zoneX, 30+zoneY, gotchisMap["5401"])
 
-    // lickquidators
-    generateGenericLickquidator(wm, 42, 9+zoneX, 14+zoneY)
-    generateGenericLickquidator(wm, 42, 18+zoneX, 23+zoneY)
-    generateGenericLickquidator(wm, 42, 15+zoneX, 19+zoneY)
+    // // lickquidators
+    // generateGenericLickquidator(wm, 42, 9+zoneX, 14+zoneY)
+    // generateGenericLickquidator(wm, 42, 18+zoneX, 23+zoneY)
+    // generateGenericLickquidator(wm, 42, 15+zoneX, 19+zoneY)
 
-    // altar
-    altar := entity.NewAltar(19+zoneX, 12+zoneY)
-    wm.Zones[42].AddEntity(altar)
-    altar.SetStat(stattypes.Pulse, 20)
+    // // altar
+    // altar := entity.NewAltar(19+zoneX, 12+zoneY)
+    // wm.Zones[42].AddEntity(altar)
+    // altar.SetStat(stattypes.Pulse, 20)
 
-    altarB := entity.NewAltar(12+zoneX, 17+zoneY)
-    wm.Zones[42].AddEntity(altarB)
-    altarB.SetStat(stattypes.Pulse, 20)
-
-    // lickvoid
-    lickvoid := entity.NewLickVoid(25+zoneX, 14+zoneY)
-    wm.Zones[42].AddEntity(lickvoid)
-    lickvoid.SpawnInterval_s = 5
-
-    // // TEMPORARY: start only in zone 42 for now
-    // zoneIndex := 42
-
-    // // place gotchis across all available zones, in ZoneMap
-    // // start with a known seed
-    // // r := rand.New(rand.NewSource(123))
-
-    // for _, gd := range gotchiData {
-    //     // pick random zone
-    //     // zoneIndex := r.Intn(len(wm.Zones))
-
-
-    //     // pick random location in the zone
-    //     // x := r.Intn(ZoneTiles) + wm.Zones[zoneIndex].X
-    //     // y := r.Intn(ZoneTiles) + wm.Zones[zoneIndex].Y
-    //     x := wm.Zones[zoneIndex].X + 5
-    //     y := wm.Zones[zoneIndex].Y + 8
-
-    //     // create new gotchi
-    // }
+    // // lickvoid
+    // lickvoid := entity.NewLickVoid(25+zoneX, 14+zoneY)
+    // wm.Zones[42].AddEntity(lickvoid)
+    // lickvoid.SpawnInterval_s = 5
 }
 
 func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
@@ -172,58 +178,28 @@ func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
 }
 
 func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int, 
-    subgraphData web3.SubgraphGotchiData) {
+    subgraphData web3.SubgraphGotchiData, job string) {
 
     newGotchi := entity.NewGotchi(x, y, subgraphData)
     wm.Zones[zoneID].AddEntity(newGotchi)
     newGotchi.SetStat(stattypes.Pulse, 300)
+    newGotchi.Job = job
 
-    // ACTIONS
-    // newGotchi.AddActionToPlan(
-    //     resourceaction.NewForageAction(newGotchi, nil, 0.3, 
-    //         &types.TargetSpec{
-    //             TargetType: "fomoberrybush",
-    //             TargetCriterion: "nearest",
-    //         }))
-    newGotchi.AddActionToPlan(
-        resourceaction.NewChopAction(newGotchi, nil, 0.3, 
-            &types.TargetSpec{
-                TargetType: "kekwoodtree",
-                TargetCriterion: "nearest",
-            }))
-    newGotchi.AddActionToPlan(
-        resourceaction.NewMineAction(newGotchi, nil, 0.3, 
-            &types.TargetSpec{
-                TargetType: "alphaslateboulders",
-                TargetCriterion: "nearest",
-            }))
-    // newGotchi.AddActionToPlan(
-    //     buildingaction.NewMaintainAction(newGotchi, nil, 0.6,
-    //         &types.TargetSpec{
-    //             TargetType: "altar",
-    //             TargetCriterion: "nearest",
-    //         }))
-    newGotchi.AddActionToPlan(
-        buildingaction.NewRebuildAction(newGotchi, nil, 0.6,
-            &types.TargetSpec{
-                TargetType: "altar",
-                TargetCriterion: "nearest",
-            }))
-    
-    // newGotchi.AddActionToPlan(
-    //     action.NewSellAction(newGotchi, nil, 0.5, 
-    //         &types.TargetSpec{
-    //             TargetType: "shop",
-    //             TargetCriterion: "nearest",
-    //         }))
-    // newGotchi.AddActionToPlan(
-    //     action.NewAttackAction(newGotchi, nil, 0.3, 
-    //         &types.TargetSpec{
-    //             TargetType: "lickquidator",
-    //             TargetCriterion: "nearest",
-    //         }))
-    // newGotchi.AddActionToPlan(
-    //     action.NewRoamAction(newGotchi, nil, 0.1, nil))
+    // determine action profile
+    var profile GotchiBehaviorProfile
+    if job == "mercenary" {
+        profile = MercenaryProfile
+    } else if job == "farmer" {
+        profile = FarmerProfile
+    } else if job == "minerjack" {
+        profile = MinerJackProfile
+    } else if job == "builder" {
+        profile = BuilderProfile
+    } else {
+        profile = ExplorerProfile
+    }
+
+    profile(newGotchi)
 }
 
 // generateBerryBushes generates 100 unique berry bushes in a 100x100 area within the specified zone

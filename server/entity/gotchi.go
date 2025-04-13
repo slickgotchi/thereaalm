@@ -25,6 +25,7 @@ type Gotchi struct {
 	Name string
 	SubgraphData web3.SubgraphGotchiData
 	Personality []string
+	Job string
 	types.ActivityLog
 	entitystate.State
 	BuffMultiplier float64       // Buff-specific multiplier
@@ -95,6 +96,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		BuffMultiplier float64 `json:"buffmultiplier"`
 		StakedGHST float64 `json:"stakedGhst"`
 		TreatTotal float64 `json:"treatAmount"`
+		Job string `json:"job"`
 	}{
 		Name: g.Name,
 		UUID: g.ID,
@@ -109,6 +111,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		ActionPlan: g.ActionPlan.ToReporting(),
 		State: g.State,
 		BuffMultiplier: g.BuffMultiplier,
+		Job: g.Job,
 	}
 }
 

@@ -50,7 +50,7 @@ func fallbackNearest(a interfaces.IAction) interfaces.IEntity {
 
 	ax, ay := a.GetActor().GetPosition()
 	var closest interfaces.IEntity
-	minDist := math.MaxInt32
+	minDist := 32
 
 	for _, candidate := range valid {
 		tx, ty := candidate.GetPosition()
@@ -126,9 +126,13 @@ func fallbackRandom(a interfaces.IAction) interfaces.IEntity {
 }
 
 func ResolveFallbackTarget(a interfaces.IAction) interfaces.IEntity {
-	criterion := FallbackCriteria(a.GetFallbackTargetSpec().TargetCriterion)
-	if handler, ok := FallbackHandlers[criterion]; ok {
-		return handler(a)
+	// ensure we have fallback spec
+	if a.GetFallbackTargetSpec() != nil {
+		criterion := FallbackCriteria(a.GetFallbackTargetSpec().TargetCriterion)
+		if handler, ok := FallbackHandlers[criterion]; ok {
+			return handler(a)
+		}
 	}
+
 	return nil
 }
