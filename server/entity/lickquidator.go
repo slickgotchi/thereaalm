@@ -2,7 +2,7 @@ package entity
 
 import (
 	// "log"
-	"log"
+
 	"thereaalm/action"
 	"thereaalm/entity/entitystate"
 	"thereaalm/interfaces"
@@ -73,7 +73,7 @@ func (l *Lickquidator) Update(dt_s float64) {
 
 	// Check if the Lickquidator's Pulse is zero or less
     if l.Stats.GetStat(stattypes.Pulse) <= 0 {
-        log.Printf("Lickquidator %s has died (Pulse <= 0), removing from zone", l.GetUUID().String())
+        // log.Printf("Lickquidator %s has died (Pulse <= 0), removing from zone", l.GetUUID().String())
         // Remove the Lickquidator from its zone
         zone := l.GetZone()
         if zone != nil {
@@ -112,7 +112,7 @@ func (e *Lickquidator) DeltaStat(name string, value float64) {
 		// set gotchi state to dead
 		e.State = entitystate.Dead
 
-		log.Printf("Lickquidator %s has died (Pulse <= 0), removing from zone", e.GetUUID().String())
+		// log.Printf("Lickquidator %s has died (Pulse <= 0), removing from zone", e.GetUUID().String())
         // Remove the Lickquidator from its zone
         zone := e.GetZone()
         if zone != nil {

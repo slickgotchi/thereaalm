@@ -32,6 +32,7 @@
         "yield_fields_2.tmx"
     ],
     "project": "yield_fields_2.tiled-project",
+    "property.type": "bool",
     "recentFiles": [
         "yield_fields_2.tmx"
     ],

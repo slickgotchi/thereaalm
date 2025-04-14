@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-)
+) 
 
 type Gotchi struct {
     Entity
@@ -43,9 +43,8 @@ func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 	}
 
 	// get brs duration modifier
-	brsMultiplier := GetBRSMultiplier(subgraphGotchiData)
-
-	log.Print(brsMultiplier, int(400*brsMultiplier))
+	// brsMultiplier := GetBRSMultiplier(subgraphGotchiData)
+	// log.Print(brsMultiplier, int(400*brsMultiplier))
 
 	// add some stats
 	newStats := stattypes.NewStats()

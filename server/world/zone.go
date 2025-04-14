@@ -2,7 +2,6 @@
 package world
 
 import (
-	"log"
 	"math/rand"
 	"thereaalm/interfaces"
 	"thereaalm/utils"
@@ -57,7 +56,7 @@ func (z *Zone) RemoveEntity(e interfaces.IEntity) {
             // Remove from entity slice
             z.Entities = append(z.Entities[:i], z.Entities[i+1:]...)
             z.SpatialMap.Remove(e) // Remove from spatial hash
-            log.Println("Removed entity from zone")
+            // log.Println("Removed entity from zone")
             return
         }
     }

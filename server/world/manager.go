@@ -63,7 +63,13 @@ func NewWorldManager(workerCount int) *WorldManager {
         return manager
     }
 
-    manager.SetSimulationSpeed(3)
+    manager.SetSimulationSpeed(1)
+
+    // load tilemap
+    // Load the tilemap for zone 0
+    if err := LoadTilemap("../shared/tilemaps/maps/yield_fields_2.json", manager, 42); err != nil {
+        log.Fatalf("Failed to load tilemap: %v", err)
+    }
 
     // load test entities
     manager.loadTestEntities()
@@ -101,6 +107,8 @@ func (wm *WorldManager) loadTestEntities() {
         generateGenericGotchi(wm, 42, posX, posY, 
             gotchisMap[gotchiId], jobSlice[index])
     }
+
+    log.Println("here")
 
     // lickvoids
     for i := 0; i < 100; i++ {
