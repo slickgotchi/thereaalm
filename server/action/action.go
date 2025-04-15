@@ -104,7 +104,7 @@ func (a *Action) TryMoveToTargetEntity(target interfaces.IEntity) bool {
 
 func (a *Action) CanMoveToTargetPosition(x, y int) bool {
 	zone := a.Actor.GetZone()
-	return !zone.IsTileOccupied(x,y)
+	return zone.IsPositionAvailable(x,y)
 }
 
 func (a *Action) TryMoveToTargetPosition(x, y int) bool {
@@ -116,7 +116,7 @@ func (a *Action) TryMoveToTargetPosition(x, y int) bool {
 	} else {
 		// check spatial map that target is valid position
 		zone := a.Actor.GetZone()
-		if zone.IsTileOccupied(x, y) {
+		if !zone.IsPositionAvailable(x, y) {
 			return false
 		}
 

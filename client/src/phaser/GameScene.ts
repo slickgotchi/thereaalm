@@ -9,15 +9,10 @@ import { GotchiEntity } from "./entities/GotchiEntity";
 import { NavigationGrid } from "./navigation/NavigationGrid";
 import { SelectionManager } from "./SelectionManager";
 import { EmoticonEmitter } from "./emoticons/EmoticonEmitter";
-import { LickquidatorEntity } from "./entities/LickquidatorEntity";
 import { VFXManager } from "./VFXManager";
-
-
 
 export const TILE_PIXELS = 64;
 export const ZONE_TILES = 512;
-// const GAME_WIDTH = 1920;
-// const GAME_HEIGHT = 1200;
 
 export class GameScene extends Phaser.Scene {
     private entityMap: Map<string, BaseEntity> = new Map();

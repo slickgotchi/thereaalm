@@ -5,7 +5,8 @@ import (
 	"thereaalm/interfaces"
 )
 
-// SpatialHash represents the spatial partitioning system
+// SpatialHash represents the spatial partitioning system within a zone
+// - IMPORTANT: all coordinates are in world space
 type SpatialHash struct {
     CellSize     int
     HashTable    map[string][]interfaces.IEntity
@@ -73,20 +74,20 @@ func (sh *SpatialHash) Update(entity interfaces.IEntity) {
 }
 
 // GetEntitiesInCell retrieves all entities in the given cell
-func (sh *SpatialHash) GetEntitiesInCell(x, y int) []interfaces.IEntity {
-    cellKey := sh.hashCoordinates(x, y)
+func (sh *SpatialHash) GetEntitiesInCell(zoneX, zoneY int) []interfaces.IEntity {
+    cellKey := sh.hashCoordinates(zoneX, zoneY)
     return sh.HashTable[cellKey]
 }
 
 // IsOccupied checks if a specific grid position is occupied
-func (sh *SpatialHash) IsTileOccupied(x, y int) bool {
+func (sh *SpatialHash) IsPositionAvailable(x, y int) bool {
     entities := sh.GetEntitiesInCell(x, y)
     for _, entity := range entities {
         ex, ey := entity.GetPosition()
         if ex == x && ey == y {
-            return true
+            return false
         }
     }
-    return false
+    return true
 }
 

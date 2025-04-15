@@ -52,7 +52,7 @@ func (r *RoamAction) Start() {
     r.Duration = time.Duration(5+rand.Float64()*(15-5)) * time.Second
 
 	// attempt to find a new empty cell using the zone's FindNearbyEmptyCell method
-	zone := r.Actor.GetZone() // Get the actor's zone
+	// zone := r.Actor.GetZone() // Get the actor's zone
 	actorX, actorY := r.Actor.GetPosition()
 
 	// use ecto to govern roam radius (between 2 - 10)
@@ -68,8 +68,15 @@ func (r *RoamAction) Start() {
 	alpha := 1.0 - actorEcto / 1000
 	explorationRadius := 2 + int(alpha * 8.0)
 
+	if r.WorldManager == nil {
+		log.Println("Error: We do not have a valid WorldManager")
+		return
+	}
+
+	// log.Println("Start roam, at position: ", actorX, actorY)
+
 	// Use the zone's FindNearbyEmptyCell with radius 3
-	newX, newY, found := zone.FindNearbyEmptyTile(actorX, actorY, explorationRadius, 1)
+	newX, newY, found := r.WorldManager.FindNearbyAvailablePosition(actorX, actorY, explorationRadius, 1)
 	if found {
 		// set direction to new position
 		r.Actor.SetDirectionToTargetPosition(newX, newY)
@@ -78,7 +85,7 @@ func (r *RoamAction) Start() {
 		r.Actor.SetPosition(newX, newY)
 
 		// reduce pulse (our "stability")
-		actorStats.DeltaStat(stattypes.Pulse, -5)
+		actorStats.DeltaStat(stattypes.Pulse, -0.5)
 	}
 }
 

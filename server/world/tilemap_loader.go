@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"thereaalm/entity"
 )
 
 // TiledMap represents the structure of a Tiled tilemap JSON file.
@@ -72,23 +71,23 @@ func LoadTilemap(filePath string, worldManager *WorldManager, zoneID int) error 
         }
 
         // Check if the layer is tagged as "Impassable"
-        isImpassable := false
+        isObstacle := false
         for _, prop := range layer.Properties {
-            if prop.Name == "isImpassable" && prop.Type == "bool" {
+            if prop.Name == "isObstacle" && prop.Type == "bool" {
                 if val, ok := prop.Value.(bool); ok && val {
-                    isImpassable = true
+                    isObstacle = true
                     break
                 }
             }
         }
 
-        if !isImpassable {
-            log.Printf("Layer %s is not marked as Impassable (or missing properties)", layer.Name)
+        if !isObstacle {
+            // log.Printf("Layer %s is not marked as isObstacle (or missing properties)... continuing", layer.Name)
             continue
         }
 
         // The layer is impassable; process each tile
-        log.Printf("Processing Impassable layer: %s", layer.Name)
+        log.Printf("Processing 'isObstacle' layer: %s", layer.Name)
         count := 0
         for i, tileID := range layer.Data {
             // Skip tiles with ID 0 (no tile present)
@@ -97,15 +96,18 @@ func LoadTilemap(filePath string, worldManager *WorldManager, zoneID int) error 
             }
 
             // Convert the 1D index to 2D coordinates
-            x := i % layer.Width
-            y := i / layer.Width
+            zoneWorldX, zoneWorldY := zone.GetPosition()
+            x := zoneWorldX + i % layer.Width
+            y := zoneWorldY + i / layer.Width
 
-            // Create an ImpassableEntity at this position
-            entity := entity.NewImpassableEntity(x, y)
-            zone.AddEntity(entity)
+            // Create an obstacle
+            zone.AddObstacle(x, y)
+            // log.Println("Added obstacle at ", x, y)
+
+            // increment count
             count++
         }
-        log.Printf("Added %d Impassable entities in zone %d", count, zoneID)
+        log.Printf("Added %d 'isObstacle' cells in zone %d", count, zoneID)
     }
 
     log.Printf("Finished loading tilemap for zone %d", zoneID)

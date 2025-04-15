@@ -29,6 +29,7 @@ func (e *Entity) SetPosition(x, y int) {
 	e.X = x
 	e.Y = y
 }
+
 func (e *Entity) GetCustomData() interface{} {
     return nil
 }

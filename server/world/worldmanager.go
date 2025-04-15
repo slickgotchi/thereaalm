@@ -12,8 +12,8 @@ import (
 	"thereaalm/entity"
 	"thereaalm/entity/resourceentity"
 	"thereaalm/interfaces"
-	"thereaalm/stattypes"
 	"thereaalm/types"
+	"thereaalm/utils"
 	"thereaalm/web3"
 
 	// "thereaalm/storage"
@@ -87,8 +87,12 @@ func (wm *WorldManager) loadTestEntities() {
         return
     }
 
-    // entity generation
-    zoneX, zoneY := wm.Zones[42].GetPosition()
+    // lets start by placing entities in zone 42 only for now
+    zone := wm.Zones[42]
+    zoneWorldX, zoneWorldY := zone.GetPosition()
+
+    log.Println("Zone minimum: ", zoneWorldX, zoneWorldY)
+    log.Println("Zone maximum: ", zoneWorldX + zone.GetWidth(), zoneWorldY + zone.GetHeight())
 
     // gotchis
     for i := 0; i < 400; i++ {
@@ -98,29 +102,48 @@ func (wm *WorldManager) loadTestEntities() {
 
         gotchiId := idSlice[index]
 
-        posX := rand.Intn(ZoneTiles) + zoneX
-        posY := rand.Intn(ZoneTiles) + zoneY
+        posX := rand.Intn(ZoneTiles) + zoneWorldX
+        posY := rand.Intn(ZoneTiles) + zoneWorldY
+
+        log.Println("Try make gotchi at: ", posX, posY)
+
+        if !zone.IsPositionAvailable(posX, posY) {
+            log.Println("Position not available, try find neary available one...")
+            emptyX, emptyY, found := wm.FindNearbyAvailablePosition(posX, posY, 10, 0)
+            if found {
+                log.Println("Found position at: ", posX, posY)
+                posX = emptyX
+                posY = emptyY
+            } else {
+                continue
+            }
+        }
 
         jobSlice := []string{"mercenary", "farmer",
             "minerjack", "builder", "explorer"}
 
-        generateGenericGotchi(wm, 42, posX, posY, 
-            gotchisMap[gotchiId], jobSlice[index])
+        _, exists := gotchisMap[gotchiId]
+        if !exists {
+            generateGenericGotchi(wm, posX, posY, 
+                web3.DefaultSubgraphGotchiData, jobSlice[index])
+        } else {
+            generateGenericGotchi(wm, posX, posY, 
+                gotchisMap[gotchiId], jobSlice[index])
+        }
+
     }
 
-    log.Println("here")
-
     // lickvoids
-    for i := 0; i < 100; i++ {
-        posX := rand.Intn(ZoneTiles) + zoneX
-        posY := rand.Intn(ZoneTiles) + zoneY
+    for i := 0; i < 50; i++ {
+        posX := rand.Intn(ZoneTiles) + zoneWorldX
+        posY := rand.Intn(ZoneTiles) + zoneWorldY
 
-        if wm.Zones[42].IsTileOccupied(posX, posY) {
+        if !wm.IsPositionAvailable(posX, posY) {
             continue
         }
 
         lickvoid := entity.NewLickVoid(posX, posY)
-        wm.Zones[42].AddEntity(lickvoid)
+        wm.AddEntity(lickvoid)
         lickvoid.SpawnInterval_s = 5
     }
 
@@ -164,9 +187,9 @@ func (wm *WorldManager) loadTestEntities() {
     // lickvoid.SpawnInterval_s = 5
 }
 
-func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
+func generateGenericLickquidator(wm *WorldManager, x, y int) {
     lickquidator := entity.NewLickquidator(x, y)
-    wm.Zones[zoneID].AddEntity(lickquidator)
+    wm.AddEntity(lickquidator)
 
     lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.3,
         &types.TargetSpec{
@@ -185,12 +208,11 @@ func generateGenericLickquidator(wm *WorldManager, zoneID int, x, y int) {
         }))
 }
 
-func generateGenericGotchi(wm *WorldManager, zoneID int, x, y int, 
+func generateGenericGotchi(wm *WorldManager, x, y int, 
     subgraphData web3.SubgraphGotchiData, job string) {
 
     newGotchi := entity.NewGotchi(x, y, subgraphData)
-    wm.Zones[zoneID].AddEntity(newGotchi)
-    newGotchi.SetStat(stattypes.Pulse, 300)
+    wm.AddEntity(newGotchi)
     newGotchi.Job = job
 
     // determine action profile
@@ -298,4 +320,67 @@ func (wm *WorldManager) SetSimulationSpeed(multiplier float64) {
     }
     wm.SpeedMultiplier = multiplier
     log.Printf("Simulation speed set to %.2fx", multiplier)
+}
+
+func (wm *WorldManager) IsPositionAvailable(x, y int) bool {
+    zone := wm.getZoneForPosition(x, y)
+
+    if zone == nil {
+        return false
+    }
+
+    return zone.IsPositionAvailable(x, y)
+}
+
+func (wm *WorldManager) AddEntity(e interfaces.IEntity) {
+    ex, ey := e.GetPosition()
+
+    eZone := wm.getZoneForPosition(ex, ey)
+
+    if eZone != nil {
+        eZone.AddEntity(e)
+    }
+}
+
+func (wm *WorldManager) RemoveEntity(e interfaces.IEntity) {
+    eZone := e.GetZone()
+    
+    if eZone != nil {
+        eZone.RemoveEntity(e)
+    }
+}
+
+func (wm *WorldManager) getZoneForPosition(x, y int) interfaces.IZone {
+    var zone interfaces.IZone
+    for _, z := range wm.Zones {
+        zoneWorldX, zoneWorldY := z.GetPosition()
+        if x >= zoneWorldX && y >= zoneWorldY && 
+        x < zoneWorldX + z.GetWidth() && y < zoneWorldY + z.GetHeight() {
+            zone = z
+            break    
+        }
+    }
+
+    return zone
+}
+
+func (wm *WorldManager) FindNearbyAvailablePosition(x, y, radius, minimumGap int) (int, int, bool) {
+    // get zone for position
+    zone := wm.getZoneForPosition(x, y)
+    if zone == nil {
+        log.Println("No zone available at the position: ", x, y)
+        return 0, 0, false
+    }
+
+    // use the zones utility function
+    emptyX, emptyY, found := zone.FindNearbyAvailablePosition(x, y, radius, minimumGap)
+    if found {
+        return emptyX, emptyY, true
+    }
+
+    return 0, 0, false
+}
+
+func (wm *WorldManager) GetDistance(x1, y1, x2, y2 int) int {
+    return utils.Abs(x1 - x2) + utils.Abs(y1 - y2)
 }

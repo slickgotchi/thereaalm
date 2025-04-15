@@ -80,18 +80,25 @@ func (e *LickVoid) Update(dt_s float64) {
 
 	// Spawn if interval has passed
 	if e.WorldManager.Since(e.LastSpawnTime) >= time.Duration(e.SpawnInterval_s)*time.Second {
-		currX, currY := e.GetPosition()
-
 		corners := [][2]int{
 			{1, 1}, {1, -1}, {-1, 1}, {-1, -1},
 		}
-		offset := corners[rand.Intn(len(corners))]
 
-		spawnX := currX + offset[0]
-		spawnY := currY + offset[1]
+		// shuffle corners
+		rand.Shuffle(len(corners), func(i, j int) {
+			corners[i], corners[j] = corners[j], corners[i]
+		})
 
-		lick := e.generateGenericLickquidator(spawnX, spawnY)
-		e.SpawnedLicks = append(e.SpawnedLicks, lick)
+		for _, offset := range corners {
+			spawnX := e.X + offset[0]
+			spawnY := e.Y + offset[1]
+
+			if e.WorldManager.IsPositionAvailable(spawnX, spawnY) {
+				lick := e.generateGenericLickquidator(spawnX, spawnY)
+				e.SpawnedLicks = append(e.SpawnedLicks, lick)
+				break // stop after successful spawn
+			}
+		}
 
 		e.LastSpawnTime = e.WorldManager.Now()
 	}
@@ -99,9 +106,8 @@ func (e *LickVoid) Update(dt_s float64) {
 
 
 func (e *LickVoid) generateGenericLickquidator(x, y int) interfaces.IEntity {
-	zone := e.GetZone()
 	lickquidator := NewLickquidator(x, y)
-	zone.AddEntity(lickquidator)
+	e.GetWorldManager().AddEntity(lickquidator)
 
 	lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.5,
 		&types.TargetSpec{

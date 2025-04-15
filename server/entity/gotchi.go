@@ -162,7 +162,8 @@ func (e *Gotchi) DeltaStat(name string, value float64) {
 
 		// move gotchi to new location out of the way of entities
 		currX, currY := e.GetPosition()
-		newX, newY, found := e.GetZone().FindNearbyEmptyTile(currX, currY, 7, 1)
+		newX, newY, found := 
+			e.GetWorldManager().FindNearbyAvailablePosition(currX, currY, 7, 1)
 		if found {
 			// set direction to new position
 			e.SetDirection("down")

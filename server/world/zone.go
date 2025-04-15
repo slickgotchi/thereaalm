@@ -19,9 +19,16 @@ type Zone struct {
     Y        int
     SpatialMap *SpatialHash
     WorldManager *WorldManager // Add reference to WorldManager
+    ObstacleGrid [][]bool
 }
 
 func NewZone(wm *WorldManager, id, width, height, x, y, cellSize int) *Zone {
+
+    obstacleGrid := make([][]bool, height)
+    for i := range obstacleGrid {
+        obstacleGrid[i] = make([]bool, width)
+    }
+
     return &Zone{
         ID:       id,
         Entities: []interfaces.IEntity{},
@@ -31,6 +38,7 @@ func NewZone(wm *WorldManager, id, width, height, x, y, cellSize int) *Zone {
         Y:        y,
         SpatialMap: NewSpatialHash(cellSize),
         WorldManager: wm,
+        ObstacleGrid: obstacleGrid,
     }
 }
 
@@ -41,6 +49,9 @@ func (z *Zone) GetID() int {
 func (z *Zone) GetPosition() (int, int) {
     return z.X, z.Y
 }
+
+func (z *Zone) GetWidth() int { return z.Width }
+func (z *Zone) GetHeight() int { return z.Height }
 
 func (z *Zone) AddEntity(e interfaces.IEntity) {
     z.Entities = append(z.Entities, e)
@@ -76,19 +87,19 @@ func (z *Zone) Update(dt_s float64) {
     }
 }
 
-// IsCellOccupied checks if a specific position in the zone is occupied
-func (z *Zone) IsTileOccupied(x, y int) bool {
-    return z.SpatialMap.IsTileOccupied(x, y)
+// checks if a world position is available
+func (z *Zone) IsPositionAvailable(x, y int) bool {
+    return z.SpatialMap.IsPositionAvailable(x, y) && !z.IsObstacle(x, y)
 }
 
 // FindNearbyEntities finds entities within a specified radius
-func (z *Zone) FindNearbyEntities(x, y, radius int) []interfaces.IEntity {
+func (z *Zone) FindNearbyEntities(zoneX, zoneY, radius int) []interfaces.IEntity {
     entities := []interfaces.IEntity{}
 
     // Iterate over neighboring cells in the spatial hash
     for dx := -radius; dx <= radius; dx++ {
         for dy := -radius; dy <= radius; dy++ {
-            nearby := z.SpatialMap.GetEntitiesInCell(x+dx, y+dy)
+            nearby := z.SpatialMap.GetEntitiesInCell(zoneX+dx, zoneY+dy)
             entities = append(entities, nearby...)
         }
     }
@@ -97,7 +108,7 @@ func (z *Zone) FindNearbyEntities(x, y, radius int) []interfaces.IEntity {
 
 // FindNearbyEmptyTile finds a random empty cell within a given radius,
 // ensuring a minimum gap between the returned cell and any entities.
-func (z *Zone) FindNearbyEmptyTile(x, y, radius, minGap int) (int, int, bool) {
+func (z *Zone) FindNearbyAvailablePosition(x, y, radius, minGap int) (int, int, bool) {
     var candidates []struct{ dx, dy int }
 
     // Populate candidate positions
@@ -107,7 +118,7 @@ func (z *Zone) FindNearbyEmptyTile(x, y, radius, minGap int) (int, int, bool) {
                 nx, ny := x+dx, y+dy
 
                 // Bounds check
-                if nx < z.X || ny < z.Y || nx >= z.X+z.Width || ny >= z.Y+z.Height {
+                if nx < z.X || ny < z.Y || nx >= z.X + z.Width || ny >= z.Y + z.Height {
                     continue
                 }
 
@@ -134,11 +145,11 @@ func (z *Zone) FindNearbyEmptyTile(x, y, radius, minGap int) (int, int, bool) {
                 tx, ty := nx+gx, ny+gy
 
                 // Skip out-of-bounds tiles in the gap check
-                if tx < z.X || ty < z.Y || tx >= z.X+z.Width || ty >= z.Y+z.Height {
+                if tx < z.X || ty < z.Y || tx >= z.X + z.Width || ty >= z.Y + z.Height {
                     continue
                 }
 
-                if z.IsTileOccupied(tx, ty) {
+                if !z.IsPositionAvailable(tx, ty) {
                     isValid = false
                     break
                 }
@@ -173,7 +184,7 @@ func (z *Zone) TryGetEmptyTileNextToTargetEntity(target interfaces.IEntity) (int
     
     var emptyTiles [][2]int
     for _, pos := range adjacent {
-        if !z.IsTileOccupied(pos[0], pos[1]) { // Rename this call later
+        if z.IsPositionAvailable(pos[0], pos[1]) { // Rename this call later
             emptyTiles = append(emptyTiles, pos)
         }
     }
@@ -219,4 +230,41 @@ func (z *Zone) GetDistance(x1, y1, x2, y2 int) int {
 
 func (z *Zone) GetWorldManager() interfaces.IWorldManager {
     return z.WorldManager
+}
+
+// SetObstacle marks a tile as impassable
+func (z *Zone) AddObstacle(x, y int) {
+    if z.isPositionWithinZone(x, y) {
+        // obstacle grid MUST be in local zone coordinates
+        z.ObstacleGrid[y-z.Y][x-z.X] = true
+    }
+}
+
+func (z *Zone) RemoveObstacle(x, y int) {
+    if z.isPositionWithinZone(x, y) {
+        // obstacle grid MUST be in local zone coordinates
+        z.ObstacleGrid[y-z.Y][x-z.X] = false
+    }
+}
+
+// IsObstacle checks if a tile is impassable
+func (z *Zone) IsObstacle(x, y int) bool {
+    if z.isPositionWithinZone(x, y) {
+        // obstacle grid MUST be in local zone coordinates
+        return z.ObstacleGrid[y-z.Y][x-z.X]
+    } else {
+        return false
+    }
+}
+
+// func (z *Zone) zoneToWorldCoords(zoneX, zoneY int) (int, int) {
+//     return zoneX + z.X, zoneY + z.Y
+// }
+
+// func (z *Zone) worldToZoneCoords(worldX, worldY int) (int, int) {
+//     return worldX - z.X, worldY - z.Y
+// }
+
+func (z *Zone) isPositionWithinZone(x, y int) bool {
+    return x >= z.X && y >= z.Y && x < z.X + z.Width && y < z.Y + z.Height
 }
