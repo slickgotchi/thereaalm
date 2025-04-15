@@ -105,13 +105,13 @@ func (wm *WorldManager) loadTestEntities() {
         posX := rand.Intn(ZoneTiles) + zoneWorldX
         posY := rand.Intn(ZoneTiles) + zoneWorldY
 
-        log.Println("Try make gotchi at: ", posX, posY)
+        // log.Println("Try make gotchi at: ", posX, posY)
 
         if !zone.IsPositionAvailable(posX, posY) {
-            log.Println("Position not available, try find neary available one...")
+            // log.Println("Position not available, try find neary available one...")
             emptyX, emptyY, found := wm.FindNearbyAvailablePosition(posX, posY, 10, 0)
             if found {
-                log.Println("Found position at: ", posX, posY)
+                // log.Println("Found position at: ", posX, posY)
                 posX = emptyX
                 posY = emptyY
             } else {
@@ -134,7 +134,7 @@ func (wm *WorldManager) loadTestEntities() {
     }
 
     // lickvoids
-    for i := 0; i < 50; i++ {
+    for i := 0; i < 100; i++ {
         posX := rand.Intn(ZoneTiles) + zoneWorldX
         posY := rand.Intn(ZoneTiles) + zoneWorldY
 
@@ -145,6 +145,60 @@ func (wm *WorldManager) loadTestEntities() {
         lickvoid := entity.NewLickVoid(posX, posY)
         wm.AddEntity(lickvoid)
         lickvoid.SpawnInterval_s = 5
+    }
+
+    // resources
+    for i := 0; i < 800; i++ {
+        // pick rando resource
+        resourceSlice := []string{"fomoberrybush", "kekwoodtree", "alphaslateboulders" }
+        resource := resourceSlice[rand.Intn(3)]
+
+        posX := rand.Intn(ZoneTiles) + zoneWorldX
+        posY := rand.Intn(ZoneTiles) + zoneWorldY
+
+        if !zone.IsPositionAvailable(posX, posY) {
+            // log.Println("Position not available, try find neary available one...")
+            emptyX, emptyY, found := wm.FindNearbyAvailablePosition(posX, posY, 10, 0)
+            if found {
+                // log.Println("Found position at: ", posX, posY)
+                posX = emptyX
+                posY = emptyY
+            } else {
+                continue
+            }
+        }
+
+        if resource == "fomoberrybush" {
+            wm.AddEntity(resourceentity.NewFomoBerryBush(posX, posY))
+        } else if resource == "kekwoodtree" {
+            wm.AddEntity(resourceentity.NewKekWoodTree(posX, posY))
+        } else {
+            wm.AddEntity(resourceentity.NewAlphaSlateBoulders(posX, posY))
+        }
+    }
+
+    // altars
+    for i := 0; i < 100; i++ {
+        posX := rand.Intn(ZoneTiles) + zoneWorldX
+        posY := rand.Intn(ZoneTiles) + zoneWorldY
+
+        if !wm.IsPositionAvailable(posX, posY) {
+            continue
+        }
+
+        wm.AddEntity(entity.NewAltar(posX, posY))
+    }
+
+    // shops
+    for i := 0; i < 50; i++ {
+        posX := rand.Intn(ZoneTiles) + zoneWorldX
+        posY := rand.Intn(ZoneTiles) + zoneWorldY
+
+        if !wm.IsPositionAvailable(posX, posY) {
+            continue
+        }
+
+        wm.AddEntity(entity.NewShop(posX, posY))
     }
 
     // ENTITIES
@@ -164,27 +218,10 @@ func (wm *WorldManager) loadTestEntities() {
     // shop := entity.NewShop(6+zoneX, 12+zoneY)
     // wm.Zones[42].AddEntity(shop)
 
-    // // gotchis
-    // generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["4285"])
-    // generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["19005"])
-    // generateGenericGotchi(wm, 42, 10+zoneX, 10+zoneY, gotchisMap["21550"])
-    // generateGenericGotchi(wm, 42, 30+zoneX, 30+zoneY, gotchisMap["8281"])
-    // generateGenericGotchi(wm, 42, 30+zoneX, 30+zoneY, gotchisMap["5401"])
-
-    // // lickquidators
-    // generateGenericLickquidator(wm, 42, 9+zoneX, 14+zoneY)
-    // generateGenericLickquidator(wm, 42, 18+zoneX, 23+zoneY)
-    // generateGenericLickquidator(wm, 42, 15+zoneX, 19+zoneY)
-
     // // altar
     // altar := entity.NewAltar(19+zoneX, 12+zoneY)
     // wm.Zones[42].AddEntity(altar)
     // altar.SetStat(stattypes.Pulse, 20)
-
-    // // lickvoid
-    // lickvoid := entity.NewLickVoid(25+zoneX, 14+zoneY)
-    // wm.Zones[42].AddEntity(lickvoid)
-    // lickvoid.SpawnInterval_s = 5
 }
 
 func generateGenericLickquidator(wm *WorldManager, x, y int) {
