@@ -1,4 +1,5 @@
 import { EmoticonEmitter } from "../emoticons/EmoticonEmitter";
+import { Emoticons } from "../emoticons/Emoticons";
 import { TILE_PIXELS, ZONE_TILES } from "../GameScene";
 import { HPBar } from "../HPBar";
 import { NavigationGrid } from "../navigation/NavigationGrid";
@@ -15,7 +16,7 @@ export class LickquidatorEntity extends TweenableEntity {
     jumpY = 0;
 
     // must be destroyed on death
-    emoticonEmitter!: EmoticonEmitter;
+    actionSprite!: Phaser.GameObjects.Sprite;
     shadowSprite!: Phaser.GameObjects.Sprite;
     hpBar!: HPBar;
 
@@ -33,7 +34,13 @@ export class LickquidatorEntity extends TweenableEntity {
         this.shadowSprite.setAlpha(0.3);
         this.shadowSprite.setScale(0.8);
 
-        // this.sprite.setScale(0.5);
+        const {texture,frame} = Emoticons.getTextureAndFrame("attack");
+        this.actionSprite = scene.add.sprite(this.sprite.x, this.sprite.y, 
+            texture, frame);
+        this.actionSprite.setDepth(this.sprite.depth + 1);
+        this.actionSprite.setOrigin(0, 0.5);
+        this.actionSprite.setAlpha(1);
+        this.actionSprite.setScale(10/48);
 
         // float anim
         const delay_ms = Math.random() * 500;
@@ -46,9 +53,6 @@ export class LickquidatorEntity extends TweenableEntity {
             ease: "Quad.easeOut",
             delay: delay_ms,
         });
-
-        // emoticon
-        this.emoticonEmitter = new EmoticonEmitter(scene, tileX * ZONE_TILES, tileY * ZONE_TILES);
 
         // hp bar 
         this.hpBar = new HPBar({
@@ -67,8 +71,8 @@ export class LickquidatorEntity extends TweenableEntity {
         // set positions
         this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y - this.jumpY);
         this.shadowSprite.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 64);
-        this.emoticonEmitter.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 16);
         this.hpBar.setPosition(this.currentPosition.x, this.currentPosition.y);
+        this.actionSprite.setPosition(this.currentPosition.x, this.currentPosition.y);
 
         // reset last emit time during tween so the emoticon emits as soon as we
         // finish a movement tween
@@ -76,15 +80,15 @@ export class LickquidatorEntity extends TweenableEntity {
             this.lastEmoticonEmitTime_ms = 0;
         }
 
-        // emoticon emission
-        const currTime_ms = Date.now();
-        if (
-            currTime_ms - this.lastEmoticonEmitTime_ms > this.emoticonEmitInterval_ms &&
-            !this.tweenWorker.getIsTweening()
-        ) {
-            this.lastEmoticonEmitTime_ms = currTime_ms;
-            this.emoticonEmitter.emit("attack", 240);
-        }
+        // // emoticon emission
+        // const currTime_ms = Date.now();
+        // if (
+        //     currTime_ms - this.lastEmoticonEmitTime_ms > this.emoticonEmitInterval_ms &&
+        //     !this.tweenWorker.getIsTweening()
+        // ) {
+        //     this.lastEmoticonEmitTime_ms = currTime_ms;
+        //     this.emoticonEmitter.emit("attack", 240);
+        // }
 
         // update facing direction
         this.updateDirection();
@@ -96,6 +100,8 @@ export class LickquidatorEntity extends TweenableEntity {
         
         // update hp
         this.hpBar.updateHP(snapshot.data.stats.pulse);
+
+
     }
 
     destroy(): void {
@@ -103,7 +109,8 @@ export class LickquidatorEntity extends TweenableEntity {
         VFXManager.getInstance(this.scene)
             .playLickExplosion(this.currentPosition.x, this.currentPosition.y);
 
-        this.emoticonEmitter.destroy();
+        // this.emoticonEmitter.destroy();
+        this.actionSprite.destroy();
         this.shadowSprite.destroy(); 
         this.hpBar.destroy();
 

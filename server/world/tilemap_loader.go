@@ -39,17 +39,17 @@ type Property struct {
 }
 
 // LoadTilemap loads a Tiled tilemap from a JSON file and creates Impassable entities.
-func LoadTilemap(filePath string, worldManager *WorldManager, zoneID int) error {
+func LoadTilemap(filePath string, worldManager *WorldManager, zoneID int) ([]*SpawnArea, error) {
     // Read the JSON file
     data, err := ioutil.ReadFile(filePath)
     if err != nil {
-        return err
+        return nil, err
     }
 
     // Parse the JSON into a TiledMap struct
     var tiledMap TiledMap
     if err := json.Unmarshal(data, &tiledMap); err != nil {
-        return err
+        return nil, err
     }
 
     // Validate the map dimensions
@@ -63,6 +63,9 @@ func LoadTilemap(filePath string, worldManager *WorldManager, zoneID int) error 
         log.Fatalf("Zone %d not found in world manager", zoneID)
     }
 
+    // Collection of spawn areas
+    spawnAreas := make([]*SpawnArea, 0)
+
     // Process each layer
     for _, layer := range tiledMap.Layers {
         // Skip non-tile layers or layers without data
@@ -70,8 +73,9 @@ func LoadTilemap(filePath string, worldManager *WorldManager, zoneID int) error 
             continue
         }
 
-        // Check if the layer is tagged as "Impassable"
+        // Check for isObstacle property
         isObstacle := false
+        var spawnArea *SpawnArea
         for _, prop := range layer.Properties {
             if prop.Name == "isObstacle" && prop.Type == "bool" {
                 if val, ok := prop.Value.(bool); ok && val {
@@ -79,37 +83,70 @@ func LoadTilemap(filePath string, worldManager *WorldManager, zoneID int) error 
                     break
                 }
             }
-        }
-
-        if !isObstacle {
-            // log.Printf("Layer %s is not marked as isObstacle (or missing properties)... continuing", layer.Name)
-            continue
-        }
-
-        // The layer is impassable; process each tile
-        log.Printf("Processing 'isObstacle' layer: %s", layer.Name)
-        count := 0
-        for i, tileID := range layer.Data {
-            // Skip tiles with ID 0 (no tile present)
-            if tileID == 0 {
-                continue
+            if prop.Name == "isSpawnArea" && prop.Type == "bool" {
+                if val, ok := prop.Value.(bool); ok && val {
+                    // Look for entitySpawnType property
+                    entitySpawnType := ""
+                    for _, p := range layer.Properties {
+                        if p.Name == "entitySpawnType" && p.Type == "string" {
+                            if val, ok := p.Value.(string); ok {
+                                entitySpawnType = val
+                            }
+                            break
+                        }
+                    }
+                    spawnArea = NewSpawnArea(entitySpawnType)
+                    break
+                }
             }
-
-            // Convert the 1D index to 2D coordinates
-            zoneWorldX, zoneWorldY := zone.GetPosition()
-            x := zoneWorldX + i % layer.Width
-            y := zoneWorldY + i / layer.Width
-
-            // Create an obstacle
-            zone.AddObstacle(x, y)
-            // log.Println("Added obstacle at ", x, y)
-
-            // increment count
-            count++
         }
-        log.Printf("Added %d 'isObstacle' cells in zone %d", count, zoneID)
+
+        if isObstacle {
+            // Process impassable layer
+            log.Printf("Processing 'isObstacle' layer: %s", layer.Name)
+            count := 0
+            for i, tileID := range layer.Data {
+                // Skip tiles with ID 0 (no tile present)
+                if tileID == 0 {
+                    continue
+                }
+
+                // Convert the 1D index to 2D coordinates
+                zoneWorldX, zoneWorldY := zone.GetPosition()
+                x := zoneWorldX + i % layer.Width
+                y := zoneWorldY + i / layer.Width
+
+                // Create an obstacle
+                zone.AddObstacle(x, y)
+                count++
+            }
+            log.Printf("Added %d 'isObstacle' cells in zone %d", count, zoneID)
+        } else if spawnArea != nil {
+            // Process spawn area layer
+            log.Printf("Processing 'isSpawnArea' layer: %s with entity type: %s", layer.Name, spawnArea.EntitySpawnType)
+            count := 0
+            for i, tileID := range layer.Data {
+                // Skip tiles with ID 0 (no tile present)
+                if tileID == 0 {
+                    continue
+                }
+
+                // Convert the 1D index to 2D coordinates
+                zoneWorldX, zoneWorldY := zone.GetPosition()
+                x := zoneWorldX + i % layer.Width
+                y := zoneWorldY + i / layer.Width
+
+                // Add position to spawn area
+                spawnArea.AddPosition(x, y)
+                count++
+            }
+            if count > 0 {
+                spawnAreas = append(spawnAreas, spawnArea)
+                log.Printf("Added %d spawn positions to '%s' spawn area in zone %d", count, spawnArea.EntitySpawnType, zoneID)
+            }
+        }
     }
 
-    log.Printf("Finished loading tilemap for zone %d", zoneID)
-    return nil
+    log.Printf("Finished loading tilemap for zone %d with %d spawn areas", zoneID, len(spawnAreas))
+    return spawnAreas, nil
 }

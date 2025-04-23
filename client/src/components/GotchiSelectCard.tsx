@@ -1,4 +1,4 @@
-import { Aavegotchi } from "../phaser/FetchGotchis";
+import { Aavegotchi } from "../utils/FetchGotchis";
 import { eventBus } from "../utils/EventBus"; // Adjust path
 import "./GotchiSelectCard.css";
 

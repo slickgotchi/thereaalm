@@ -1,8 +1,7 @@
-import { EmoticonEmitter } from "../emoticons/EmoticonEmitter";
+import { Emoticons } from "../emoticons/Emoticons";
 import { ESPBar } from "../ESPBar";
-import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../FetchGotchis";
-import { TILE_PIXELS, ZONE_TILES } from "../GameScene";
-import { HPBar } from "../HPBar";
+import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../../utils/FetchGotchis";
+import { TILE_PIXELS } from "../GameScene";
 import { NavigationGrid } from "../navigation/NavigationGrid";
 import { EntitySnapshot } from "./BaseEntity";
 import { TweenableEntity } from "./TweenableEntity";
@@ -22,14 +21,11 @@ interface TextureSet {
 export class GotchiEntity extends TweenableEntity {
     gotchiId: string = "";
     textureSet!: TextureSet;
-    lastEmoticonEmitTime_ms: number = 0;
-    emoticonEmitInterval_ms: number = 3000;
     currentActionType: string = "";
     jumpY = 0;
 
-    emoticonEmitter!: EmoticonEmitter;
+    actionSprite!: Phaser.GameObjects.Sprite;
     shadowSprite!: Phaser.GameObjects.Sprite;
-    // hpBar!: HPBar;
     espBar!: ESPBar;
 
     entityState!: string;
@@ -57,7 +53,12 @@ export class GotchiEntity extends TweenableEntity {
 
         this.isDeathTriggered = false;
 
-        // this.sprite.setScale(0.5);
+        this.actionSprite = scene.add.sprite(this.sprite.x, this.sprite.y, 
+            "actionicons", 12);
+        this.actionSprite.setDepth(this.sprite.depth + 1);
+        this.actionSprite.setOrigin(0, 0.5);
+        this.actionSprite.setAlpha(1);
+        this.actionSprite.setScale(10/48);
 
         // Add to activeGotchis
         GotchiEntity.activeGotchis.set(this.gotchiId, this);
@@ -78,7 +79,7 @@ export class GotchiEntity extends TweenableEntity {
 
         this.jumpTween = this.createJumpTween(150);
 
-        this.emoticonEmitter = new EmoticonEmitter(scene, tileX * ZONE_TILES, tileY * ZONE_TILES);
+        // this.emoticonEmitter = new EmoticonEmitter(scene, tileX * ZONE_TILES, tileY * ZONE_TILES);
 
         // this.hpBar = new HPBar({
         //     scene,
@@ -119,26 +120,37 @@ export class GotchiEntity extends TweenableEntity {
 
         this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y - this.jumpY);
         this.shadowSprite.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 64);
-        this.emoticonEmitter.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 16);
+        // this.emoticonEmitter.setPosition(this.currentPosition.x + 32, this.currentPosition.y + 16);
         // this.hpBar.setPosition(this.currentPosition.x, this.currentPosition.y);
         this.espBar.setPosition(this.currentPosition.x, this.currentPosition.y);
 
-        if (this.tweenWorker.getIsTweening()) {
-            this.lastEmoticonEmitTime_ms = 0;
-        }
+        this.actionSprite.setPosition(
+            this.currentPosition.x,
+            this.currentPosition.y
+        );
 
-        const currTime_ms = Date.now();
-        if (
-            currTime_ms - this.lastEmoticonEmitTime_ms > this.emoticonEmitInterval_ms &&
-            !this.tweenWorker.getIsTweening() &&
-            this.currentActionType !== ""
-        ) {
-            if (this.entityState === "dead") {
-                this.currentActionType = "dead";
-            }
+        // this.actionIcon.setPosition(this.currentPosition.x, this.currentPosition.y);
 
-            this.lastEmoticonEmitTime_ms = currTime_ms;
-            this.emoticonEmitter.emit(this.currentActionType, 240);
+        // if (this.tweenWorker.getIsTweening()) {
+        //     this.lastEmoticonEmitTime_ms = 0;
+        // }
+
+        // const currTime_ms = Date.now();
+        // if (
+        //     currTime_ms - this.lastEmoticonEmitTime_ms > this.emoticonEmitInterval_ms &&
+        //     !this.tweenWorker.getIsTweening() &&
+        //     this.currentActionType !== ""
+        // ) {
+        //     if (this.entityState === "dead") {
+        //         this.currentActionType = "dead";
+        //     }
+
+        //     this.lastEmoticonEmitTime_ms = currTime_ms;
+        //     // this.emoticonEmitter.emit(this.currentActionType, 240);
+        // }
+
+        if (this.entityState === "dead") {
+            this.currentActionType = "dead";
         }
 
         this.updateDirection();
@@ -151,6 +163,9 @@ export class GotchiEntity extends TweenableEntity {
         const currentAction = snapshot.data.actionPlan.currentAction;
         if (currentAction) {
             this.currentActionType = currentAction.type;
+            const {texture, frame} = Emoticons.getTextureAndFrame(this.currentActionType);
+            this.actionSprite.setTexture(texture);
+            this.actionSprite.setFrame(frame);
         }
 
         // this.hpBar.updateHP(snapshot.data.stats.pulse);
@@ -211,14 +226,16 @@ export class GotchiEntity extends TweenableEntity {
         // this.hpBar.setVisible(false);
         this.espBar.setVisible(false);
         this.sprite.setAlpha(0.5);
-        this.emoticonEmitter.setAlpha(0.5);
+        // this.emoticonEmitter.setAlpha(0.5);
     }
 
     destroy(): void {
         // this.hpBar.destroy();
         this.espBar.destroy();
         this.shadowSprite.destroy();
-        this.emoticonEmitter.destroy();
+        this.actionSprite.destroy();
+        // this.actionIcon.destroy();
+        // this.emoticonEmitter.destroy();
         GotchiEntity.activeGotchis.delete(this.gotchiId); // Remove from activeGotchis
         super.destroy();
     }

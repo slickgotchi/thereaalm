@@ -11,15 +11,18 @@
             "scaleInDock": 1
         },
         "yield_fields_2.tmx": {
-            "scale": 0.0338,
-            "selectedLayer": 1,
+            "expandedGroupLayers": [
+                7
+            ],
+            "scale": 0.03125,
+            "selectedLayer": 6,
             "viewCenter": {
-                "x": 15118.343195266272,
-                "y": 5636.094674556212
+                "x": 11776,
+                "y": 9008
             }
         },
         "yield_fields_2.tmx#terrain_tileset": {
-            "scaleInDock": 1
+            "scaleInDock": 0.5
         }
     },
     "last.exportedFilePath": "/Users/slickgotchi/Projects/thereaalm/shared/tilemaps/maps",
@@ -32,7 +35,7 @@
         "yield_fields_2.tmx"
     ],
     "project": "yield_fields_2.tiled-project",
-    "property.type": "bool",
+    "property.type": "string",
     "recentFiles": [
         "yield_fields_2.tmx"
     ],
