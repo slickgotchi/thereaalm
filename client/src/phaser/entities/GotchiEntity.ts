@@ -1,6 +1,6 @@
 import { Emoticons } from "../emoticons/Emoticons";
 import { ESPBar } from "../ESPBar";
-import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../../utils/FetchGotchis";
+import { fetchBulkGotchiSVGs, GotchiSVGSet } from "../../utils/gotchi-loader/FetchGotchis";
 import { TILE_PIXELS } from "../GameScene";
 import { NavigationGrid } from "../navigation/NavigationGrid";
 import { EntitySnapshot } from "./BaseEntity";

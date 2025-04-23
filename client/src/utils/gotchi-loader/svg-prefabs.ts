@@ -32,6 +32,11 @@ export const mouths = {
   neutral: `
     <path d="M33 34h-4v2h6v-2h-1z" />
   `,
+  sad: `
+    <path d="M33 34h-4v2h6v-2h-1z" />
+    <path d="M29 36h-2v2h2v-2h-1z" />
+    <path d="M37 36h-2v2h2v-2h-1z" />
+  `,
 };
 
 export const defaultGotchi: Tuple<string, 4> = [

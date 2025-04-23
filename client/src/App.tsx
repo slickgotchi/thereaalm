@@ -8,7 +8,7 @@ import { ConnectWallet } from "./components/ConnectWallet";
 import TreatModal from "./components/menu/TreatModal";
 import MenuSystem from "./components/menu/MenuSystem";
 import { eventBus } from "./utils/EventBus";
-import { GotchiHUD } from "./components/GotchiHUD";
+import { GotchiHUD } from "./components/gotchi-hud/GotchiHUD";
 
 function App() {
     const gameRef = useRef<Phaser.Game | null>(null);

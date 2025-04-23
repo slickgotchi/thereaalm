@@ -1,0 +1,8 @@
+.sprite {
+    width: 64px;
+    height: 64px;
+    background-image: url('/path/to/spritesheet.png');
+    background-repeat: no-repeat;
+    image-rendering: pixelated; /* great for pixel art */
+  }
+  

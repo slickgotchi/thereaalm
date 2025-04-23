@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
-import { CustomiseOptions, customiseSvg } from "./gotchi-loader/customize-svg";
+import { CustomiseOptions, customiseSvg } from "./customize-svg";
+import { Options } from "./options";
 
 export interface Aavegotchi {
     id: number;
@@ -102,25 +103,19 @@ export async function fetchSingleGotchiSVGs(
     // console.log(`SVG fetch response for ${gotchiID}:`, JSON.stringify(data));
     if (data?.data?.aavegotchi) {
         const g = data.data.aavegotchi;
-        
-        const normalOptions: CustomiseOptions = {
-            removeBg: true,
-            removeShadow: true,
-            armsUp: true,
-            eyes: "happy",
-        } 
-
-        console.log("OG");
-        console.log(removeBackground(removeShadow(g.svg, pixels), pixels));
-        console.log("NEW");
-        console.log(customiseSvg(g.svg, normalOptions));
 
         return {
             id: gotchiID,
-            front: serializeAndSize(customiseSvg(g.svg, normalOptions), 256),
-            left: customiseSvg(g.left || g.svg, normalOptions),
-            right: customiseSvg(g.right || g.svg, normalOptions),
-            back: customiseSvg(g.back || g.svg, normalOptions),
+            front: serializeAndSize(customiseSvg(g.svg, Options.Normal), pixels),
+            left: serializeAndSize(customiseSvg(g.left || g.svg, Options.Normal), pixels),
+            right: serializeAndSize(customiseSvg(g.right || g.svg, Options.Normal), pixels),
+            back: serializeAndSize(customiseSvg(g.back || g.svg, Options.Normal), pixels),
+            anims: {
+                normal: serializeAndSize(customiseSvg(g.svg, Options.Normal), pixels),
+                happy: serializeAndSize(customiseSvg(g.svg, Options.Happy), pixels),
+                sad: serializeAndSize(customiseSvg(g.svg, Options.Sad), pixels),
+                mad: serializeAndSize(customiseSvg(g.svg, Options.Mad), pixels),
+            }
         };
 
         // return {
@@ -182,18 +177,18 @@ export async function fetchBulkGotchiSVGs(
             }));
         }
 
-        const normalOptions: CustomiseOptions = {
-            removeBg: true,
-            removeShadow: true,
-            armsUp: false,
-        } 
-
         return data.data.aavegotchis.map((g: any) => ({
             id: g.id,
-            front: customiseSvg(g.svg, normalOptions),
-            left: customiseSvg(g.left || g.svg, normalOptions),
-            right: customiseSvg(g.right || g.svg, normalOptions),
-            back: customiseSvg(g.back || g.svg, normalOptions),
+            front: serializeAndSize(customiseSvg(g.svg, Options.Normal), pixels),
+            left: serializeAndSize(customiseSvg(g.left || g.svg, Options.Normal), pixels),
+            right: serializeAndSize(customiseSvg(g.right || g.svg, Options.Normal), pixels),
+            back: serializeAndSize(customiseSvg(g.back || g.svg, Options.Normal), pixels),
+            anims: {
+                normal: serializeAndSize(customiseSvg(g.svg, Options.Normal), pixels),
+                happy: serializeAndSize(customiseSvg(g.svg, Options.Happy), pixels),
+                sad: serializeAndSize(customiseSvg(g.svg, Options.Sad), pixels),
+                mad: serializeAndSize(customiseSvg(g.svg, Options.Mad), pixels),
+            }
         }));
 
         // return data.data.aavegotchis.map((g: any) => ({

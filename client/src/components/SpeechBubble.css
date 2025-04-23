@@ -1,0 +1,23 @@
+.speech-bubble {
+  display: inline-block;
+  box-sizing: border-box;
+  image-rendering: pixelated;
+  
+  /* 9-slice setup */
+  border: 20px solid transparent;
+  border-image-source: url('/assets/images/speech-bubble.png');
+  border-image-slice: 20 fill;
+  border-image-width: 20px;
+  border-image-repeat: stretch;
+  background: none;
+}
+
+.speech-bubble-inner {
+  font-family: 'Pixelar', monospace;
+  font-size: 20px;
+  line-height: 1;
+  color: #000;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  padding: 0px;
+}

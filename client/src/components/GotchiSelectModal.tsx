@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { fetchAavegotchis, Aavegotchi } from "../utils/FetchGotchis";
+import { fetchAavegotchis, Aavegotchi } from "../utils/gotchi-loader/FetchGotchis";
 import { GotchiSelectCard } from "./GotchiSelectCard";
 import { GotchiEntity } from "../phaser/entities/GotchiEntity";
 import "./GotchiSelectModal.css";

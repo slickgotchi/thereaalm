@@ -1,4 +1,4 @@
-import { Aavegotchi } from "../utils/FetchGotchis";
+import { Aavegotchi } from "../utils/gotchi-loader/FetchGotchis";
 import { eventBus } from "../utils/EventBus"; // Adjust path
 import "./GotchiSelectCard.css";
 
