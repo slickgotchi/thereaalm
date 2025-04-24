@@ -55,6 +55,13 @@ func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 	newStats.SetStat(stattypes.StakedGHST, 0)
 	newStats.SetStat(stattypes.TreatTotal, 5000)
 
+	newStats.SetStat(stattypes.NRG, float64(subgraphGotchiData.ModifiedNumericTraits[0]))
+	newStats.SetStat(stattypes.AGG, float64(subgraphGotchiData.ModifiedNumericTraits[1]))
+	newStats.SetStat(stattypes.SPK, float64(subgraphGotchiData.ModifiedNumericTraits[2]))
+	newStats.SetStat(stattypes.BRN, float64(subgraphGotchiData.ModifiedNumericTraits[3]))
+	newStats.SetStat(stattypes.EYS, float64(subgraphGotchiData.ModifiedNumericTraits[4]))
+	newStats.SetStat(stattypes.EYC, float64(subgraphGotchiData.ModifiedNumericTraits[5]))
+
 	// make new gotchi
 	return &Gotchi{
         Entity: Entity{
@@ -101,7 +108,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		UUID: g.ID,
 		GotchiID:  g.GotchiId,
 		ZoneID: g.GetZone().GetID(),
-		Description: "The ethereal frens and sworn protectors of The Reaalm",
+		Description: "An ethereal fren and sworn protector of The Reaalm",
 		Stats: g.Stats.StatMap,
 		Inventory: g.Items,
 		Personality: g.Personality,

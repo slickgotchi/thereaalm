@@ -12,6 +12,13 @@ const (
     MaxPulse = "maxpulse"
     StakedGHST = "stakedGhst"
     TreatTotal = "treatTotal"
+
+    NRG = "nrg"
+    AGG = "agg"
+    SPK = "spk"
+    BRN = "brn"
+    EYS = "eys"
+    EYC = "eyc"
 	// HpCurrent = "hp_current"
 	// HpMax     = "hp_max"
 	// Attack    = "attack"

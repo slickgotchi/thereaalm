@@ -39,8 +39,8 @@ export class CameraController {
         this.scene.cameras.main.setZoom(1);
 
         this.scene.cameras.main.centerOn(
-            4.025 * ZONE_TILES * TILE_PIXELS,
-            5.025 * ZONE_TILES * TILE_PIXELS
+            4.5 * ZONE_TILES * TILE_PIXELS,
+            5.5 * ZONE_TILES * TILE_PIXELS
         );
 
         this.scene.cameras.main.setBackgroundColor(0x131313);

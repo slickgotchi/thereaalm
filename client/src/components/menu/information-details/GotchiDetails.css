@@ -1,0 +1,236 @@
+.gotchi-details {
+    /* border: solid red 1px; */
+    width: 100%;
+    padding: 10px;
+}
+
+.gotchi-details > * {
+    margin: 1rem;
+    padding: 0;
+}
+
+.gotchi-details > h1 {
+    margin-top: 0;
+}
+
+.gotchi-details > p {
+    font-size: 1.25rem;
+}
+
+.personality-section {
+    margin-top: 10px;
+}
+
+.personality-title {
+    font-weight: bold;
+    font-size: 1.25rem;
+    margin-top: 24px;
+    margin-bottom: 10px;
+}
+
+.trait-line-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+
+    /* border: solid red 1px; */
+    display: flex;
+    flex-flow: column nowrap;
+
+    height: 36px;
+}
+
+.trait-label {
+    width: 50px;
+    font-weight: bold;
+}
+
+.trait-line {
+    position: relative;
+    flex: 1;
+    /* height: 20px; */
+    padding: 0px 20px;
+    margin: 0rem 1rem;
+    
+    width: 70%;
+    height: 36px;
+}
+
+.line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: rgb(0, 0, 0);
+    transform: translateY(-50%);
+}
+
+.line::before,
+.line::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    width: 2px;
+    height: 12px;
+    background-color: black;
+}
+
+.line::before {
+    left: 0;
+}
+
+.line::after {
+    right: 0;
+}
+
+.middle-tick {
+    position: absolute;
+    left: 50%;
+    top: -5px;
+    width: 2px;
+    height: 12px;
+    background-color: black;
+    transform: translateX(-50%);
+}
+
+.personality-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.personality-marker.myth {
+    background-color: #ff8bff;
+    color: black;
+}
+
+.personality-marker.legendary {
+    background-color: #ffbb60;
+    color: black;
+}
+
+.personality-marker.rare {
+    background-color: #4fb4ff;
+    color: black;
+}
+
+.personality-marker.uncommon {
+    background-color: #2db1c5;
+    color: black;
+}
+
+.personality-marker.common {
+    background-color: #7559ff;
+    color: white;
+}
+
+
+/*
+.gotchi-details {
+    width: 100%;
+    padding: 10px;
+}
+
+.gotchi-details > * {
+    margin: 1rem;
+    padding: 0;
+}
+
+.gotchi-details > h1 {
+    margin-top: 0;
+}
+
+.gotchi-details > p {
+    font-size: 1.25rem;
+}
+
+.personality-section {
+    margin-top: 10px;
+}
+
+.personality-title {
+    font-weight: bold;
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+}
+
+.trait-line-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+
+    display: flex;
+    flex-flow: column nowrap;
+
+    height: 36px;
+}
+
+.trait-label {
+    width: 50px;
+    font-weight: bold;
+}
+
+.trait-line {
+    position: relative;
+    flex: 1;
+    padding: 0px 20px;
+    margin: 0rem 1rem;
+    
+    width: 70%;
+    height: 36px;
+}
+
+.line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: rgb(0, 0, 0);
+    transform: translateY(-50%);
+}
+
+.line::before,
+.line::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    width: 2px;
+    height: 12px;
+    background-color: black;
+}
+
+.line::before {
+    left: 0;
+}
+
+.line::after {
+    right: 0;
+}
+
+.middle-tick {
+    position: absolute;
+    left: 50%;
+    top: -5px;
+    width: 2px;
+    height: 12px;
+    background-color: black;
+    transform: translateX(-50%);
+}
+
+.personality-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ccc;
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+*/

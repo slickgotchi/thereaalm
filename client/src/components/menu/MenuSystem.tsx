@@ -13,8 +13,17 @@ var treatsIconSrc = '/assets/icons/treats-icon.png';
 var actionPlanIconSrc = '/assets/icons/action-plan-icon.png';
 var activityLogIconSrc = '/assets/icons/activity-log-icon.png';
 
+// Define possible entity types
+// type EntityType = 'gotchi' | 'lickquidator' | 'location' | 'unknown';
+
+// Define the entity interface with specific types
+export interface Entity {
+  type: string;
+  [key: string]: any; // For flexibility, but can be tightened with specific properties
+}
+
 interface MenuSystemProps {
-  selectedEntity: { type: string; [key: string]: any } | null;
+  selectedEntity: Entity | null;
   onClose: () => void;
 }
 
