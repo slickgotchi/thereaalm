@@ -117,14 +117,6 @@ export async function fetchSingleGotchiSVGs(
                 mad: serializeAndSize(customiseSvg(g.svg, Options.Mad), pixels),
             }
         };
-
-        // return {
-        //     id: gotchiID,
-        //     front: removeBackground(removeShadow(g.svg, pixels), pixels),
-        //     left: removeBackground(removeShadow(g.left || g.svg, pixels), pixels),
-        //     right: removeBackground(removeShadow(g.right || g.svg, pixels), pixels),
-        //     back: removeBackground(removeShadow(g.back || g.svg, pixels), pixels),
-        // };
     } else {
         console.error(`No SVGs found for Gotchi ID ${gotchiID}`);
         return { id: gotchiID, front: "", left: "", right: "", back: "" }; // Fallback to empty strings—handled by placeholder in GameScene

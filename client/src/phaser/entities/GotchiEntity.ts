@@ -11,8 +11,9 @@ interface SVGState {
     svgState: "ToBeFetched" | "Fetching" | "LoadingImage" | "ImageLoaded";
 }
 
+// this is used to access the specific texture we are after
 interface TextureSet {
-    svg: string;
+    front: string;
     left: string;
     right: string;
     back: string;
@@ -70,7 +71,7 @@ export class GotchiEntity extends TweenableEntity {
             });
         } else {
             this.textureSet = {
-                svg: "default_gotchi_svg",
+                front: "default_gotchi_svg",
                 left: "default_gotchi_left",
                 right: "default_gotchi_right",
                 back: "default_gotchi_back",
@@ -128,27 +129,7 @@ export class GotchiEntity extends TweenableEntity {
             this.currentPosition.x,
             this.currentPosition.y
         );
-
-        // this.actionIcon.setPosition(this.currentPosition.x, this.currentPosition.y);
-
-        // if (this.tweenWorker.getIsTweening()) {
-        //     this.lastEmoticonEmitTime_ms = 0;
-        // }
-
-        // const currTime_ms = Date.now();
-        // if (
-        //     currTime_ms - this.lastEmoticonEmitTime_ms > this.emoticonEmitInterval_ms &&
-        //     !this.tweenWorker.getIsTweening() &&
-        //     this.currentActionType !== ""
-        // ) {
-        //     if (this.entityState === "dead") {
-        //         this.currentActionType = "dead";
-        //     }
-
-        //     this.lastEmoticonEmitTime_ms = currTime_ms;
-        //     // this.emoticonEmitter.emit(this.currentActionType, 240);
-        // }
-
+        
         if (this.entityState === "dead") {
             this.currentActionType = "dead";
         }
@@ -188,13 +169,13 @@ export class GotchiEntity extends TweenableEntity {
             if (!svgMapItem) return;
             if (svgMapItem.svgState === "ImageLoaded") {
                 this.textureSet = {
-                    svg: `gotchi-${this.gotchiId}-svg`,
+                    front: `gotchi-${this.gotchiId}-front`,
                     left: `gotchi-${this.gotchiId}-left`,
                     right: `gotchi-${this.gotchiId}-right`,
                     back: `gotchi-${this.gotchiId}-back`,
                 };
                 this.sprite.stop();
-                this.sprite.setTexture(this.textureSet.svg);
+                this.sprite.setTexture(this.textureSet.front);
                 this.outlineEffect.rebuild();
             }
         }
@@ -216,7 +197,7 @@ export class GotchiEntity extends TweenableEntity {
             case "down":
             case "none":
             default:
-                this.sprite.setTexture(this.textureSet.svg);
+                this.sprite.setTexture(this.textureSet.front);
                 break;
         }
     }
@@ -259,8 +240,8 @@ export class GotchiEntity extends TweenableEntity {
                 const state = GotchiEntity.svgMap.get(gotchiId);
                 if (state) {
                     state.svgState = "LoadingImage";
-                    const { svg, left, right, back } = svgSet;
-                    this.loadGotchiSVG(scene, gotchiId, { svg, left, right, back });
+                    const { front, left, right, back } = svgSet;
+                    this.loadGotchiSVG(scene, gotchiId, { front, left, right, back });
                 }
             });
         } catch (error) {
@@ -268,9 +249,9 @@ export class GotchiEntity extends TweenableEntity {
         }
     }
 
-    static async loadGotchiSVG(scene: Phaser.Scene, gotchiId: string, svgSet: { svg: string; left: string; right: string; back: string }) {
+    static async loadGotchiSVG(scene: Phaser.Scene, gotchiId: string, svgSet: { front: string; left: string; right: string; back: string }) {
         try {
-            const views: ("svg" | "left" | "right" | "back")[] = ["svg", "left", "right", "back"];
+            const views: ("front" | "left" | "right" | "back")[] = ["front", "left", "right", "back"];
             const loadedViews = new Set<string>();
 
             views.forEach((view) => {

@@ -93,9 +93,9 @@ const MenuSystem: React.FC<MenuSystemProps> = ({ selectedEntity, onClose }) => {
           {menuOptions.find((option) => option.id === activeMenu)?.component}
         </div>
       )}
-      {selectedEntity.type === "gotchi" && 
+      {/* {selectedEntity.type === "gotchi" && 
       <ESPModal entity={selectedEntity}/>
-      } 
+      }  */}
     </div>
   );
 };

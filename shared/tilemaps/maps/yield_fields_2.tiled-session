@@ -14,12 +14,15 @@
             "expandedGroupLayers": [
                 7
             ],
-            "scale": 0.03125,
-            "selectedLayer": 6,
+            "scale": 0.0625,
+            "selectedLayer": 9,
             "viewCenter": {
-                "x": 11776,
-                "y": 9008
+                "x": 8120,
+                "y": 6776
             }
+        },
+        "yield_fields_2.tmx#markers_tileset": {
+            "scaleInDock": 1.5
         },
         "yield_fields_2.tmx#terrain_tileset": {
             "scaleInDock": 0.5

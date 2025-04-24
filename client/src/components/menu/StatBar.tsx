@@ -24,7 +24,7 @@ const StatBar: React.FC<StatBarProps> = ({ label, value, max, color }) => {
         style={{ width: `${percent}%`, backgroundColor: color }}
       />
       <div className="stat-bar-label">
-        {label.toUpperCase()}: {value}/{max}
+        {label.toUpperCase()}: {value.toFixed(0)}/{max.toFixed(0)}
       </div>
     </div>
   );

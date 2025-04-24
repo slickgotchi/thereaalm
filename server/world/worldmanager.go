@@ -81,7 +81,8 @@ func (wm *WorldManager) loadTestEntities() {
 	// use one of our gotchisMap
 	idSlice := []string{"4285", "19005", "21550", "8281", "5401",
 		"13401", "2325", "1699", "22313", "4895",
-		"15434", "19553", "22473", "19450", "5410"}
+		"15434", "19553", "22473", "19450", "5410",
+		"928", "22566"}
 
 	// grab a few gotchis to use
 	gotchisMap, err := web3.FetchGotchisByIDs(idSlice)

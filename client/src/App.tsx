@@ -76,7 +76,11 @@ function App() {
             selectedEntity={selectedEntity}
             onClose={() => setSelectedEntity(null)}
         />
-        <GotchiHUD />
+        {selectedEntity && selectedEntity.type === "gotchi" &&
+        <GotchiHUD
+            selectedGotchiEntity={selectedEntity}
+        />
+        }
         <div ref={containerRef} className="game-container" />
     </div>
     );
