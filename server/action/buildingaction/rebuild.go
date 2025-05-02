@@ -11,20 +11,19 @@ import (
 	"time"
 )
 
-// "maintain": Restores Pulse to a non-dead building
-// - has a set duration and restores a fixed amount of pulse based on gotchi traits
-// - consumes 1 kekwood and 1 alphaslate from actor
+// "rebuild": Restores Pulse to a dead building
+// Action continues until either:
+// 		a) building Pulse is fully restored
+// 		b) builder runs out of kekwood or alphaslate
 
 type RebuildAction struct {
 	action.Action
 
-	PulseRestoredPerSecond int
-	LastRestoreTime time.Duration
+	PulseRestoredPerSecond float64
+	Timer_s float64
+	PulseBuffer float64 // this is built up by consuming 1 kekwood and 1 alphaslate
 
-	RebuildDuration_s time.Duration
-	RebuildStartTime time.Duration
-
-	TotalPulseRestored int
+	TotalPulseRestored float64
 }
 
 func NewRebuildAction(actor, target interfaces.IEntity, weighting float64,
@@ -44,9 +43,15 @@ func NewRebuildAction(actor, target interfaces.IEntity, weighting float64,
 		return nil
 	}
 
-	// vary pulse restored per sec between 5 and 20
+	// check for gotchi job multiplier
+	jobMultiplier, err := utils.GetJobActionMultiplier(actor, "rebuild")
+	if err != nil {
+		log.Printf("ERROR [%s]: Invalid actor or action name, returning...", utils.GetFuncName())
+	}
+
+	// vary pulse restored per sec between 0.1 - 1.0
 	alpha := actorPulse / 1000
-	pulseRestoredPerSecond := int(5 + 15 * alpha)
+	pulseRestoredPerSecond := (0.1 + 0.9 * alpha) * float64(jobMultiplier)
 
 	wm := actor.GetZone().GetWorldManager()
 
@@ -59,11 +64,8 @@ func NewRebuildAction(actor, target interfaces.IEntity, weighting float64,
 			WorldManager: wm,
 		},
 		PulseRestoredPerSecond: pulseRestoredPerSecond,
-		LastRestoreTime: 0,
-
-		RebuildDuration_s: time.Duration(30) * time.Second,
-		RebuildStartTime: 0,
-	
+		Timer_s: 0,
+		PulseBuffer: 0,
 		TotalPulseRestored: 0,
 	}
 
@@ -118,7 +120,6 @@ func (a *RebuildAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 func (a *RebuildAction) Start() {
 	// move to target
 	a.TryMoveToTargetEntity(a.Target)
-	a.RebuildStartTime = a.WorldManager.Now()
 }
 
 func (a *RebuildAction) Update(dt_s float64) bool {
@@ -126,62 +127,73 @@ func (a *RebuildAction) Update(dt_s float64) bool {
 	rebuildable, _ := a.Target.(interfaces.IRebuildable)
 	rebuildableStats, _ := a.Target.(interfaces.IStats)
 	itemHolder, _ := a.Actor.(interfaces.IInventory);
-	if itemHolder == nil || rebuildableStats == nil || rebuildable == nil {
+	actorStats, _ := a.Actor.(interfaces.IStats)
+	if itemHolder == nil || rebuildableStats == nil || rebuildable == nil || actorStats == nil {
 		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
 		return true	// action is complete we have invalid actor or target
 	}
 
-	// check duration expired
-	if a.WorldManager.Since(a.LastRestoreTime) > 
-		time.Duration(1) * time.Second {
+	// reduce actor ecto and spark
+	actorStats.DeltaStat(stattypes.Ecto, -0.1*dt_s)
+	actorStats.DeltaStat(stattypes.Spark, -0.1*dt_s)
 
-		a.LastRestoreTime = a.WorldManager.Now()
+	// see if 1 second has elapsed
+	a.Timer_s -= dt_s
+	if a.Timer_s <= 0 {
+		a.Timer_s += 1
+
+		// check pulse buffer
+		if a.PulseBuffer <= 0 {
+			// try top up pulse buffer
+			if itemHolder.GetItemQuantity("kekwood") >= 1 && itemHolder.GetItemQuantity("alphaslate") >= 1 {
+				a.PulseBuffer += 100
+				itemHolder.RemoveItem("kekwood", 1)
+				itemHolder.RemoveItem("alphaslate", 1)
+			} else {
+				// can't top up pulse buffer so we're done
+				a.OnComplete()
+				return true
+			}
+		}
 
 		// do rebuild by adding pulse
 		rebuildable.Rebuild(a.PulseRestoredPerSecond) 
 		a.TotalPulseRestored += a.PulseRestoredPerSecond
+		a.PulseBuffer -= a.PulseRestoredPerSecond
 
 		// check if rebuild is complete due to going over max pulse
-		if rebuildableStats.GetStat(stattypes.Pulse) >= rebuildableStats.GetStat(stattypes.MaxPulse) {
-			itemHolder.RemoveItem("kekwood", 1)
-			itemHolder.RemoveItem("alphaslate", 1)
-
+		if rebuildableStats.GetStat(stattypes.Pulse) >= 
+			rebuildableStats.GetStat(stattypes.MaxPulse) {
+			
 			rebuildableStats.SetStat(stattypes.Pulse, rebuildableStats.GetStat(stattypes.MaxPulse))
 
-			// see if actor has an activity log
-			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
-				entry := types.ActivityLogEntry{
-					Description: fmt.Sprintf("Restored %d Pulse to %s during rebuild", a.TotalPulseRestored, a.Target.GetType()),
-					LogTime: time.Now(),
-				}
-				activityLog.NewLogEntry(entry)
-			}
-
-			// maintenance is complete so return true
+			// 3. action complete so return true
+			a.OnComplete()
 			return true
 		}
 	}
 
-	// check maintenance duration expired?
-	if a.WorldManager.Since(a.RebuildStartTime) > 
-		a.RebuildDuration_s {
-
-		itemHolder.RemoveItem("kekwood", 1)
-		itemHolder.RemoveItem("alphaslate", 1)
-
-		// see if actor has an activity log
-		if activityLog, ok := a.Actor.(types.IActivityLog); ok {
-			entry := types.ActivityLogEntry{
-				Description: fmt.Sprintf("Restored %d Pulse to %s during rebuild", a.TotalPulseRestored, a.Target.GetType()),
-				LogTime: time.Now(),
-			}
-			activityLog.NewLogEntry(entry)
-		}
-
-		// maintenance is complete so return true
-		return true
-	}
-
 	// harvesting is not complete so we return FALSE
 	return false
+}
+
+func (a *RebuildAction) OnComplete() {
+	itemHolder, _ := a.Actor.(interfaces.IInventory);
+	if itemHolder == nil  {
+		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
+		return 	// we have invalid actor or target
+	}
+
+	// 1. grant "buildtoken"s based on TotalPulseRestored
+	builderTokenQty := int(a.TotalPulseRestored/100) + 1 + 5
+	itemHolder.AddItem("buildertoken", builderTokenQty)
+
+	// 2. log activity
+	if activityLog, ok := a.Actor.(types.IActivityLog); ok {
+		entry := types.ActivityLogEntry{
+			Description: fmt.Sprintf("Restored %d Pulse to %s during maintenance and received %d buildertoken's", int(a.TotalPulseRestored), a.Target.GetType(), builderTokenQty),
+			LogTime: time.Now(),
+		}
+		activityLog.NewLogEntry(entry)
+	}
 }

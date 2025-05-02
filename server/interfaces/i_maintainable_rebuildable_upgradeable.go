@@ -1,12 +1,12 @@
 package interfaces
 
 type IMaintainable interface {
-    Maintain(pulseRestored int)
+    Maintain(pulseRestored float64)
     CanBeMaintained() bool
 }
 
 type IRebuildable interface {
-    Rebuild(pulseRestored int)
+    Rebuild(pulseRestored float64)
     CanBeRebuilt() bool
 }
 

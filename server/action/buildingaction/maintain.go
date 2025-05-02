@@ -11,20 +11,20 @@ import (
 	"time"
 )
 
-// "maintain": Restores Pulse to a non-dead building
-// - has a set duration and restores a fixed amount of pulse based on gotchi traits
-// - consumes a 1 kekwood and 1 alphaslate from actor
+// "maintain"
+// 	Restores Pulse to a non-dead building.
+//  Action continues until either:
+// 		a) building Pulse is fully restored
+// 		b) builder runs out of kekwood or alphaslate
 
 type MaintainAction struct {
 	action.Action
 
-	PulseRestoredPerSecond int
-	LastRestoreTime time.Duration
+	PulseRestoredPerSecond float64
+	Timer_s float64
+	PulseBuffer float64 // this is built up by consuming 1 kekwood and 1 alphaslate
 
-	MaintenanceDuration_s time.Duration
-	MaintenanceStartTime time.Duration
-
-	TotalPulseRestored int
+	TotalPulseRestored float64
 }
 
 func NewMaintainAction(actor, target interfaces.IEntity, weighting float64,
@@ -44,9 +44,15 @@ func NewMaintainAction(actor, target interfaces.IEntity, weighting float64,
 		return nil
 	}
 
-	// vary pulse restored per sec between 5 and 20
+	// check for gotchi job multiplier
+	jobMultiplier, err := utils.GetJobActionMultiplier(actor, "maintain")
+	if err != nil {
+		log.Printf("ERROR [%s]: Invalid actor or action name, returning...", utils.GetFuncName())
+	}
+
+	// vary pulse restored per sec between 0.1 - 1.0
 	alpha := actorEcto / 1000
-	pulseRestoredPerSecond := int(5 + 15 * alpha)
+	pulseRestoredPerSecond := (0.1 + 0.9 * alpha) * float64(jobMultiplier)
 
 	wm := actor.GetZone().GetWorldManager()
 
@@ -59,11 +65,8 @@ func NewMaintainAction(actor, target interfaces.IEntity, weighting float64,
 			WorldManager: wm,
 		},
 		PulseRestoredPerSecond: pulseRestoredPerSecond,
-		LastRestoreTime: 0,
-
-		MaintenanceDuration_s: time.Duration(30) * time.Second,
-		MaintenanceStartTime: 0,
-	
+		Timer_s: 0,
+		PulseBuffer: 0,
 		TotalPulseRestored: 0,
 	}
 
@@ -116,70 +119,83 @@ func (a *MaintainAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 func (a *MaintainAction) Start() {
 	// move to target
 	a.TryMoveToTargetEntity(a.Target)
-	a.MaintenanceStartTime = a.WorldManager.Now()
 }
 
 func (a *MaintainAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
 	maintainable, _ := a.Target.(interfaces.IMaintainable)
 	maintainableStats, _ := a.Target.(interfaces.IStats)
-	itemHolder, _ := a.Actor.(interfaces.IInventory);
-	if itemHolder == nil || maintainableStats == nil || maintainable == nil {
+	itemHolder, _ := a.Actor.(interfaces.IInventory)
+	actorStats, _ := a.Actor.(interfaces.IStats)
+	if itemHolder == nil || maintainableStats == nil || maintainable == nil || actorStats == nil {
 		log.Printf("ERROR [%s]: Invalid maintainable, returning...", utils.GetFuncName())
 		return true	// action is complete we have invalid actor or target
 	}
 
-	// check duration expired
-	if a.WorldManager.Since(a.LastRestoreTime) > 
-		time.Duration(1) * time.Second {
+	// reduce actor ecto and spark
+	actorStats.DeltaStat(stattypes.Ecto, -0.1*dt_s)
+	actorStats.DeltaStat(stattypes.Spark, -0.1*dt_s)
 
-		a.LastRestoreTime = a.WorldManager.Now()
+	// see if 1 second has elapsed
+	a.Timer_s -= dt_s
+	if a.Timer_s <= 0 {
+		a.Timer_s += 1
 
-		// do maintenance by adding pulse
+		// check pulse buffer
+		if a.PulseBuffer <= 0 {
+			// try top up pulse buffer
+			if itemHolder.GetItemQuantity("kekwood") >= 1 && itemHolder.GetItemQuantity("alphaslate") >= 1 {
+				a.PulseBuffer += 100
+				itemHolder.RemoveItem("kekwood", 1)
+				itemHolder.RemoveItem("alphaslate", 1)
+			} else {
+				// action complete so return true
+				a.OnComplete()
+				return true
+			}
+		}
+
+		// do maintenance using PulseRestoredPerSecond
 		maintainable.Maintain(a.PulseRestoredPerSecond)
 		a.TotalPulseRestored += a.PulseRestoredPerSecond
+		a.PulseBuffer -= a.PulseRestoredPerSecond
+
+
 
 		// check if maintenance is complete due to going over max pulse
-		if maintainableStats.GetStat(stattypes.Pulse) >= maintainableStats.GetStat(stattypes.MaxPulse) {
-			itemHolder.RemoveItem("kekwood", 1)
-			itemHolder.RemoveItem("alphaslate", 1)
+		if maintainableStats.GetStat(stattypes.Pulse) >= 
+			maintainableStats.GetStat(stattypes.MaxPulse) {
 
+			// set pulse to max
 			maintainableStats.SetStat(stattypes.Pulse, maintainableStats.GetStat(stattypes.MaxPulse))
 
-			// see if actor has an activity log
-			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
-				entry := types.ActivityLogEntry{
-					Description: fmt.Sprintf("Restored %d Pulse to %s during maintenance", a.TotalPulseRestored, a.Target.GetType()),
-					LogTime: time.Now(),
-				}
-				activityLog.NewLogEntry(entry)
-			}
-
-			// maintenance is complete so return true
+			// action complete so return true
+			a.OnComplete()
 			return true
 		}
 	}
 
-	// check maintenance duration expired?
-	if a.WorldManager.Since(a.MaintenanceStartTime) > 
-		a.MaintenanceDuration_s {
+	// maintenance is not complete so we return FALSE
+	return false
+}
 
-		itemHolder.RemoveItem("kekwood", 1)
-		itemHolder.RemoveItem("alphaslate", 1)
-
-		// see if actor has an activity log
-		if activityLog, ok := a.Actor.(types.IActivityLog); ok {
-			entry := types.ActivityLogEntry{
-				Description: fmt.Sprintf("Restored %d Pulse to %s during maintenance", a.TotalPulseRestored, a.Target.GetType()),
-				LogTime: time.Now(),
-			}
-			activityLog.NewLogEntry(entry)
-		}
-
-		// maintenance is complete so return true
-		return true
+func (a *MaintainAction) OnComplete() {
+	itemHolder, _ := a.Actor.(interfaces.IInventory);
+	if itemHolder == nil {
+		log.Printf("ERROR [%s]: Invalid maintainable, returning...", utils.GetFuncName())
+		return	// action is complete we have invalid actor or target
 	}
 
-	// harvesting is not complete so we return FALSE
-	return false
+	// 1. grant "buildtoken"s based on TotalPulseRestored
+	builderTokenQty := int(a.TotalPulseRestored/100) + 1
+	itemHolder.AddItem("buildertoken", builderTokenQty)
+
+	// 2. log activity
+	if activityLog, ok := a.Actor.(types.IActivityLog); ok {
+		entry := types.ActivityLogEntry{
+			Description: fmt.Sprintf("Restored %d Pulse to %s during maintenance and received %d buildertoken's", int(a.TotalPulseRestored), a.Target.GetType(), builderTokenQty),
+			LogTime: time.Now(),
+		}
+		activityLog.NewLogEntry(entry)
+	}
 }

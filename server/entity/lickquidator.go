@@ -30,8 +30,8 @@ func NewLickquidator(x, y int) *Lickquidator {
 	newStats := stattypes.NewStats()
 	newStats.SetStat(stattypes.Ecto, 50)
 	newStats.SetStat(stattypes.Spark, 50)
-	newStats.SetStat(stattypes.Pulse, 50)
-	newStats.SetStat(stattypes.MaxPulse, 50)
+	newStats.SetStat(stattypes.Pulse, 200)
+	newStats.SetStat(stattypes.MaxPulse, 200)
 
     return &Lickquidator{
         Entity: Entity{

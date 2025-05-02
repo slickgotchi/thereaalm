@@ -2,24 +2,33 @@ package action
 
 import (
 	"log"
-	"math/rand"
 	"thereaalm/interfaces"
 	"thereaalm/stattypes"
 	"thereaalm/types"
-	"time"
+	"thereaalm/utils"
 )
 
 type RoamAction struct {
 	Action
-	StartTime   time.Duration
-	Duration    time.Duration
-	WorldManager interfaces.IWorldManager
+	
+	Duration_s    float64
+	Timer_s float64
 }
 
 func NewRoamAction(actor interfaces.IEntity, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *RoamAction {
 
 	wm := actor.GetZone().GetWorldManager()
+
+	// check for gotchi job multiplier
+	jobMultiplier, err := utils.GetJobActionMultiplier(actor, "roam")
+	if err != nil {
+		log.Printf("ERROR [%s]: Invalid actor or action name, returning...", utils.GetFuncName())
+		jobMultiplier = 1
+	}
+
+	// roam duration between 100 - 300 seconds
+	roamDuration_s := 50 + 250 / jobMultiplier
 
 	a := &RoamAction{
 		Action: Action{
@@ -29,9 +38,8 @@ func NewRoamAction(actor interfaces.IEntity, target interfaces.IEntity, weightin
 			Target: nil,
 			WorldManager: wm,
 		},
-		Duration:  5 * time.Second, // Set the duration to 5 seconds
-		StartTime: 0,
-		WorldManager: wm,
+		Duration_s:  roamDuration_s, // Set the duration to 5 seconds
+		Timer_s: roamDuration_s,
 	}
 
 	a.SetFallbackTargetSpec(fallbackTargetSpec)
@@ -48,9 +56,6 @@ func (r *RoamAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 }
 
 func (r *RoamAction) Start() {
-    r.StartTime = r.WorldManager.Now()
-    r.Duration = time.Duration(5+rand.Float64()*(15-5)) * time.Second
-
 	// attempt to find a new empty cell using the zone's FindNearbyEmptyCell method
 	// zone := r.Actor.GetZone() // Get the actor's zone
 	actorX, actorY := r.Actor.GetPosition()
@@ -73,8 +78,6 @@ func (r *RoamAction) Start() {
 		return
 	}
 
-	// log.Println("Start roam, at position: ", actorX, actorY)
-
 	// Use the zone's FindNearbyEmptyCell with radius 3
 	newX, newY, found := r.WorldManager.FindNearbyAvailablePosition(actorX, actorY, explorationRadius, 1)
 	if found {
@@ -93,8 +96,8 @@ func (r *RoamAction) Start() {
 
 // Update moves the actor to the new location and completes the action after 5 seconds
 func (r *RoamAction) Update(dt_s float64) bool {
-	// Check if 5 seconds have passed
-	if r.WorldManager.Since(r.StartTime) >= r.Duration {
+	r.Timer_s -= dt_s
+	if r.Timer_s <= 0 {
 		// log.Printf("Actor %s completed roaming action.\n", r.Actor.GetUUID())
 		return true
 	}

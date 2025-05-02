@@ -261,6 +261,10 @@ func CreatePersonalityFromSubgraphData(subgraphData web3.SubgraphGotchiData) []s
     return personality
 }
 
+func (g *Gotchi) GetJob() string {
+	return g.Job
+}
+
 func GetBRSMultiplier(subgraphData web3.SubgraphGotchiData) float64 {
 	brs, _ := strconv.Atoi(subgraphData.WithSetsRarityScore)
 	if brs < 500 {

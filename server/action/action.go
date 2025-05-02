@@ -27,25 +27,6 @@ func (a *Action) IsValidActor(potentialActor interfaces.IEntity) bool {
 	return potentialActor != nil 
 }
 
-// func (a *Action) TryUseFallbackIfTargetIsNil() bool {
-// 	// Validate current target
-// 	if a.Target != nil {
-// 		return true
-// 	}
-
-// 	// Attempt fallback resolution if no valid target
-// 	if a.FallbackFunc != nil && a.FallbackTargetSpec != nil {
-// 		if newTarget := a.FallbackFunc(a); newTarget != nil {
-// 			a.Target = newTarget
-// 			return true
-// 		}
-// 	}
-	
-// 	// could not even use a fallback
-// 	log.Printf("Fallback target resolution failed for action %s", a.Type)
-// 	return false
-// }
-
 func (a *Action) GetType() string {return a.Type}
 func (a *Action) GetWeighting() float64 {return a.Weighting}
 func (a *Action) GetTarget() interfaces.IEntity {return a.Target}
@@ -64,11 +45,6 @@ func (a *Action) SetFallbackTargetSpec(fallbackTargetSpec *types.TargetSpec) {
         return
     }
     a.FallbackTargetSpec = fallbackTargetSpec
-    // if handler, exists := actiontargeting.FallbackHandlers[fallbackTargetSpec.TargetCriterion]; exists {
-    //     a.FallbackFunc = handler
-    // } else {
-    //     log.Printf("No fallback handler for criterion %s in action %s", fallbackTargetSpec.TargetCriterion, a.Type)
-    // }
 }
 
 // utility function to move to a target

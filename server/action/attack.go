@@ -11,13 +11,25 @@ import (
 	"time"
 )
 
+// "attack"
+//
+
 type AttackAction struct {
 	Action
 	Timer_s float64
+
+	JobMultiplier float64
 }
 
 func NewAttackAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *AttackAction {
+
+			// check for gotchi job multiplier
+	newJobMultiplier, err := utils.GetJobActionMultiplier(actor, "attack")
+	if err != nil {
+		log.Printf("ERROR [%s]: Invalid actor or action name, returning...", utils.GetFuncName())
+		newJobMultiplier = 1
+	}
 
 	wm := actor.GetZone().GetWorldManager()
 
@@ -29,6 +41,8 @@ func NewAttackAction(actor, target interfaces.IEntity, weighting float64,
 			Target: target,
 			WorldManager: wm,
 		},
+		JobMultiplier: newJobMultiplier,
+		Timer_s: 0,
 	}
 
 	a.SetFallbackTargetSpec(fallbackTargetSpec)
@@ -113,13 +127,16 @@ func (a *AttackAction) Update(dt_s float64) bool {
 		return true
 	}
 
+	// lets make each attack reduce the attackers ecto
+	attackerStats.DeltaStat(stattypes.Ecto, -0.1*dt_s)
+
 	// we attack once per second
 	a.Timer_s -= dt_s
 	for a.Timer_s <= 0 {
 		a.Timer_s += 1
 
 		// attack logic:
-		// - spark = attacker power
+		// - spark = attacker "damage" dealt
 		// - pulse = defender "HP"
 
 		attackerSpark := attackerStats.GetStat(stattypes.Spark)
@@ -128,19 +145,18 @@ func (a *AttackAction) Update(dt_s float64) bool {
 			return true
 		}
 
-		defenderPulse := defenderStats.GetStat(stattypes.Pulse)
-		if defenderPulse <= 0 {
-			// log.Printf("Defender has no pulse to defend with")
-			return true
-		}
+		// defenderPulse := defenderStats.GetStat(stattypes.Pulse)
+		// if defenderPulse <= 0 {
+		// 	// log.Printf("Defender has no pulse to defend with")
+		// 	return true
+		// }
 
-		// attacks should be between 1 and 10 attack power for simplicity
+		// set attack range
 		alpha := attackerSpark / 1000
-		finalPulseReduction := int(alpha * 10.0)
-		finalPulseReduction = utils.Clamp(finalPulseReduction, 1, 10)
+		finalPulseReduction := (0.1 + 0.9 * alpha) * a.JobMultiplier
 
 		// deal damage to defenders pulse
-		defenderStats.DeltaStat(stattypes.Pulse, float64(-finalPulseReduction))
+		defenderStats.DeltaStat(stattypes.Pulse, -finalPulseReduction)
 		newDefenderPulse := defenderStats.GetStat(stattypes.Pulse)
 
 		// if defender pulse goes to 0, finish the attack
@@ -157,15 +173,6 @@ func (a *AttackAction) Update(dt_s float64) bool {
 
 			return true
 		}
-
-		// lets make each attack also reduce the attackers ecto by 1 each attack
-		attackerStats.DeltaStat(stattypes.Ecto, -1)
-		newAttackerEcto := attackerStats.GetStat(stattypes.Ecto)
-
-		if newAttackerEcto < 100 {
-			return true
-		}
-
 	}
 
 	// attacking is not complete so we return FALSE

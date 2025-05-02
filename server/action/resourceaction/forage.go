@@ -14,8 +14,8 @@ import (
 type ForageAction struct {
 	action.Action
 
-	Duration_s time.Duration
-	StartTime time.Duration
+	// Duration_s float64
+	Timer_s float64
 }
 
 func NewForageAction(actor, target interfaces.IEntity, weighting float64,
@@ -28,6 +28,12 @@ func NewForageAction(actor, target interfaces.IEntity, weighting float64,
 		return nil
 	}
 
+	// check for gotchi job multiplier
+	jobMultiplier, err := utils.GetJobActionMultiplier(actor, "forage")
+	if err != nil {
+		log.Printf("ERROR [%s]: Invalid actor or action name, returning...", utils.GetFuncName())
+	}
+
 	// Spark determines gather duration
 	actorSpark := actorStats.GetStat(stattypes.Spark)
 	if actorSpark < 0 {
@@ -35,9 +41,9 @@ func NewForageAction(actor, target interfaces.IEntity, weighting float64,
 		return nil
 	}
 
-	// vary forage duration between 5 - 30 seconds
+	// vary forage duration between 150 - 300 seconds
 	alpha := actorSpark / 1000
-	actionDuration_s := int(5 + 25 * alpha)
+	actionDuration_s := (150 + 150*(1-alpha)) / jobMultiplier
 
 	wm := actor.GetZone().GetWorldManager()
 
@@ -49,7 +55,8 @@ func NewForageAction(actor, target interfaces.IEntity, weighting float64,
 			Target: target,
 			WorldManager: wm,
 		},
-		Duration_s: time.Duration(actionDuration_s) * time.Second,
+		// Duration_s: actionDuration_s,
+		Timer_s: actionDuration_s,
 	}
 
 	a.SetFallbackTargetSpec(fallbackTargetSpec)
@@ -96,9 +103,7 @@ func (a *ForageAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 
 func (a *ForageAction) Start() {
 	// move to target
-	if a.TryMoveToTargetEntity(a.Target) {
-		a.StartTime = a.WorldManager.Now()
-	 }
+	a.TryMoveToTargetEntity(a.Target) 
 }
 
 func (a *ForageAction) Update(dt_s float64) bool {
@@ -114,20 +119,21 @@ func (a *ForageAction) Update(dt_s float64) bool {
 		return true	// action is complete we have invalid actor or target
 	}
 
+	// remove some spark and pulse
+	if actorStats, ok := a.Actor.(interfaces.IStats); ok {
+		actorStats.DeltaStat(stattypes.Spark, -0.1*dt_s)
+		actorStats.DeltaStat(stattypes.Pulse, -0.1*dt_s)
+	}
+
 	// check duration expired
-	if a.WorldManager.Since(a.StartTime) > a.Duration_s {
+	a.Timer_s -= dt_s
+	if a.Timer_s <= 0 {
 
 		typeRemoved, amountRemoved := forageable.Forage()
 
 		if typeRemoved != "" && amountRemoved > 0 {
 			// add item to item holder
 			itemHolder.AddItem(typeRemoved, amountRemoved)
-	
-			// remove some spark and pulse
-			if actorStats, ok := a.Actor.(interfaces.IStats); ok {
-				actorStats.DeltaStat(stattypes.Spark, -1)
-				actorStats.DeltaStat(stattypes.Pulse, -1)
-			}
 	
 			// see if actor has an activity log
 			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
@@ -139,10 +145,12 @@ func (a *ForageAction) Update(dt_s float64) bool {
 			}
 		}
 	
-		// harvesting is complete so we return TRUE
+		// action is complete so we return TRUE
 		return true
 	}
 
-	// harvesting is not complete so we return FALSE
+
+
+	// action is not complete so we return FALSE
 	return false
 }
