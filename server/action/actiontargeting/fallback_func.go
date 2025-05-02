@@ -108,7 +108,7 @@ func fallbackHasSpecificItem(a interfaces.IAction) interfaces.IEntity {
 
 	candidates := a.GetActor().GetZone().GetEntitiesByType(a.GetFallbackTargetSpec().TargetType)
 	for _, candidate := range candidates {
-		if inventory, ok := candidate.(types.IInventory); ok {
+		if inventory, ok := candidate.(interfaces.IInventory); ok {
 			if inventory.GetItemQuantity(itemName) > 0 {
 				return candidate
 			}

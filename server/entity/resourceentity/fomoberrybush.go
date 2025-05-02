@@ -2,8 +2,8 @@ package resourceentity
 
 import (
 	// "log"
+	"thereaalm/components"
 	"thereaalm/entity"
-	"thereaalm/types"
 	"thereaalm/utils"
 	"time"
 
@@ -11,7 +11,7 @@ import (
 )
 type FomoBerryBush struct {
 	entity.Entity
-	types.Inventory
+	components.Inventory
 	MaxBerries int
 	RegrowInterval_s time.Duration
 	RegrowAmount int
@@ -19,7 +19,7 @@ type FomoBerryBush struct {
 }
 
 func NewFomoBerryBush(x, y int) *FomoBerryBush {
-	newInventory := types.NewInventory()
+	newInventory := components.NewInventory()
 	newInventory.Items["fomoberry"] = 50
 
 	return &FomoBerryBush{

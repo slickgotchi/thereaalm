@@ -4,10 +4,10 @@ import (
 	// "log"
 
 	"thereaalm/action"
+	"thereaalm/components"
 	"thereaalm/entity/entitystate"
 	"thereaalm/interfaces"
 	"thereaalm/stattypes"
-	"thereaalm/types"
 	"thereaalm/utils"
 
 	"github.com/google/uuid"
@@ -16,14 +16,14 @@ import (
 type Lickquidator struct {
     Entity
 	action.ActionPlan
-	types.Inventory
+	components.Inventory
 	stattypes.Stats
 	entitystate.State
 }
 
 func NewLickquidator(x, y int) *Lickquidator {
 	// make them hold the "Tongue" item
-	newInventory := types.NewInventory()
+	newInventory := components.NewInventory()
 	newInventory.Items["tongue"] = 1
 
 	// give a base hp stat

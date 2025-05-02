@@ -53,6 +53,8 @@ export class TweenableEntity extends BaseEntity {
     protected frameUpdate() {
         this.sprite.setPosition(this.currentPosition.x, this.currentPosition.y);
 
+        this.outlineEffect.updatePosition();
+
         if (this.tweenWorker.getIsTweening()) {
             this.direction = this.currentDirection;
         } else {

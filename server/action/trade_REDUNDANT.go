@@ -1,5 +1,6 @@
 package action
 
+/*
 import (
 	"fmt"
 	"log"
@@ -29,7 +30,7 @@ func NewTradeAction(actor, target interfaces.IEntity, weighting float64, tradeTy
 	}
 
 	wm := actor.GetZone().GetWorldManager()
-	
+
 	return &TradeAction{
 		Action: Action{
 			Type: "trade",
@@ -49,7 +50,7 @@ func (a *TradeAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 		return false
 	}
 
-	respondingItemHolder, _ := potentialTarget.(types.IInventory) 
+	respondingItemHolder, _ := potentialTarget.(interfaces.IInventory)
 	if respondingItemHolder == nil {
 		log.Printf("Invalid item holders passed to SellAction Update()")
 		return false
@@ -65,7 +66,7 @@ func (a *TradeAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 
 func (a *TradeAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	// check actor and target are correct type
-	initiatingItemHolder, _ := potentialActor.(types.IInventory)
+	initiatingItemHolder, _ := potentialActor.(interfaces.IInventory)
 
 	// correct types?
 	if initiatingItemHolder == nil {
@@ -92,13 +93,13 @@ func (a *TradeAction) Start() {
 
 func (a *TradeAction) Update(dt_s float64) bool {
 	// check actor and target are correct type
-	respondingItemHolder, _ := a.Target.(types.IInventory) 
-	initiatingItemHolder, _ := a.Actor.(types.IInventory)
+	respondingItemHolder, _ := a.Target.(interfaces.IInventory)
+	initiatingItemHolder, _ := a.Actor.(interfaces.IInventory)
 	if respondingItemHolder == nil || initiatingItemHolder == nil {
 		log.Printf("Invalid item holders passed to SellAction Update()")
 		return true
 	}
-	
+
 	a.Timer_s -= dt_s
 	if a.Timer_s <= 0 {
 		// this is where we iterate over different trade types OR
@@ -108,21 +109,21 @@ func (a *TradeAction) Update(dt_s float64) bool {
 			// add up all items that aren't gold
 			count := 0
 			allInitiatorItems := initiatingItemHolder.GetItems()
-			var filteredInitiatorItems []types.Item
+			var filteredInitiatorItems []interfaces.Item
 			for _, item := range allInitiatorItems {
 				if item.Name != "gold" {
 					count += item.Quantity
 					filteredInitiatorItems = append(filteredInitiatorItems, item)
-				} 
+				}
 			}
 
-			var requestedItems []types.Item
-			requestedItems = append(requestedItems, types.Item{
+			var requestedItems []interfaces.Item
+			requestedItems = append(requestedItems, interfaces.Item{
 				Name: "gold",
 				Quantity: count * 5,
 			})
 
-			tradeOffer := types.TradeOffer{
+			tradeOffer := types.BuyOffer{
 				SentItems: filteredInitiatorItems,
 				RequestedItems: requestedItems,
 			}
@@ -155,3 +156,4 @@ func (a *TradeAction) Update(dt_s float64) bool {
 	// did not complete so return false
 	return false
 }
+*/

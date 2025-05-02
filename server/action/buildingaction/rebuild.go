@@ -30,7 +30,7 @@ type RebuildAction struct {
 func NewRebuildAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *RebuildAction {
 	
-	actorItemHolder, _ := actor.(types.IInventory)
+	actorItemHolder, _ := actor.(interfaces.IInventory)
 	actorStats, _ := actor.(interfaces.IStats)
 	if actorStats == nil || actorItemHolder == nil {
 		log.Printf("ERROR [%s]: Actor does not have IStats or IInventory, returning...", utils.GetFuncName())
@@ -97,7 +97,7 @@ func (a *RebuildAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 }
 
 func (a *RebuildAction) IsValidActor(potentialActor interfaces.IEntity) bool {
-	itemHolder, _ := potentialActor.(types.IInventory);
+	itemHolder, _ := potentialActor.(interfaces.IInventory);
 
 	// actor and target of correct types?
 	if itemHolder == nil {
@@ -125,7 +125,7 @@ func (a *RebuildAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
 	rebuildable, _ := a.Target.(interfaces.IRebuildable)
 	rebuildableStats, _ := a.Target.(interfaces.IStats)
-	itemHolder, _ := a.Actor.(types.IInventory);
+	itemHolder, _ := a.Actor.(interfaces.IInventory);
 	if itemHolder == nil || rebuildableStats == nil || rebuildable == nil {
 		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
 		return true	// action is complete we have invalid actor or target

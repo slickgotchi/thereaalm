@@ -2,9 +2,10 @@ package entity
 
 import (
 	// "log"
+	"thereaalm/components"
 	"thereaalm/entity/entitystate"
+	"thereaalm/interfaces"
 	"thereaalm/stattypes"
-	"thereaalm/types"
 
 	"github.com/google/uuid"
 )
@@ -12,13 +13,13 @@ import (
 type Shop struct {
     Entity
 	Stats stattypes.Stats
-	types.Inventory
+	components.Inventory
 	entitystate.State
 }
 
 func NewShop(x, y int) *Shop {
 	// start show with gold
-	itemHolder := types.NewInventory()
+	itemHolder := components.NewInventory()
 	itemHolder.Items["gold"] = 10000
 
 	newStats := stattypes.NewStats()
@@ -125,4 +126,58 @@ func (e *Shop) DeltaStat(name string, value float64) {
 		// set gotchi state to dead
 		e.State = entitystate.Dead
 	}
+}
+
+
+////////////////////
+// ITrader functions
+////////////////////
+func (e *Shop) CreateBuyOffer(responder interfaces.ITrader) (
+	interfaces.BuyOffer, bool) {
+	var buyOffer interfaces.BuyOffer
+	return buyOffer, false
+}
+
+func (e *Shop) CounterBuyOffer(initiator interfaces.ITrader, buyOffer interfaces.BuyOffer) (
+	interfaces.BuyOffer, bool) {
+	var counterBuyOffer interfaces.BuyOffer
+	return counterBuyOffer, false
+}
+
+func (e *Shop) CreateSellOffer(responder interfaces.ITrader) (
+	interfaces.SellOffer, bool) {
+	var sellOffer interfaces.SellOffer
+
+	return sellOffer, false
+}
+
+func (e *Shop) CounterSellOffer(initiator interfaces.ITrader, sellOffer interfaces.SellOffer) (
+	interfaces.SellOffer, bool) {
+
+	// shops only buy each resource for 1 GASP
+	var counterSellOffer interfaces.SellOffer
+	for _, sellItem := range sellOffer.ItemsToSell {
+		counterSellOffer.GASP += sellItem.Quantity
+		counterSellOffer.ItemsToSell = append(counterSellOffer.ItemsToSell, sellItem)
+	}
+
+	return counterSellOffer, true
+}
+
+func (e *Shop) GetPriceTargets() *interfaces.PriceTargets {
+
+	return nil
+}
+
+func (e *Shop) AddGASP(amount int) {
+	// do nothing, we have infinite GASP
+}
+
+func (e *Shop) RemoveGASP(amount int) {
+	// do nothing, we have infinite GASP
+}
+
+func (e *Shop) GetGASP() int {
+	// just return a large number
+	return 1000000000
 }

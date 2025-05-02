@@ -2,9 +2,9 @@ package resourceentity
 
 import (
 	// "log"
+	"thereaalm/components"
 	"thereaalm/entity"
 	"thereaalm/entity/entitystate"
-	"thereaalm/types"
 	"thereaalm/utils"
 	"time"
 
@@ -12,7 +12,7 @@ import (
 )
 type KekWoodTree struct {
 	entity.Entity
-	types.Inventory
+	components.Inventory
 	MaxWood int
 	RegrowDuration_s time.Duration
 	TimeOfDepletion time.Duration
@@ -20,7 +20,7 @@ type KekWoodTree struct {
 }
 
 func NewKekWoodTree(x, y int) *KekWoodTree {
-	newInventory := types.NewInventory()
+	newInventory := components.NewInventory()
 	newInventory.Items["kekwood"] = 100
 
 	return &KekWoodTree{

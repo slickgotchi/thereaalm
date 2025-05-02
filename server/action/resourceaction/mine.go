@@ -21,7 +21,7 @@ type MineAction struct {
 func NewMineAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *MineAction {
 
-	actorItemHolder, _ := actor.(types.IInventory)
+	actorItemHolder, _ := actor.(interfaces.IInventory)
 	actorStats, _ := actor.(interfaces.IStats)
 	if actorStats == nil || actorItemHolder == nil {
 		log.Printf("ERROR [%s]: Actor does not have IStats or IInventory, returning...", utils.GetFuncName())
@@ -82,7 +82,7 @@ func (a *MineAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 }
 
 func (a *MineAction) IsValidActor(potentialActor interfaces.IEntity) bool {
-	itemHolder, _ := potentialActor.(types.IInventory);
+	itemHolder, _ := potentialActor.(interfaces.IInventory);
 
 	// actor and target of correct types?
 	if itemHolder == nil {
@@ -104,7 +104,7 @@ func (a *MineAction) Start() {
 func (a *MineAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
 	mineable, _ := a.Target.(types.IMineable); 
-	itemHolder, _ := a.Actor.(types.IInventory);
+	itemHolder, _ := a.Actor.(interfaces.IInventory);
 	if itemHolder == nil || mineable == nil {
 		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
 		return true	// action is complete we have invalid actor or target

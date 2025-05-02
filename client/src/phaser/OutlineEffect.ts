@@ -33,13 +33,20 @@ export class OutlineEffect {
         ];
 
         for (const pos of positions) {
-            const outline = this.scene.add.sprite(this.target.x, this.target.y, this.target.texture.key)
+            const outline = this.scene.add.sprite(
+                this.target.x, this.target.y, this.target.texture.key)
                 .setTintFill(this.color)
                 .setDepth(this.target.depth - 1)
                 .setVisible(false)
                 .setOrigin(0, 0);
 
             this.outlines.push(outline);
+        }
+    }
+
+    public changeTexure(newTexture: string) {
+        for (let i = 0; i < this.outlines.length; i++) {
+            this.outlines[i].setTexture(newTexture);
         }
     }
 
@@ -62,6 +69,14 @@ export class OutlineEffect {
         if (this.isDestroyed) return;
 
         this.outlines.forEach(outline => outline.setVisible(false));
+    }
+
+    public updatePosition() {
+        this.outlines.forEach((outline, index) => {
+            const offset = this.getOffset(index);
+            outline.setPosition(this.target.x + offset.x, this.target.y + offset.y);
+            outline.setVisible(true);
+        });
     }
 
     private getOffset(index: number): { x: number; y: number } {

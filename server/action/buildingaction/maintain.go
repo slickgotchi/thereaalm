@@ -30,7 +30,7 @@ type MaintainAction struct {
 func NewMaintainAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *MaintainAction {
 
-	actorItemHolder, _ := actor.(types.IInventory)
+	actorItemHolder, _ := actor.(interfaces.IInventory)
 	actorStats, _ := actor.(interfaces.IStats)
 	if actorStats == nil || actorItemHolder == nil {
 		log.Printf("ERROR [%s]: Actor does not have IStats or IInventory, returning...", utils.GetFuncName())
@@ -97,7 +97,7 @@ func (a *MaintainAction) IsValidTarget(potentialTarget interfaces.IEntity) bool 
 }
 
 func (a *MaintainAction) IsValidActor(potentialActor interfaces.IEntity) bool {
-	itemHolder, _ := potentialActor.(types.IInventory)
+	itemHolder, _ := potentialActor.(interfaces.IInventory)
 	if itemHolder == nil {
 		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
@@ -123,7 +123,7 @@ func (a *MaintainAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
 	maintainable, _ := a.Target.(interfaces.IMaintainable)
 	maintainableStats, _ := a.Target.(interfaces.IStats)
-	itemHolder, _ := a.Actor.(types.IInventory);
+	itemHolder, _ := a.Actor.(interfaces.IInventory);
 	if itemHolder == nil || maintainableStats == nil || maintainable == nil {
 		log.Printf("ERROR [%s]: Invalid maintainable, returning...", utils.GetFuncName())
 		return true	// action is complete we have invalid actor or target

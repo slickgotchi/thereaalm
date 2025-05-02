@@ -13,23 +13,11 @@ type SellAction struct {
 	Action
 	Duration_s float64
 	Timer_s float64
-	TradeType string
+	// TradeType string
 }
 
 func NewSellAction(actor, target interfaces.IEntity, weighting float64,
 	fallbackTargetSpec *types.TargetSpec) *SellAction {
-
-	seller, _ := actor.(interfaces.IStats)
-	if seller == nil {
-		log.Println("ERROR: Selling actor does not have IStats, returning...")
-		return nil
-	}
-
-	sellDuration_s := 5	// we need to swap this for ESP stat calcs later
-	if sellDuration_s <= 0 {
-		log.Println("ERROR: Trading actor must have 'trade_duration_s' stat, returning...")
-		return nil
-	}
 
 	wm := actor.GetZone().GetWorldManager()
 	
@@ -41,9 +29,9 @@ func NewSellAction(actor, target interfaces.IEntity, weighting float64,
 			Target: target,
 			WorldManager: wm,
 		},
-		Duration_s: float64(sellDuration_s),
-		Timer_s: float64(sellDuration_s),
-		TradeType: "SellAllForGold",
+		Duration_s: 10,
+		Timer_s: 10,
+		// TradeType: "SellAllForGold",
 	}
 
 	a.SetFallbackTargetSpec(fallbackTargetSpec)
@@ -56,7 +44,7 @@ func (a *SellAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 		return false
 	}
 
-	respondingItemHolder, _ := potentialTarget.(types.IInventory) 
+	respondingItemHolder, _ := potentialTarget.(interfaces.IInventory) 
 	if respondingItemHolder == nil {
 		log.Printf("ERROR [%s]: Invalid actor, returning...", utils.GetFuncName())
 		return false	// action is complete we have invalid actor or target
@@ -72,7 +60,7 @@ func (a *SellAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 
 func (a *SellAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	// check actor and target are correct type
-	initiatingItemHolder, _ := potentialActor.(types.IInventory)
+	initiatingItemHolder, _ := potentialActor.(interfaces.IInventory)
 
 	// correct types?
 	if initiatingItemHolder == nil {
@@ -80,8 +68,8 @@ func (a *SellAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 		return false	// action is complete we have invalid actor or target
 	}
 
-	// has the initiator got any items?
-	if len(initiatingItemHolder.GetItemsExceptGold()) <= 0 {
+	// has the initiator got any sellable items?
+	if len(initiatingItemHolder.GetSellableItems()) <= 0 {
 		return false
 	}
 
@@ -95,68 +83,70 @@ func (a *SellAction) Start() {
 	a.TryMoveToTargetEntity(a.Target)
 }
 
-
-
 func (a *SellAction) Update(dt_s float64) bool {
 	// check actor and target are correct type
-	respondingItemHolder, _ := a.Target.(types.IInventory) 
-	initiatingItemHolder, _ := a.Actor.(types.IInventory)
-	if respondingItemHolder == nil || initiatingItemHolder == nil {
+	initiatingTrader, _ := a.Actor.(interfaces.ITrader)
+	respondingTrader, _ := a.Target.(interfaces.ITrader) 
+	if initiatingTrader == nil || respondingTrader == nil {
 		log.Printf("Invalid item holders passed to SellAction Update()")
+		return true
+	}
+
+	initiatingInventory, _ := a.Actor.(interfaces.IInventory)
+	respondingInventory, _ := a.Target.(interfaces.IInventory)
+	if initiatingInventory == nil || respondingInventory == nil {
+		log.Printf("Invalid invetory holder passed to SellAction Upadte()")
 		return true
 	}
 	
 	a.Timer_s -= dt_s
 	if a.Timer_s <= 0 {
-		// this is where we iterate over different trade types OR
-		// we insert custom logic from the holders that dictate
-		// what they have for sale, what price they want to sell/buy at etc.
-		if a.TradeType == "SellAllForGold" {
-			// add up all items that aren't gold
-			count := 0
-			allInitiatorItems := initiatingItemHolder.GetItems()
-			var filteredInitiatorItems []types.Item
-			for _, item := range allInitiatorItems {
-				if item.Name != "gold" {
-					count += item.Quantity
-					filteredInitiatorItems = append(filteredInitiatorItems, item)
-				} 
-			}
+		var isSuccess bool
 
-			var requestedItems []types.Item
-			requestedItems = append(requestedItems, types.Item{
-				Name: "gold",
-				Quantity: count * 5,
-			})
-
-			tradeOffer := types.TradeOffer{
-				SentItems: filteredInitiatorItems,
-				RequestedItems: requestedItems,
-			}
-
-			// make the trade offer
-			isAccepted := initiatingItemHolder.ProposeTrade(respondingItemHolder, tradeOffer)
-
-			// Check if the actor has an activity log
-			if activityLog, ok := a.Actor.(types.IActivityLog); ok {
-				var logEntry types.ActivityLogEntry
-				if isAccepted {
-					logEntry = types.ActivityLogEntry{
-						Description: fmt.Sprintf("Trade accepted: Sold %d items for %d gold", count, count*5),
-						LogTime:     time.Now(),
-					}
-				} else {
-					logEntry = types.ActivityLogEntry{
-						Description: "Trade rejected: No deal was made.",
-						LogTime:     time.Now(),
-					}
-				}
-				activityLog.NewLogEntry(logEntry)
-			}
-
-
+		// create initial sell offer
+		initialSellOffer, isSuccess := initiatingTrader.CreateSellOffer(respondingTrader)
+		if !isSuccess {
 			return true
 		}
+
+		// create counter sell offer
+		counterSellOffer, isSuccess := respondingTrader.CounterSellOffer(initiatingTrader, initialSellOffer)
+		if !isSuccess {
+			return true
+		}
+
+		// TEMPORARY: for now we just accept the counterSellOffer
+
+		// add GASP to seller, remove GASP from buyer
+		initiatingTrader.AddGASP(counterSellOffer.GASP)
+		respondingTrader.RemoveGASP(counterSellOffer.GASP)
+
+		// remove items from seller inventory, add to buyer inventory
+		itemCount := 0
+		for _, itemToSell := range counterSellOffer.ItemsToSell {
+			initiatingInventory.RemoveItem(itemToSell.Name, itemToSell.Quantity)
+			respondingInventory.AddItem(itemToSell.Name, itemToSell.Quantity)
+			itemCount += itemToSell.Quantity
+		}
+
+		// log activity
+		if activityLog, ok := a.Actor.(types.IActivityLog); ok {
+			var logEntry types.ActivityLogEntry
+			if isSuccess {
+				logEntry = types.ActivityLogEntry{
+					Description: fmt.Sprintf("Trade accepted: Sold %d items for %d GASP", itemCount, counterSellOffer.GASP),
+					LogTime:     time.Now(),
+				}
+			} else {
+				logEntry = types.ActivityLogEntry{
+					Description: "Trade rejected: No deal was made.",
+					LogTime:     time.Now(),
+				}
+			}
+			activityLog.NewLogEntry(logEntry)
+		}
+
+		return true
 	}
 
 	// did not complete so return false

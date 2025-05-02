@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 	"thereaalm/action"
+	"thereaalm/components"
 	"thereaalm/entity/entitystate"
 	"thereaalm/interfaces"
 	"thereaalm/stattypes"
@@ -19,7 +20,7 @@ import (
 type Gotchi struct {
     Entity
 	action.ActionPlan
-	types.Inventory
+	components.Inventory
 	Stats stattypes.Stats
 	GotchiId string
 	Name string
@@ -30,11 +31,12 @@ type Gotchi struct {
 	entitystate.State
 	BuffMultiplier float64       // Buff-specific multiplier
     LastBuffCheck  time.Duration // Last buff check time
+	GASP int
 }
 
 func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 	// add item holder
-	newItemHolder := types.NewInventory()
+	newItemHolder := components.NewInventory()
 
 	// check for invalid subgraph data (requiring a default gotchi be used)
 	if subgraphGotchiData.ID == "" {
@@ -82,6 +84,7 @@ func NewGotchi(x, y int, subgraphGotchiData web3.SubgraphGotchiData) *Gotchi {
 		State: entitystate.Active,
 		BuffMultiplier: 1.0,
         LastBuffCheck:  0,
+		GASP: 0,
     }
 }
 
@@ -103,6 +106,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		StakedGHST float64 `json:"stakedGhst"`
 		TreatTotal float64 `json:"treatAmount"`
 		Job string `json:"job"`
+		GASP int `json:"gasp"`
 	}{
 		Name: g.Name,
 		UUID: g.ID,
@@ -118,6 +122,7 @@ func (g *Gotchi) GetSnapshotData() interface{} {
 		State: g.State,
 		BuffMultiplier: g.BuffMultiplier,
 		Job: g.Job,
+		GASP: g.GASP,
 	}
 }
 
@@ -266,4 +271,83 @@ func GetBRSMultiplier(subgraphData web3.SubgraphGotchiData) float64 {
 	}
 
 	return float64(brs) / 500.0
+}
+
+////////////////////
+// ITrader functions
+////////////////////
+func (g *Gotchi) CreateBuyOffer(responder interfaces.ITrader) (
+	interfaces.BuyOffer, bool) {
+
+	var buyOffer interfaces.BuyOffer
+	return buyOffer, false
+}
+
+func (g *Gotchi) CounterBuyOffer(initiator interfaces.ITrader, buyOffer interfaces.BuyOffer) (
+	interfaces.BuyOffer, bool) {
+
+	var counterBuyOffer interfaces.BuyOffer
+	return counterBuyOffer, false
+}
+
+func (g *Gotchi) CreateSellOffer(responder interfaces.ITrader) (
+	interfaces.SellOffer, bool) {
+	
+	var sellOffer interfaces.SellOffer
+
+	entity, isEntity := responder.(interfaces.IEntity)
+	if !isEntity {
+		log.Println("Error: Propsed sale to non-entity")
+		return sellOffer, false
+	}
+
+	// TEMPORARY: Only trade with shops for now
+	if entity.GetType() == "shop" {
+		// get all sellable items and put together a sell offer
+		sellableItems := g.GetSellableItems()
+		sellPriceTargets := g.GetPriceTargets()
+
+		// create our sell offer
+		for _, sellableItem := range sellableItems {
+			sellOffer.ItemsToSell = append(sellOffer.ItemsToSell, sellableItem)
+			priceTargetForItem, exists := sellPriceTargets.SellTargets[sellableItem.Name]
+			if !exists {
+				// if no sell target, we default to the minimum of 1 GASP
+				sellOffer.GASP += sellableItem.Quantity * 1
+			} else {
+				sellOffer.GASP += sellableItem.Quantity * priceTargetForItem
+			}
+		}
+
+		return sellOffer, true
+	}
+
+	return sellOffer, false
+}
+
+func (g *Gotchi) CounterSellOffer(initiator interfaces.ITrader, sellOffer interfaces.SellOffer) (
+	interfaces.SellOffer, bool) {
+
+	var counterSellOffer interfaces.SellOffer
+	return counterSellOffer, false
+}
+
+func (g *Gotchi) GetPriceTargets() *interfaces.PriceTargets {
+
+	return nil
+}
+
+func (g *Gotchi) AddGASP(amount int) {
+	g.GASP += amount
+}
+
+func (g *Gotchi) RemoveGASP(amount int) {
+	g.GASP -= amount
+	if g.GASP < 0 {
+		g.GASP = 0
+	}
+}
+
+func (g *Gotchi) GetGASP() int {
+	return g.GASP
 }

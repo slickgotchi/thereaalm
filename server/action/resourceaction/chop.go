@@ -20,7 +20,7 @@ type ChopAction struct {
 
 func NewChopAction(actor, target interfaces.IEntity, weighting float64,
 		fallbackTargetSpec *types.TargetSpec) *ChopAction {
-	actorItemHolder, _ := actor.(types.IInventory)
+	actorItemHolder, _ := actor.(interfaces.IInventory)
 	actorStats, _ := actor.(interfaces.IStats)
 	if actorStats == nil || actorItemHolder == nil {
 		log.Printf("ERROR [%s]: Actor does not have IStats or IInventory, returning...", utils.GetFuncName())
@@ -81,7 +81,7 @@ func (a *ChopAction) IsValidTarget(potentialTarget interfaces.IEntity) bool {
 }
 
 func (a *ChopAction) IsValidActor(potentialActor interfaces.IEntity) bool {
-	itemHolder, _ := potentialActor.(types.IInventory);
+	itemHolder, _ := potentialActor.(interfaces.IInventory);
 
 	// actor and target of correct types?
 	if itemHolder == nil {
@@ -103,7 +103,7 @@ func (a *ChopAction) Start() {
 func (a *ChopAction) Update(dt_s float64) bool {
 	// check actor and target are of correct type
 	choppable, _ := a.Target.(types.IChoppable); 
-	itemHolder, _ := a.Actor.(types.IInventory);
+	itemHolder, _ := a.Actor.(interfaces.IInventory);
 	if itemHolder == nil || choppable == nil {
 		log.Printf("ERROR [%s]: Invalid actor or target, returning...", utils.GetFuncName())
 		return true	// action is complete we have invalid actor or target

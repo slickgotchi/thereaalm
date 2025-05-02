@@ -184,22 +184,28 @@ export class GotchiEntity extends TweenableEntity {
     protected updateDirection() {
         if (!this.textureSet) return;
         this.sprite.stop();
+
+        var newTexture = "";
+
         switch (this.direction) {
             case "left":
-                this.sprite.setTexture(this.textureSet.left);
+                newTexture = this.textureSet.left;
                 break;
             case "right":
-                this.sprite.setTexture(this.textureSet.right);
+                newTexture = this.textureSet.right;
                 break;
             case "up":
-                this.sprite.setTexture(this.textureSet.back);
+                newTexture = this.textureSet.back;
                 break;
             case "down":
             case "none":
             default:
-                this.sprite.setTexture(this.textureSet.front);
+                newTexture = this.textureSet.front;
                 break;
         }
+
+        this.sprite.setTexture(newTexture);
+        this.outlineEffect.changeTexure(newTexture);
     }
 
     renderDeathEffects() {

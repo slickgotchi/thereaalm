@@ -6,12 +6,14 @@ import ActionPlanModal from './ActionPlanModal';
 import ActivityLogModal from './ActivityLogModal';
 import './MenuSystem.css';
 import ESPModal from './ESPModal';
+import JobModal from './JobModal';
 
 // Import the icons (adjust paths as needed)
 var informationIconSrc = '/assets/icons/information-icon.png';
 var treatsIconSrc = '/assets/icons/treats-icon.png';
 var actionPlanIconSrc = '/assets/icons/action-plan-icon.png';
 var activityLogIconSrc = '/assets/icons/activity-log-icon.png';
+var jobIconSrc = '/assets/icons/briefcase-icon.png';
 
 // Define possible entity types
 // type EntityType = 'gotchi' | 'lickquidator' | 'location' | 'unknown';
@@ -55,6 +57,7 @@ const MenuSystem: React.FC<MenuSystemProps> = ({ selectedEntity, onClose }) => {
         { id: 'treats', icon: 'i', iconSrc: treatsIconSrc, component: <TreatModal entity={selectedEntity}/> },
         { id: 'action-plan', icon: 'A', iconSrc: actionPlanIconSrc, component: <ActionPlanModal entity={selectedEntity} /> },
         { id: 'activity-log', icon: 'L', iconSrc: activityLogIconSrc, component: <ActivityLogModal entity={selectedEntity} /> },
+        { id: 'job', icon: 'J', iconSrc: jobIconSrc, component: <JobModal entity={selectedEntity} />}
       ]
     : [
         { id: 'information', icon: '?', iconSrc: informationIconSrc, component: <InformationModal entity={selectedEntity} /> },
