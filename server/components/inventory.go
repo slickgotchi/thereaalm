@@ -35,21 +35,6 @@ func (inv *Inventory) GetItemsMap() *map[string]int {
     return &inv.Items
 }
 
-func (inv *Inventory) GetItemsExceptGold() []interfaces.Item {
-    var items []interfaces.Item
-
-    for name, quantity := range inv.Items {
-        if name != "gold" {
-            items = append(items, interfaces.Item{
-                Name: name,
-                Quantity: quantity,
-            })
-        }
-    }
-
-    return items
-}
-
 // AddItem adds a quantity of an item to the inventory
 func (inv *Inventory) AddItem(name string, quantity int) {
     inv.Items[name] += quantity

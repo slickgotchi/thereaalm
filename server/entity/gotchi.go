@@ -305,18 +305,21 @@ func (g *Gotchi) CreateSellOffer(responder interfaces.ITrader) (
 	if entity.GetType() == "shop" {
 		// get all sellable items and put together a sell offer
 		sellableItems := g.GetSellableItems()
-		sellPriceTargets := g.GetPriceTargets()
+		priceTargets := g.GetPriceTargets()
 
 		// create our sell offer
 		for _, sellableItem := range sellableItems {
 			sellOffer.ItemsToSell = append(sellOffer.ItemsToSell, sellableItem)
-			priceTargetForItem, exists := sellPriceTargets.SellTargets[sellableItem.Name]
-			if !exists {
-				// if no sell target, we default to the minimum of 1 GASP
-				sellOffer.GASP += sellableItem.Quantity * 1
-			} else {
-				sellOffer.GASP += sellableItem.Quantity * priceTargetForItem
+
+			targetPrice := 1
+			if priceTargets != nil {
+				priceTargetForItem, exists := priceTargets.SellTargets[sellableItem.Name]
+				if exists {
+					targetPrice = priceTargetForItem
+				}
 			}
+
+			sellOffer.GASP += sellableItem.Quantity * targetPrice
 		}
 
 		return sellOffer, true

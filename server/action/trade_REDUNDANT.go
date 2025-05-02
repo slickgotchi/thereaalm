@@ -75,7 +75,7 @@ func (a *TradeAction) IsValidActor(potentialActor interfaces.IEntity) bool {
 	}
 
 	// has items?
-	if len(initiatingItemHolder.GetItemsExceptGold()) <= 0 {
+	if len(initiatingItemHolder.GetSellableItems()) <= 0 {
 		return false
 	}
 

@@ -2,9 +2,16 @@
     /* border: solid yellow 1px; */
 
     position: fixed;
-    left: 0.5rem;
-    bottom: -5rem;
+    left: 0rem;
+    bottom: 0rem;
+
+    height: 16rem;
+    width: 32rem;
+
+
     z-index: 10000;
+
+    /* border: solid black 2px; */
 }
 
 @keyframes bob {
@@ -13,44 +20,88 @@
     100% { transform: translateY(0); }
   }
   
-  .gotchi-svg {
+.gotchi-svg {
     animation: bob 1s ease-in-out infinite;
-  }
+    position: absolute;
+
+    bottom: -4rem;
+    left: 0rem;
+    
+    width: 16rem;
+    height: 16rem;
+
+    /* border: solid white 2px; */
+}
 
 .gotchi-speech {
     position: absolute;
-    bottom: 256px;
-    left: 64px;
-    padding: 16px 24px;
+    bottom: 12rem;
+    width: 100%;
+    padding-bottom: 0.5rem;
+    /* left: 64px; */
+    /* padding: 1rem 1.5rem; */
+
+    /* border: solid blue 2px; */
 }
 
 .gotchi-emotion {
     position: absolute;
-    top: 32px;
-    left: 256px;
-    width: 48px;
-    height: 48px;
+    bottom: 8rem;
+    left: 16.5rem;
+    width: 3rem;
+    height: 3rem;
+
+    /* border: solid red 1px; */
 }
 
 .gotchi-action {
     position: absolute;
-    top: 32px;
-    left: 312px;
-    width: 48px;
-    height: 48px;
+    bottom: 8rem;
+    left: 20.5rem;
+    width: 3rem;
+    height: 3rem;
+
+    /* border: solid red 2px; */
 }
 
 .gotchi-esp {
     position: absolute;
-    left: 256px;
-    bottom: 5.5rem;
+    left: 16.5rem;
+    bottom: 2.5rem;
     
+    width: 16rem;
+    height: 5rem;
+
     display: flex;
     flex-flow: column nowrap;
     justify-content: start;
 
-    width: 256px;
 
-    gap: 4px;
+    gap: 0.25rem;
+
+    /* border: solid yellow 2px; */
 }
   
+
+.gotchi-gasp {
+    display: flex;
+    flex-flow: row nowrap;
+
+    
+    position: absolute;
+    bottom: 0.5rem;
+    left: 16.5rem;
+
+    height: 1.5rem;
+
+    color: white;
+    text-shadow: 
+    -1px -1px 0 #5d5d5d,  
+     1px -1px 0 #5d5d5d,
+    -1px  1px 0 #5d5d5d,
+     1px  1px 0 #5d5d5d;
+     font-size: 1.5rem;
+
+     /* border: solid red 2px; */
+}
+

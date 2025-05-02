@@ -33,6 +33,9 @@ export const GotchiHUD: React.FC<Props> = ({selectedGotchiEntity}) => {
   // emotion
   const [emotion, setEmotion] = useState("happy");
 
+  // gasp
+  const [gasp, setGasp] = useState(0);
+
   // check for gotchi entity selection
   useEffect(() => {
     if (!selectedGotchiEntity || selectedGotchiEntity.type !== "gotchi") return;
@@ -63,6 +66,9 @@ export const GotchiHUD: React.FC<Props> = ({selectedGotchiEntity}) => {
 
       // set emotion
       setEmotion("happy");
+
+      // set gasp
+      setGasp(selectedGotchiEntity?.data?.gasp);
     };
 
     fetchGotchiData();
@@ -125,6 +131,8 @@ export const GotchiHUD: React.FC<Props> = ({selectedGotchiEntity}) => {
   const emotionFrame = emotionFrameNumbers[emotion];
   const actionFrame = actionFrameNumbers[action];
 
+  const formattedGASP = gasp.toLocaleString("en-US")
+
   return (
     <div className="gotchi-hud">
       <div className="gotchi-speech">
@@ -159,6 +167,13 @@ export const GotchiHUD: React.FC<Props> = ({selectedGotchiEntity}) => {
           frameMargin={0}
           frameSpacing={0}
         />
+      </div>
+      <div className="gotchi-gasp">
+        <img 
+          style={{marginRight: "0.25rem"}}
+          src="/assets/icons/gasp-coin.png" 
+        />
+        {formattedGASP}
       </div>
       <div className="gotchi-esp">
         <StatBar label="Ecto" value={ecto} max={1000} color="#CA52C9" />
