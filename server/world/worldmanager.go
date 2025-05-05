@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"runtime"
 	"sync"
-	"thereaalm/action"
+	"thereaalm/action/combatactions"
 	"thereaalm/config"
 	"thereaalm/entity"
 	"thereaalm/entity/resourceentity"
@@ -422,17 +422,17 @@ func generateGenericLickquidator(wm *WorldManager, x, y int) {
 	lickquidator := entity.NewLickquidator(x, y)
 	wm.AddEntity(lickquidator)
 
-	lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.3,
+	lickquidator.AddActionToPlan(combatactions.NewAttackAction(lickquidator, nil, 0.3,
 		&types.TargetSpec{
 			TargetType: "gotchi",
 			TargetCriterion: "nearest",
 		}))
-	lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.3,
+	lickquidator.AddActionToPlan(combatactions.NewAttackAction(lickquidator, nil, 0.3,
 		&types.TargetSpec{
 			TargetType: "altar",
 			TargetCriterion: "nearest",
 		}))
-	lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.3,
+	lickquidator.AddActionToPlan(combatactions.NewAttackAction(lickquidator, nil, 0.3,
 		&types.TargetSpec{
 			TargetType: "shop",
 			TargetCriterion: "nearest",

@@ -2,7 +2,7 @@ package entity
 
 import (
 	"math/rand"
-	"thereaalm/action"
+	"thereaalm/action/combatactions"
 	"thereaalm/entity/entitystate"
 	"thereaalm/interfaces"
 	"thereaalm/stattypes"
@@ -109,12 +109,12 @@ func (e *LickVoid) generateGenericLickquidator(x, y int) interfaces.IEntity {
 	lickquidator := NewLickquidator(x, y)
 	e.GetWorldManager().AddEntity(lickquidator)
 
-	lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.5,
+	lickquidator.AddActionToPlan(combatactions.NewAttackAction(lickquidator, nil, 0.5,
 		&types.TargetSpec{
 			TargetType:      "gotchi",
 			TargetCriterion: "nearest",
 		}))
-	lickquidator.AddActionToPlan(action.NewAttackAction(lickquidator, nil, 0.5,
+	lickquidator.AddActionToPlan(combatactions.NewAttackAction(lickquidator, nil, 0.5,
 		&types.TargetSpec{
 			TargetType:      "altar",
 			TargetCriterion: "nearest",

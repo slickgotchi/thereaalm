@@ -2,6 +2,7 @@
 package world
 
 import (
+	// "log"
 	"math/rand"
 	"thereaalm/interfaces"
 	"thereaalm/utils"
@@ -20,6 +21,7 @@ type Zone struct {
     SpatialMap *SpatialHash
     WorldManager *WorldManager // Add reference to WorldManager
     ObstacleGrid [][]bool
+    ThreatLevel int
 }
 
 func NewZone(wm *WorldManager, id, width, height, x, y, cellSize int) *Zone {
@@ -39,6 +41,7 @@ func NewZone(wm *WorldManager, id, width, height, x, y, cellSize int) *Zone {
         SpatialMap: NewSpatialHash(cellSize),
         WorldManager: wm,
         ObstacleGrid: obstacleGrid,
+        ThreatLevel: 50,
     }
 }
 
@@ -75,16 +78,31 @@ func (z *Zone) RemoveEntity(e interfaces.IEntity) {
 
 // Update processes entity movement and updates spatial hash if needed
 func (z *Zone) Update(dt_s float64) {
+    enemyCount := 0
+
     for _, e := range z.Entities {
         oldX, oldY := e.GetPosition()
         e.Update(dt_s) // Allow entity to update itself
         newX, newY := e.GetPosition()
+        // log.Println(e.GetType())
+        if e.GetType() == "lickquidator" {
+            enemyCount++
+        }
 
         // If entity moved, update spatial hash
         if oldX != newX || oldY != newY {
             z.SpatialMap.Update(e)
         }
     }
+
+    // log.Println(enemyCount)
+    z.ThreatLevel = int(float64(enemyCount) / 1000 * 100)
+    // z.ThreatLevel = int(enemyCount/1000 * 100)
+    // log.Println(z.ThreatLevel)
+}
+
+func (z *Zone) GetThreatLevel() int {
+    return z.ThreatLevel
 }
 
 // checks if a world position is available

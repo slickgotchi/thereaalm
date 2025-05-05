@@ -9,6 +9,7 @@ import TreatModal from "./components/menu/TreatModal";
 import MenuSystem from "./components/menu/MenuSystem";
 import { eventBus } from "./utils/EventBus";
 import { GotchiHUD } from "./components/gotchi-hud/GotchiHUD";
+import ThreatMeter from "./components/threat-meter/ThreatMeter";
 
 function App() {
     const gameRef = useRef<Phaser.Game | null>(null);
@@ -16,6 +17,8 @@ function App() {
     const renderCount = useRef(0);
 
     const [selectedEntity, setSelectedEntity] = useState<{ type: string; [key: string]: any } | null>(null);
+    const [threatLevel, setThreatLevel] = useState(50);
+
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -54,6 +57,12 @@ function App() {
 
         eventBus.on("entitySelection", handleEntitySelection);
 
+        const handleSetThreatLevel = (data: { detail: any}) => {
+            // console.log("handle: ", data.detail);
+            setThreatLevel(data.detail);
+        }
+
+        eventBus.on("setThreatLevel", handleSetThreatLevel);
 
         // Cleanup on unmount
         return () => {
@@ -64,6 +73,7 @@ function App() {
             }
 
             eventBus.off("entitySelection", handleEntitySelection);
+            eventBus.off("setThreatLevel", handleSetThreatLevel);
 
         };
     }, []); // Empty dependency array ensures it only runs once
@@ -81,6 +91,7 @@ function App() {
             selectedGotchiEntity={selectedEntity}
         />
         }
+        <ThreatMeter ThreatLevel={threatLevel} />
         <div ref={containerRef} className="game-container" />
     </div>
     );

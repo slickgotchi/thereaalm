@@ -32,4 +32,6 @@ type IZone interface {
 	AddObstacle(x, y int)
 	RemoveObstacle(x, y int)
 	IsObstacle(x, y int) bool
+
+	GetThreatLevel() int
 }

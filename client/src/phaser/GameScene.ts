@@ -10,6 +10,7 @@ import { NavigationGrid } from "./navigation/NavigationGrid";
 import { SelectionManager } from "./SelectionManager";
 import { EmoticonEmitter } from "./emoticons/EmoticonEmitter";
 import { VFXManager } from "./VFXManager";
+import { eventBus } from "../utils/EventBus";
 
 export const TILE_PIXELS = 64;
 export const ZONE_TILES = 512;
@@ -113,12 +114,14 @@ export class GameScene extends Phaser.Scene {
 
         // Function to fetch and process zone snapshot
         const fetchAndProcessZone = () => {
-            // lets just focus on zone 36 (yield fields) initially
+            // lets just focus on zone 42 (yield fields) initially
             this.currentZoneIndex = 42;
 
             this.fetchZoneSnapshot(this.currentZoneIndex).then((data) => {
                 // console.log(data);
                 this.addOrUpdateEntities(this.currentZoneIndex, data);
+
+                
             });
             /*
             this.currentZoneIndex++;
@@ -157,6 +160,10 @@ export class GameScene extends Phaser.Scene {
                 `http://localhost:8080/zones/${zoneId}/snapshot`
             );
             const data = await response.json();
+
+            // 
+            eventBus.emit("setThreatLevel", {detail: data.threatlevel});
+
             // console.log(`Fetched zone ${zoneId} snapshot data:`, data); // Debug snapshot data
             return data.entitySnapshots || [];
         } catch (error) {
